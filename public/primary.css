@@ -1,0 +1,71 @@
+html {
+    color: var(--text);
+    background: var(--app-bg);
+    text-shadow: 0px 1px 1px #0008;
+    font-family: "DM Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; /* 4 */
+  }
+
+  code, kbd, samp, pre {
+    font-family: "DM Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; /* 1 */
+  }
+  
+  * {
+    writing-mode: inherit;
+    font-size: inherit;
+  }
+
+  button {
+    -webkit-appearance: none;
+    writing-mode: inherit !important;
+  }
+  
+  *::-webkit-scrollbar {
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+  
+  *::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+  }
+  
+  *::-webkit-scrollbar-track, *::-webkit-scrollbar-corner {
+    background: var(--layer1);
+    border: 1px solid var(--layer0);
+    border-radius: 9999px;
+  }
+  
+  *::-webkit-scrollbar-thumb {
+    background-color: var(--layer4);
+    border: 3px solid var(--layer1);
+
+  }
+  
+  table, td, th {
+    border: 1px solid var(--layer2);
+  }
+  
+  :root {
+    font-size: 16px;
+  }
+
+  #loader {
+    display: grid;
+    place-items: center;
+    width: 100vw;
+    height: 100vh;
+    -webkit-app-region: drag;
+  }
+  #loader > img {
+    grid-area: 1 / 1;
+    width: 100vmin;
+    height: 100vmin;
+  }
+
+  :root {
+    
+  }
+
+  hr {
+    border-color: var(--effect-border-highlight);
+    margin-block: 0.5em;
+  }

@@ -1,0 +1,725 @@
+:root {
+
+    --app-bg: hsl(0, 0%, 4%);
+
+    --FIXME: magenta;
+
+    --layer0: hsl(0, 0%, 12%);
+    --layer1: hsl(0, 0%, 16%);
+    --layer2: hsl(0, 0%, 21%);
+    --layer3: hsl(0, 0%, 25%);
+    --layer4: hsl(0, 0%, 30%);
+    --layer5: hsl(0, 0%, 35%);
+    --layer6: hsl(0, 0%, 40%);
+
+    --layer-dn: #0002;
+    --layer-up: #fff1;
+    
+    --layer-up-highlight: #ffffff19;
+    --layer-up-overlight: #ffffff22;
+
+    --effect-border-selected: #fff3;
+    --effect-border-focus: #fff4;
+    --effect-border-highlight: #fff2;
+    --effect-border-overlight: #fff6;
+    --effect-border-superlight: #fffc;
+    --effect-border-muted: #0003;
+    --effect-border-reduced: #0005;
+
+    --effect-bg-reduced: #0004;
+    --effect-bg-muted: #0001;
+    --effect-bg-highlight: #fff1;
+    --effect-bg-selected: #ffffff1a;
+    --effect-bg-overlight: #ffffff24;
+    --effect-bg-superlight: #ffffff32;
+
+    /* BLEND */
+    --blend-icon: screen;
+    --blend-decoration: screen;
+    --blend-button-icon: screen;
+
+    /* TEXT EFFECTS */
+
+    --text: #fffd;
+    --text-highlight: #ffff;
+    --text-muted: #fff9;
+    --text-inverse: #fff2;
+    --text-disabled: #fff6;
+    --text-disabled-muted: #fff3;
+
+    /* ICONS */
+
+    --icon-muted: #fff7;
+    --icon: #fffa;
+    --icon-highlight: #fffd;
+    --icon-disabled: #fff3;
+    --icon-disabled-checked: #fff4;
+    --icon-muted-solid: #777;
+    --icon-solid: #aaa;
+
+    /* INPUTS */
+
+    --input-background: #0005;
+    --input-placeholder: #fff6;
+    --input-text: #fff;
+    --input-text-selection: #fff3;
+    --input-dropdown-option: #111;
+
+    --disabled-input-background: hsl(0, 0%, 20%);
+    --disabled-input-text: #fff6;
+    --disabled-input-placeholder: #fff2;
+
+    --invalid-input-background: #f331;
+    --invalid-input-placeholder: #fcc8;
+    --invalid-input-text: #fcc;
+    --invalid-input-text-selection: #fcc3;
+    --invalid-input-border: #f66c;
+
+    /* BUTTON GLOBALS */
+
+    --button-text-reduced: #fff4;
+    --button-text-muted: #fff7;
+    --button-text: #fffc;
+    --button-text-highlight: #ffff;
+
+    --button-icon: #fff9;
+    --button-icon-muted: #fff5;
+
+    --disabled-button-text: #fff5;
+    --disabled-button-text-muted: #fff3;
+    --disabled-button: hsl(0, 0%, 25%);
+    --disabled-button-muted: hsl(0, 0%, 20%);
+
+    /* BARE GREY FLAVOUR */
+
+    --bare-text-muted: hsl(210, 0%, 55%);
+    --bare-text: hsl(210, 0%, 70%);
+    --bare-text-highlight: hsl(210, 0%, 80%);
+    --bare-text-overlight: white;
+    --bare-text-cursor:hsl(210, 0%, 30%);
+
+    --bare-icon: hsl(210, 0%, 65%);
+    --bare-icon-highlight: hsl(210, 0%, 85%);
+    --bare-icon-overlight: white;
+    
+    --bare-button-text: var(--button-text);
+    --bare-button-text-highlight: var(--button-text-highlight);
+    --bare-button-text-muted: var(--button-text-muted);
+    --bare-button-muted: hsl(210, 0%, 22%);
+    --bare-button: hsl(210, 0%, 30%);
+    --bare-button-highlight: hsl(210, 0%, 37%);
+    --bare-button-overlight: hsl(210, 0%, 45%);
+
+    --bare-effect-bg-highlight: hsla(210, 0%, 55%, 0.2);
+    --bare-effect-bg-overlight: hsla(210, 0%, 55%, 0.4);
+
+    /* ACCENT FLAVOUR */
+
+    --accent-text-muted: hsl(210, 13%, 55%);
+    --accent-text: hsl(210, 13%, 70%);
+    --accent-text-highlight: hsl(210, 13%, 80%);
+    --accent-text-overlight: white;
+    --accent-text-cursor:hsl(210, 13%, 30%);
+
+    --accent-icon: hsl(210, 25%, 65%);
+    --accent-icon-highlight: hsl(210, 26%, 82%);
+    --accent-icon-overlight: white;
+    
+    --accent-button-text: var(--button-text);
+    --accent-button-text-highlight: var(--button-text-highlight);
+    --accent-button-text-muted: var(--button-text-muted);
+    --accent-button-muted: hsl(210, 13%, 25%);
+    --accent-button: hsl(210, 13%, 33%);
+    --accent-button-highlight: hsl(210, 13%, 48%);
+    --accent-button-overlight: hsl(210, 13%, 52%);
+
+    --accent-effect-bg-highlight: hsla(210, 13%, 55%, 0.2);
+    --accent-effect-bg-overlight: hsla(210, 13%, 55%, 0.4);
+
+    /* EMPHASIS FLAVOUR */
+
+    --emphasis-text-muted: hsl(35, 60%, 65%);
+    --emphasis-text: hsl(35, 80%, 77%);
+    --emphasis-text-highlight: hsl(35, 80%, 85%);
+    --emphasis-text-overlight: white;
+    --emphasis-text-cursor:hsl(35, 44%, 30%);
+
+    --emphasis-icon: hsl(35, 100%, 67%);
+    --emphasis-icon-highlight: hsl(35, 85%, 85%);
+    --emphasis-icon-overlight: white;
+    
+    --emphasis-button-text: var(--button-text);
+    --emphasis-button-text-highlight: var(--button-text-highlight);
+    --emphasis-button-text-muted: var(--button-text-muted);
+    --emphasis-button-muted: hsl(35, 44%, 25%);
+    --emphasis-button: hsl(35, 44%, 33%);
+    --emphasis-button-highlight: hsl(35, 44%, 43%);
+    --emphasis-button-overlight: hsl(35, 44%, 53%);
+
+    --emphasis-effect-bg-highlight: hsla(35, 80%, 70%, 0.2);
+    --emphasis-effect-bg-overlight: hsla(35, 80%, 70%, 0.4);
+
+    /* DANGER FLAVOUR */
+
+    --danger-text-muted: hsl(4, 40%, 60%);
+    --danger-text: hsl(4, 40%, 75%);
+    --danger-text-highlight: hsl(4, 40%, 80%);
+    --danger-text-overlight: white;
+    --danger-text-cursor:hsl(4, 40%, 30%);
+
+    --danger-icon: hsl(4, 95%, 70%);
+    --danger-icon-highlight: hsl(4, 95%, 85%);
+    --danger-icon-overlight: white;
+    
+    --danger-button-text: var(--button-text);
+    --danger-button-text-highlight: var(--button-text-highlight);
+    --danger-button-text-muted: var(--button-text-muted);
+    --danger-button-muted: hsl(4, 44%, 35%);
+    --danger-button: hsl(4, 44%, 43%);
+    --danger-button-highlight: hsl(4, 44%, 53%);
+	  --danger-button-overlight: hsl(4, 44%, 63%);
+
+    --danger-effect-bg-highlight: hsla(4, 40%, 60%, 0.2);
+    --danger-effect-bg-overlight: hsla(4, 40%, 60%, 0.4);
+
+    /* CONFIRM FLAVOUR */
+
+    --confirm-text-muted: hsl(140, 45%, 60%);
+    --confirm-text: hsl(140, 45%, 75%);
+    --confirm-text-highlight: hsl(140, 45%, 85%);
+    --confirm-text-overlight: white;
+    --confirm-text-cursor:hsl(140, 11%, 30%);
+
+    --confirm-icon: hsl(140, 60%, 60%);
+    --confirm-icon-highlight: hsl(140, 60%, 80%);
+    --confirm-icon-overlight: white;
+    
+    --confirm-button-text: var(--button-text);
+    --confirm-button-text-highlight: var(--button-text-highlight);
+    --confirm-button-text-muted: var(--button-text-muted);
+    --confirm-button-muted: hsl(140, 22%, 33%);
+    --confirm-button: hsl(140, 22%, 38%);
+    --confirm-button-highlight: hsl(140, 22%, 48%);
+	--confirm-button-overlight: hsl(140, 22%, 58%);
+
+    --confirm-effect-bg-highlight: hsla(140, 11%, 60%, 0.2);
+    --confirm-effect-bg-overlight: hsla(140, 11%, 60%, 0.4);
+
+    /* INFO FLAVOUR */
+
+    --info-text-muted: hsl(215, 40%, 60%);
+    --info-text: hsl(215, 40%, 75%);
+    --info-text-highlight: hsl(215, 40%, 80%);
+    --info-text-overlight: white;
+    --info-text-cursor:hsl(215, 40%, 30%);
+
+    --info-icon: hsl(215, 100%, 70%);
+    --info-icon-highlight: hsl(215, 100%, 85%);
+    --info-icon-overlight: white;
+    
+    --info-button-text: var(--button-text);
+    --info-button-text-highlight: var(--button-text-highlight);
+    --info-button-text-muted: var(--button-text-muted);
+    --info-button-muted: hsl(215, 44%, 25%);
+    --info-button: hsl(215, 44%, 33%);
+    --info-button-highlight: hsl(215, 44%, 43%);
+	--info-button-overlight: hsl(215, 44%, 53%);
+
+    --info-effect-bg-highlight: hsla(215, 40%, 60%, 0.2);
+    --info-effect-bg-overlight: hsla(215, 40%, 60%, 0.4);
+
+    /* HELP FLAVOUR */
+
+    --help-text-muted: hsl(280, 24%, 55%);
+    --help-text: hsl(280, 24%, 75%);
+    --help-text-highlight: hsl(280, 24%, 80%);
+    --help-text-overlight: white;
+    --help-text-cursor:hsl(280, 24%, 30%);
+
+    --help-icon: hsl(280, 60%, 70%);
+    --help-icon-highlight: hsl(280, 60%, 85%);
+    --help-icon-overlight: white;
+    
+    --help-button-text: var(--button-text);
+    --help-button-text-highlight: var(--button-text-highlight);
+    --help-button-text-muted: var(--button-text-muted);
+    --help-button-muted: hsl(280, 30%, 25%);
+    --help-button: hsl(280, 30%, 33%);
+    --help-button-highlight: hsl(280, 30%, 43%);
+	--help-button-overlight: hsl(280, 30%, 53%);
+
+    --help-effect-bg-highlight: hsla(280, 24%, 55%, 0.2);
+    --help-effect-bg-overlight: hsla(280, 24%, 55%, 0.4);
+    
+    /* OLD STUFF */
+
+    --icon-file-image: #3b82f6;
+    --icon-file-3d: #22c55e;
+    --icon-file-zip: #f97316;
+    --icon-file-support: #f97316;
+    --icon-file-json: var(--icon-muted);
+    --icon-file-text: #f97316;
+    --icon-file-markdown: #f97316;
+    --icon-file-orynge: #ffb450;
+    --icon-file-pdf: #f55;
+    --icon-file-other: var(--icon-muted);
+
+    --bg-glass: #252525e0;
+
+    --glass-effect: blur(4px) saturate(30%) brightness(60%);
+    --modelcard-text-shadow: rgb(33 34 43 / 100%);
+}
+
+@media (prefers-color-scheme: light) {
+    :root {
+        --app-bg: #fff;
+
+        --layer0: hsl(0, 0%, 93%);
+        --layer1: hsl(0, 0%, 89%);
+        --layer2: hsl(0, 0%, 84%);
+        --layer3: hsl(0, 0%, 79%);
+        --layer4: hsl(0, 0%, 74%);
+        --layer5: hsl(0, 0%, 67%);
+        --layer6: hsl(0, 0%, 60%);
+
+        --effect-border-selected: #0006;
+        --effect-border-focus: #0008;
+        --effect-border-highlight: #0004;
+        --effect-border-overlight: #0008;
+        --effect-border-superlight: #000c;
+        --effect-border-muted: #fff4;
+        --effect-border-reduced: #fffa;
+
+        --effect-bg-highlight: #0001;
+        --effect-bg-selected: #0000001a;
+        --effect-bg-overlight: #00000024;
+        --effect-bg-superlight: #00000032;
+
+        /* BLEND */
+        --blend-icon: multiply;
+        --blend-decoration: multiply;
+        --blend-button-icon: multiply;
+
+        /* TEXT EFFECTS */
+
+        --text: #000d;
+        --text-highlight: #000f;
+        --text-muted: #0009;
+        --text-inverse: #fffd;
+        --text-disabled: #0006;
+        --text-disabled-muted: #0003;
+
+        /* ICONS */
+
+        --icon-muted: #0006;
+        --icon: #0009;
+        --icon-highlight: #000d;
+        --icon-disabled: #00000029;
+        --icon-disabled-checked: #0005;
+        --icon-muted-solid: #888;
+        --icon-solid: #aaa;
+
+        /* INPUTS */
+
+        --input-background: #0002;
+        --input-placeholder: #0006;
+        --input-text: #000;
+        --input-text-selection: #0001;
+        --input-dropdown-option: #ddd;
+
+        --disabled-input-background: hsl(0, 0%, 70%);
+        --disabled-input-text: #0007;
+        --disabled-input-placeholder: #0003;
+
+        --invalid-input-background: #f112;
+        --invalid-input-placeholder: #c004;
+        --invalid-input-text: #c33;
+        --invalid-input-text-selection: #fcc6;
+        --invalid-input-border: #f66c;
+
+        /* BUTTON GLOBALS */
+
+        --button-text-reduced: #fff3;
+        --button-text-muted: #fff6;
+        --button-text: #000b;
+        --button-text-highlight: #000f;
+
+        --button-icon: #000a;
+        --button-icon-muted: #0005;
+
+        --disabled-button-text: #0006;
+        --disabled-button-text-muted: #0003;
+        --disabled-button: hsl(0, 0%, 75%);
+        --disabled-button-muted: hsl(0, 0%, 85%);
+
+         /* BARE GREY */
+
+         --bare-text-muted: hsl(210, 0%, 70%);
+         --bare-text: hsl(210, 0%, 40%);
+         --bare-text-highlight: hsl(210, 0%, 30%);
+         --bare-text-overlight: white;
+         --bare-text-cursor:hsl(210, 0%, 30%);
+ 
+         --bare-icon: hsl(210, 0%, 55%);
+         --bare-icon-highlight: hsl(210, 0%, 35%);
+         --bare-icon-overlight: black;
+         
+         --bare-button-text: var(--button-text);
+         --bare-button-text-highlight: var(--button-text-highlight);
+         --bare-button-text-muted: var(--button-text-muted);
+         --bare-button-muted: hsl(210, 0%, 90%);
+         --bare-button: hsl(210, 0%, 80%);
+         --bare-button-highlight: hsl(210, 0%, 75%);
+         --bare-button-overlight: hsl(210, 0%, 70%);
+         
+         --bare-effect-bg-highlight: hsla(210, 0%, 55%, 0.2);
+         --bare-effect-bg-overlight: hsla(210, 0%, 55%, 0.4);
+
+        /* ACCENT FLAVOUR */
+
+        --accent-text-muted: hsl(210, 13%, 70%);
+        --accent-text: hsl(210, 13%, 40%);
+        --accent-text-highlight: hsl(210, 13%, 30%);
+        --accent-text-overlight: white;
+        --accent-text-cursor:hsl(210, 13%, 30%);
+
+        --accent-icon: hsl(210, 25%, 55%);
+        --accent-icon-highlight: hsl(210, 26%, 35%);
+        --accent-icon-overlight: black;
+        
+        --accent-button-text: var(--button-text);
+        --accent-button-text-highlight: var(--button-text-highlight);
+        --accent-button-text-muted: var(--button-text-muted);
+        --accent-button-muted: hsl(210, 13%, 67%);
+        --accent-button: hsl(210, 13%, 53%);
+        --accent-button-highlight: hsl(210, 13%, 40%);
+        --accent-button-overlight: hsl(210, 13%, 30%);
+		
+
+        --accent-effect-bg-highlight: hsla(210, 13%, 55%, 0.2);
+        --accent-effect-bg-overlight: hsla(210, 13%, 55%, 0.4);
+
+
+        /* EMPHASIS FLAVOUR */
+
+            /* L-down */
+
+        --emphasis-text-muted: hsl(35, 60%, 65%);
+        --emphasis-text: hsl(35, 70%, 45%);
+        --emphasis-text-highlight: hsl(35, 70%, 30%);
+        --emphasis-text-overlight: black;
+        --emphasis-text-cursor:hsl(35, 44%, 30%);
+
+            /* L-down */
+
+        --emphasis-icon: hsl(35, 70%, 57%);
+        --emphasis-icon-highlight: hsl(35, 70%, 45%);
+        --emphasis-icon-overlight: black;
+
+            /* L-up */
+        
+        --emphasis-button-text: var(--button-text);
+        --emphasis-button-text-highlight: var(--button-text-highlight);
+        --emphasis-button-text-muted: var(--button-text-muted);
+        --emphasis-button-muted: hsl(35, 32%, 65%);
+        --emphasis-button: hsl(35, 42%, 55%);
+        --emphasis-button-highlight: hsl(35, 44%, 45%);
+        --emphasis-button-overlight: hsl(35, 44%, 40%);
+
+        --emphasis-effect-bg-highlight: hsla(35, 80%, 60%, 0.2);
+        --emphasis-effect-bg-overlight: hsla(35, 80%, 60%, 0.4);
+
+        /* DANGER FLAVOUR */
+
+        --danger-text-muted: hsl(4, 40%, 65%);
+        --danger-text: hsl(4, 40%, 55%);
+        --danger-text-highlight: hsl(4, 40%, 45%);
+        --danger-text-overlight: black;
+        --danger-text-cursor:hsl(4, 40%, 30%);
+
+        --danger-icon: hsl(4, 60%, 50%);
+        --danger-icon-highlight: hsl(4, 60%, 30%);
+        --danger-icon-overlight: black;
+        
+        --danger-button-text: var(--button-text);
+        --danger-button-text-highlight: var(--button-text-highlight);
+        --danger-button-text-muted: var(--button-text-muted);
+        --danger-button-muted: hsl(4, 44%, 70%);
+        --danger-button: hsl(4, 44%, 60%);
+        --danger-button-highlight: hsl(4, 44%, 50%);
+        --danger-button-overlight: hsl(4, 44%, 40%);
+
+        --danger-effect-bg-highlight: hsla(4, 40%, 60%, 0.2);
+        --danger-effect-bg-overlight: hsla(4, 40%, 60%, 0.4);
+
+        /* CONFIRM FLAVOUR */
+
+        --confirm-text-muted: hsl(140, 30%, 50%);
+        --confirm-text: hsl(140, 30%, 40%);
+        --confirm-text-highlight: hsl(140, 30%, 20%);
+        --confirm-text-overlight: black;
+        --confirm-text-cursor:hsl(140, 11%, 30%);
+
+        --confirm-icon: hsl(140, 50%, 40%);
+        --confirm-icon-highlight: hsl(140, 50%, 25%);
+        --confirm-icon-overlight: black;
+        
+        --confirm-button-text: var(--button-text);
+        --confirm-button-text-highlight: var(--button-text-highlight);
+        --confirm-button-text-muted: var(--button-text-muted);
+        --confirm-button-muted: hsl(140, 22%, 62%);
+        --confirm-button: hsl(140, 22%, 52%);
+        --confirm-button-highlight: hsl(140, 22%, 45%);
+        --confirm-button-overlight: hsl(140, 22%, 35%);
+
+        --confirm-effect-bg-highlight: hsla(140, 11%, 60%, 0.2);
+        --confirm-effect-bg-overlight: hsla(140, 11%, 60%, 0.4);
+
+        /* INFO FLAVOUR */
+
+        --info-text-muted: hsl(215, 40%, 60%);
+        --info-text: hsl(215, 40%, 45%);
+        --info-text-highlight: hsl(215, 40%, 30%);
+        --info-text-overlight: black;
+        --info-text-cursor:hsl(215, 40%, 30%);
+
+        --info-icon: hsl(215, 70%, 60%);
+        --info-icon-highlight: hsl(215, 70%, 40%);
+        --info-icon-overlight: black;
+        
+        --info-button-text: var(--button-text);
+        --info-button-text-highlight: var(--button-text-highlight);
+        --info-button-text-muted: var(--button-text-muted);
+        --info-button-muted: hsl(215, 44%, 65%);
+        --info-button: hsl(215, 44%, 55%);
+        --info-button-highlight: hsl(215, 44%, 45%);
+        --info-button-overlight: hsl(215, 44%, 35%);
+
+        --info-effect-bg-highlight: hsla(215, 40%, 60%, 0.2);
+        --info-effect-bg-overlight: hsla(215, 40%, 60%, 0.4);
+
+        /* HELP FLAVOUR */
+
+        --help-text-muted: hsl(280, 24%, 60%);
+        --help-text: hsl(280, 24%, 45%);
+        --help-text-highlight: hsl(280, 24%, 30%);
+        --help-text-overlight: black;
+        --help-text-cursor:hsl(280, 24%, 30%);
+
+        --help-icon: hsl(280, 55%, 55%);
+        --help-icon-highlight: hsl(280, 55%, 35%);
+        --help-icon-overlight: black;
+        
+        --help-button-text: var(--button-text);
+        --help-button-text-highlight: var(--button-text-highlight);
+        --help-button-text-muted: var(--button-text-muted);
+        --help-button-muted: hsl(280, 25%, 65%);
+        --help-button: hsl(280, 25%, 55%);
+        --help-button-highlight: hsl(280, 25%, 45%);
+		--help-button-overlight: hsl(280, 30%, 35%);
+
+        --help-effect-bg-highlight: hsla(280, 24%, 55%, 0.2);
+        --help-effect-bg-overlight: hsla(280, 24%, 55%, 0.4);
+
+        --bg-glass: #ffffffe0;
+
+        --glass-effect: blur(4px) saturate(30%) brightness(50%);
+        --modelcard-text-shadow: transparent;
+    }
+    
+}
+
+
+.flavour-bare {
+    --flavour-text-muted: var(--bare-text-muted);
+    --flavour-text: var(--bare-text);
+    --flavour-text-highlight: var(--bare-text-highlight);
+    --flavour-text-overlight: var(--bare-text-overlight);
+    --flavour-text-cursor: var(--bare-text-cursor);
+    --flavour-icon: var(--bare-icon);
+    --flavour-icon-highlight: var(--bare-icon-highlight);
+    --flavour-icon-overlight: var(--bare-icon-overlight);
+    --flavour-button-text: var(--bare-button-text);
+    --flavour-button-text-highlight: var(--bare-button-text-highlight);
+    --flavour-button-text-muted: var(--bare-button-text-muted);
+    --flavour-button-muted: var(--bare-button-muted);
+    --flavour-button: var(--bare-button);
+    --flavour-button-highlight: var(--bare-button-highlight);
+    --flavour-button-overlight: var(--bare-button-overlight);
+    --flavour-effect-bg-highlight: var(--bare-effect-bg-highlight);
+    --flavour-effect-bg-overlight: var(--bare-effect-bg-overlight);
+}
+
+:root {
+    --flavour-text-muted: var(--accent-text-muted);
+    --flavour-text: var(--accent-text);
+    --flavour-text-highlight: var(--accent-text-highlight);
+    --flavour-text-overlight: var(--accent-text-overlight);
+    --flavour-text-cursor: var(--accent-text-cursor);
+    --flavour-icon: var(--accent-icon);
+    --flavour-icon-highlight: var(--accent-icon-highlight);
+    --flavour-icon-overlight: var(--accent-icon-overlight);
+    --flavour-button-text: var(--accent-button-text);
+    --flavour-button-text-highlight: var(--accent-button-text-highlight);
+    --flavour-button-text-muted: var(--accent-button-text-muted);
+    --flavour-button-muted: var(--accent-button-muted);
+    --flavour-button: var(--accent-button);
+    --flavour-button-highlight: var(--accent-button-highlight);
+    --flavour-button-overlight: var(--accent-button-overlight);
+    --flavour-effect-bg-highlight: var(--accent-effect-bg-highlight);
+    --flavour-effect-bg-overlight: var(--accent-effect-bg-overlight);
+}
+    
+.flavour-emphasis {
+    --flavour-text-muted: var(--emphasis-text-muted);
+    --flavour-text: var(--emphasis-text);
+    --flavour-text-highlight: var(--emphasis-text-highlight);
+    --flavour-text-overlight: var(--emphasis-text-overlight);
+    --flavour-text-cursor: var(--emphasis-text-cursor);
+    --flavour-icon: var(--emphasis-icon);
+    --flavour-icon-highlight: var(--emphasis-icon-highlight);
+    --flavour-icon-overlight: var(--emphasis-icon-overlight);
+    --flavour-button-text: var(--emphasis-button-text);
+    --flavour-button-text-highlight: var(--emphasis-button-text-highlight);
+    --flavour-button-text-muted: var(--emphasis-button-text-muted);
+    --flavour-button-muted: var(--emphasis-button-muted);
+    --flavour-button: var(--emphasis-button);
+    --flavour-button-highlight: var(--emphasis-button-highlight);
+    --flavour-button-overlight: var(--emphasis-button-overlight);
+    --flavour-effect-bg-highlight: var(--emphasis-effect-bg-highlight);
+    --flavour-effect-bg-overlight: var(--emphasis-effect-bg-overlight);
+}
+    
+.flavour-danger {
+    --flavour-text-muted: var(--danger-text-muted);
+    --flavour-text: var(--danger-text);
+    --flavour-text-highlight: var(--danger-text-highlight);
+    --flavour-text-overlight: var(--danger-text-overlight);
+    --flavour-text-cursor: var(--danger-text-cursor);
+    --flavour-icon: var(--danger-icon);
+    --flavour-icon-highlight: var(--danger-icon-highlight);
+    --flavour-icon-overlight: var(--danger-icon-overlight);
+    --flavour-button-text: var(--danger-button-text);
+    --flavour-button-text-highlight: var(--danger-button-text-highlight);
+    --flavour-button-text-muted: var(--danger-button-text-muted);
+    --flavour-button-muted: var(--danger-button-muted);
+    --flavour-button: var(--danger-button);
+    --flavour-button-highlight: var(--danger-button-highlight);
+    --flavour-button-overlight: var(--danger-button-overlight);
+    --flavour-effect-bg-highlight: var(--danger-effect-bg-highlight);
+    --flavour-effect-bg-overlight: var(--danger-effect-bg-overlight);
+}
+    
+.flavour-confirm {
+    --flavour-text-muted: var(--confirm-text-muted);
+    --flavour-text: var(--confirm-text);
+    --flavour-text-highlight: var(--confirm-text-highlight);
+    --flavour-text-overlight: var(--confirm-text-overlight);
+    --flavour-text-cursor: var(--confirm-text-cursor);
+    --flavour-icon: var(--confirm-icon);
+    --flavour-icon-highlight: var(--confirm-icon-highlight);
+    --flavour-icon-overlight: var(--confirm-icon-overlight);
+    --flavour-button-text: var(--confirm-button-text);
+    --flavour-button-text-highlight: var(--confirm-button-text-highlight);
+    --flavour-button-text-muted: var(--confirm-button-text-muted);
+    --flavour-button-muted: var(--confirm-button-muted);
+    --flavour-button: var(--confirm-button);
+    --flavour-button-highlight: var(--confirm-button-highlight);
+    --flavour-button-overlight: var(--confirm-button-overlight);
+    --flavour-effect-bg-highlight: var(--confirm-effect-bg-highlight);
+    --flavour-effect-bg-overlight: var(--confirm-effect-bg-overlight);
+}
+    
+.flavour-info {
+    --flavour-text-muted: var(--info-text-muted);
+    --flavour-text: var(--info-text);
+    --flavour-text-highlight: var(--info-text-highlight);
+    --flavour-text-overlight: var(--info-text-overlight);
+    --flavour-text-cursor: var(--info-text-cursor);
+    --flavour-icon: var(--info-icon);
+    --flavour-icon-highlight: var(--info-icon-highlight);
+    --flavour-icon-overlight: var(--info-icon-overlight);
+    --flavour-button-text: var(--info-button-text);
+    --flavour-button-text-highlight: var(--info-button-text-highlight);
+    --flavour-button-text-muted: var(--info-button-text-muted);
+    --flavour-button-muted: var(--info-button-muted);
+    --flavour-button: var(--info-button);
+    --flavour-button-highlight: var(--info-button-highlight);
+    --flavour-button-overlight: var(--info-button-overlight);
+    --flavour-effect-bg-highlight: var(--info-effect-bg-highlight);
+    --flavour-effect-bg-overlight: var(--info-effect-bg-overlight);
+}
+    
+.flavour-help {
+    --flavour-text-muted: var(--help-text-muted);
+    --flavour-text: var(--help-text);
+    --flavour-text-highlight: var(--help-text-highlight);
+    --flavour-text-overlight: var(--help-text-overlight);
+    --flavour-text-cursor: var(--help-text-cursor);
+    --flavour-icon: var(--help-icon);
+    --flavour-icon-highlight: var(--help-icon-highlight);
+    --flavour-icon-overlight: var(--help-icon-overlight);
+    --flavour-button-text: var(--help-button-text);
+    --flavour-button-text-highlight: var(--help-button-text-highlight);
+    --flavour-button-text-muted: var(--help-button-text-muted);
+    --flavour-button-muted: var(--help-button-muted);
+    --flavour-button: var(--help-button);
+    --flavour-button-highlight: var(--help-button-highlight);
+    --flavour-button-overlight: var(--help-button-overlight);
+    --flavour-effect-bg-highlight: var(--help-effect-bg-highlight);
+    --flavour-effect-bg-overlight: var(--help-effect-bg-overlight);
+}
+
+
+
+      #root {
+        height: 100%;
+        width: 100%;
+        isolation: isolate;
+      }
+      #modal-root,
+      #widget-root {
+        position: absolute;
+        inset: 0;
+        isolation: isolate;
+      }
+      #widget-root,
+      #modal-root {
+        pointer-events: none;
+      }
+      #widget-root > *,
+      #modal-root > * {
+        pointer-events: initial;
+      }
+      #modal-root:empty,
+      #widget-root:empty {
+        display: none;
+      }
+
+      body {
+        overflow: hidden;
+      }
+
+      *::selection {
+        background: var(--flavour-text-cursor);
+      }
+
+      td, th {
+        padding: 0.125rem 0.5rem;
+      }
+      
+      
+      
+
+      div {
+        
+      }
+      section {
+        display: flex;
+        flex-direction: column;
+      }
+      article {
+        min-height: 0;
+        overflow-y: scroll;
+
+      }

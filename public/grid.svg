@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="65" viewBox="0 0 65 65" preserveAspectRatio="xMidYMid slice">
+    <style>
+    .line {
+        fill: none;
+        stroke: #fff1;
+    }
+    </style>
+    <line class='line' x1="31.5" x2="31.5" y1="0" y2="100%" />
+    <line class='line' y1="31.5" y2="31.5" x1="0" x2="100%" />
+</svg>

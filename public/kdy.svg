@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="90" height="90" viewBox="0 0 90 90" preserveAspectRatio="xMidYMid slice">
+    <style>
+    @keyframes pulse {
+		from {
+			filter: drop-shadow(0 0 1px #fff2);
+		}
+		to {
+			filter: drop-shadow(0 0 8px #fff8);
+		}
+	}
+    .anim {
+		animation-name: pulse;
+        animation-timing-function: ease-in;
+        animation-direction: alternate;
+		animation-iteration-count: infinite;
+        --speed: 0.25;
+	}
+        .logo {
+            animation-duration: 2s;
+            fill: white;
+            transform: scale(50%);
+            transform-origin: center center;
+        }
+    </style>
+<path class='logo anim' d="M48.39132,10H76.5829V20.59763H58.56526V49.98474l18.01763,16.7871V79.99816L48.39132,53.71684ZM41.60868,53.71684,13.4171,80V66.77368l18.01763-16.7871V20.59763H13.4171V10H41.60868Z"/></svg>
