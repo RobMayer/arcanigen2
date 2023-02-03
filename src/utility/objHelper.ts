@@ -1,5 +1,5 @@
 const ObjHelper = {
-   remove: (obj: Record<string, any>, ...keys: (string | null | undefined)[]) => {
+   remove: (obj: Record<string, any>, ...keys: (string | undefined)[]) => {
       return keys.reduce((acc, k) => {
          if (k && k in acc) {
             const { [k]: toRem, ...rest } = acc;
@@ -8,7 +8,7 @@ const ObjHelper = {
          return acc;
       }, obj);
    },
-   modify: <T extends Record<string, any>>(obj: T, key: keyof T | null | undefined, cb: (val: T[keyof T]) => T[keyof T]) => {
+   modify: <T extends Record<string, any>>(obj: T, key: keyof T | undefined, cb: (val: T[keyof T]) => T[keyof T]) => {
       if (key && key in obj) {
          return { [key]: cb(obj[key]) };
       } else {

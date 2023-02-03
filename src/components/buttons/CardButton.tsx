@@ -1,4 +1,4 @@
-import { IconDefinition } from "@fortawesome/fontawesome-common-types";
+import { IconProp } from "@fortawesome/fontawesome-svg-core";
 import { forwardRef, ForwardedRef } from "react";
 import styled from "styled-components";
 import { Flavour } from "..";
@@ -16,7 +16,7 @@ const CardButton = styled(
             flavour = "accent",
             ...props
          }: {
-            icon: IconDefinition;
+            icon: IconProp;
             checked?: boolean;
             flavour?: Flavour;
          } & ButtonProps,

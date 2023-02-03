@@ -1,8 +1,10 @@
+import lodash from "lodash";
 import {
    createContext,
    ForwardedRef,
    forwardRef,
    HTMLAttributes,
+   memo,
    MutableRefObject,
    useCallback,
    useContext,
@@ -60,7 +62,7 @@ const Contents = styled(
    }
 `;
 
-const Wrapper = styled(
+const Wrapper = memo(styled(
    forwardRef(({ children, ...props }: HTMLAttributes<HTMLDivElement>, fRef: ForwardedRef<HTMLDivElement>) => {
       const [watched, setWatched] = useState<HTMLElement[]>([]);
       const [boundChildren, setBoundChildren] = useState<Element[]>([]);
@@ -68,9 +70,11 @@ const Wrapper = styled(
       const boundsRef = useRef<HTMLDivElement>(null);
       const anchorRef = useRef<HTMLDivElement>(null);
 
-      const [outerBounds, setOuterBounds] = useState("10px 10px 10px 10px");
-      const [innerVBounds, setInnerVBounds] = useState("20px 0px 0px 20px");
-      const [innerHBounds, setInnerHBounds] = useState("0px 20px 20px 0px");
+      const [bounds, setBounds] = useState<{ innerH: string; innerV: string; outer: string }>({
+         outer: "10px 10px 10px 10px",
+         innerH: "0px 20px 20px 0px",
+         innerV: "20px 0px 0px 20px",
+      });
 
       const value = useMemo(() => {
          return {
@@ -113,43 +117,50 @@ const Wrapper = styled(
          };
       }, [watched]);
 
-      const onIntersection = useCallback<IntersectionObserverCallback>(
-         (e: IntersectionObserverEntry[], observer) => {
-            const bb = boundChildren.reduce(
-               (acc, each) => {
-                  const ib = each.getBoundingClientRect();
-                  if (ib.width < 1 && ib.height < 1) {
-                     return acc;
-                  }
-                  return {
-                     top: Math.min(acc.top, ib.top),
-                     left: Math.min(acc.left, ib.left),
-                     right: Math.max(acc.right, ib.right),
-                     bottom: Math.max(acc.bottom, ib.bottom),
-                  };
-               },
-               { top: Infinity, left: Infinity, right: -Infinity, bottom: -Infinity }
-            );
-            if (bb.top !== Infinity && anchorRef.current && boundsRef.current) {
-               const wb = anchorRef.current.getBoundingClientRect();
-               boundsRef.current.style.left = bb.left - wb.left + "px";
-               boundsRef.current.style.top = bb.top - wb.top + "px";
-               boundsRef.current.style.width = bb.right - bb.left + "px";
-               boundsRef.current.style.height = bb.bottom - bb.top + "px";
-               setInnerVBounds(`${wb.top - bb.top + 10}px ${bb.right - wb.right - 5}px ${bb.bottom - wb.bottom + 10}px ${wb.left - bb.left - 5}px`);
-               setInnerHBounds(`${wb.top - bb.top - 5}px ${bb.right - wb.right + 10}px ${bb.bottom - wb.bottom - 5}px ${wb.left - bb.left + 10}px`);
-               setOuterBounds(`${wb.top - bb.top + 5}px ${bb.right - wb.right + 5}px ${bb.bottom - wb.bottom + 5}px ${wb.left - bb.left + 5}px`);
-            }
-         },
-         [boundChildren]
-      );
-
       useEffect(() => {
          const i = anchorRef.current;
          if (i) {
-            const innerVObserver = new IntersectionObserver(onIntersection, { root: i, rootMargin: innerVBounds, threshold: 1.0 });
-            const innerHObserver = new IntersectionObserver(onIntersection, { root: i, rootMargin: innerHBounds, threshold: 1.0 });
-            const outerObserver = new IntersectionObserver(onIntersection, { root: i, rootMargin: outerBounds, threshold: 1.0 });
+            const onIntersection = lodash.debounce(() => {
+               const bb = boundChildren.reduce(
+                  (acc, each) => {
+                     const ib = each.getBoundingClientRect();
+                     if (ib.width < 1 && ib.height < 1) {
+                        return acc;
+                     }
+                     return {
+                        top: Math.min(acc.top, ib.top),
+                        left: Math.min(acc.left, ib.left),
+                        right: Math.max(acc.right, ib.right),
+                        bottom: Math.max(acc.bottom, ib.bottom),
+                     };
+                  },
+                  { top: Infinity, left: Infinity, right: -Infinity, bottom: -Infinity }
+               );
+               if (bb.top !== Infinity && anchorRef.current && boundsRef.current) {
+                  const wb = anchorRef.current.getBoundingClientRect();
+                  boundsRef.current.style.left = bb.left - wb.left + "px";
+                  boundsRef.current.style.top = bb.top - wb.top + "px";
+                  boundsRef.current.style.width = bb.right - bb.left + "px";
+                  boundsRef.current.style.height = bb.bottom - bb.top + "px";
+
+                  const t = {
+                     outer: `${wb.top - bb.top + 5}px ${bb.right - wb.right + 5}px ${bb.bottom - wb.bottom + 5}px ${wb.left - bb.left + 5}px`,
+                     innerH: `${wb.top - bb.top - 5}px ${bb.right - wb.right + 10}px ${bb.bottom - wb.bottom - 5}px ${wb.left - bb.left + 10}px`,
+                     innerV: `${wb.top - bb.top + 10}px ${bb.right - wb.right - 5}px ${bb.bottom - wb.bottom + 10}px ${wb.left - bb.left - 5}px`,
+                  };
+
+                  setBounds((p) => {
+                     if (p.outer !== t.outer || p.innerH !== t.innerH || p.innerV !== t.innerV) {
+                        return t;
+                     }
+                     return p;
+                  });
+               }
+            }, 0);
+
+            const innerVObserver = new IntersectionObserver(onIntersection, { root: i, rootMargin: bounds.innerV, threshold: 1.0 });
+            const innerHObserver = new IntersectionObserver(onIntersection, { root: i, rootMargin: bounds.innerH, threshold: 1.0 });
+            const outerObserver = new IntersectionObserver(onIntersection, { root: i, rootMargin: bounds.outer, threshold: 1.0 });
             boundChildren.forEach((l) => {
                innerHObserver.observe(l);
                innerVObserver.observe(l);
@@ -161,7 +172,7 @@ const Wrapper = styled(
                outerObserver.disconnect();
             };
          }
-      }, [outerBounds, innerVBounds, innerHBounds, boundChildren, onIntersection]);
+      }, [bounds, boundChildren]);
 
       const createBoundsRef = useCallback(
          (el: HTMLDivElement) => {
@@ -191,7 +202,7 @@ const Wrapper = styled(
 )`
    width: max-content;
    height: max-content;
-`;
+`);
 
 type Exportable = typeof Wrapper & { Contents: typeof Contents };
 

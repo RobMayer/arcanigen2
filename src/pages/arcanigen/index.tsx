@@ -4,17 +4,20 @@ import Page from "!/components/layout/Page";
 import styled from "styled-components";
 // import NodeView from "./nodeView";
 import { HTMLAttributes } from "react";
+import NodeView from "./nodeView";
+import OutputView from "./outputView";
+import { ArcaneGraphProvider } from "./definitions/graph";
 // import OutputView from "./outputView";
 // import { StateProvider } from "./state";
 
 const ArcanigenPage = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) => {
    return (
-      //   <StateProvider>
-      <Page {...props}>
-         {/* <NodeView /> */}
-         {/* <OutputView /> */}
-      </Page>
-      //   </StateProvider>
+      <ArcaneGraphProvider>
+         <Page {...props}>
+            <NodeView />
+            <OutputView />
+         </Page>
+      </ArcaneGraphProvider>
    );
 })`
    display: grid;

@@ -1,7 +1,8 @@
 import { FontAwesomeIconProps, FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { memo } from "react";
 import styled from "styled-components";
 
-const Icon = styled(({ className, ...props }: FontAwesomeIconProps) => {
+const InternalIcon = styled(({ className, ...props }: FontAwesomeIconProps) => {
    return <FontAwesomeIcon className={`${className ?? ""} fa-fw`} {...props} />;
 })`
    position: relative;
@@ -18,5 +19,7 @@ const Icon = styled(({ className, ...props }: FontAwesomeIconProps) => {
       color: var(--flavour-icon);
    }
 `;
+
+const Icon = memo(InternalIcon);
 
 export default Icon;

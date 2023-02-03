@@ -1,4 +1,4 @@
-export default class EventBus<T extends { [key: string]: Record<any, any> }> {
+export default class EventBus<T extends { [key: string]: any }> {
    private bus = new EventTarget();
 
    constructor() {
