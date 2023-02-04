@@ -89,12 +89,7 @@ export const RootNodeRenderer = () => {
    useWhyDidYouUpdate("RootNodeRenderer", { h, w, Output: OutputRenderer, childNodeId });
 
    return (
-      <svg
-         width={`${w}px`}
-         height={`${h}px`}
-         viewBox={`${w / -2} ${h / -2} ${w} ${h}`}
-         style={{ backgroundColor: MathHelper.colorToHex(canvasColor, "#ffff") }}
-      >
+      <svg width={`${w}px`} height={`${h}px`} viewBox={`${w / -2} ${h / -2} ${w} ${h}`} style={{ backgroundColor: MathHelper.colorToHex(canvasColor) }}>
          {OutputRenderer && childNodeId && <OutputRenderer nodeId={childNodeId} />}
       </svg>
    );

@@ -336,6 +336,10 @@ const GraphHelper = {
    connect: (graph: IArcaneGraph, linkId: string, fromNode: string, fromSocket: string, toNode: string, toSocket: string, type: LinkTypes): IArcaneGraph => {
       const prevLink = graph.nodes?.[toNode].in?.[toSocket] ?? undefined;
 
+      if (prevLink) {
+         console.log(graph.nodes[graph.links[prevLink].fromNode].out, fromSocket);
+      }
+
       return {
          ...graph,
          nodes: {
@@ -346,7 +350,9 @@ const GraphHelper = {
                        ...graph.nodes[graph.links[prevLink].fromNode],
                        out: {
                           ...graph.nodes[graph.links[prevLink].fromNode].out,
-                          [graph.links[prevLink].fromSocket]: graph.nodes[graph.links[prevLink].fromNode].out[fromSocket].filter((l) => l !== prevLink),
+                          [graph.links[prevLink].fromSocket]: graph.nodes[graph.links[prevLink].fromNode].out[graph.links[prevLink].fromSocket].filter(
+                             (l) => l !== prevLink
+                          ),
                        },
                     },
                  }
