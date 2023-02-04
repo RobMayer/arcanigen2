@@ -194,6 +194,7 @@ const Signal = styled.div`
 
 const Pan = styled.div`
    position: absolute;
+   overflow: hidden;
    inset: 0;
    display: grid;
    place-items: center;

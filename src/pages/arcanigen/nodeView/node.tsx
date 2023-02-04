@@ -125,6 +125,12 @@ const BaseNode = ({ nodeId, children, nodeIcon, flavour, label, noRemove = false
       setIsOpen((p) => !p);
    }, []);
 
+   useEffect(() => {
+      if (mainRef.current) {
+         mainRef.current.style.zIndex = "5";
+      }
+   }, []);
+
    return (
       <MoveWrapper ref={mainRef} tabIndex={-1}>
          <Main {...props} className={isOpen ? "state-open" : "state-closed"}>
