@@ -1,17 +1,21 @@
 import useResizeObserver from "!/utility/hooks/useResizeObserver";
-import { ForwardedRef, forwardRef, HTMLAttributes, useCallback, useEffect, useRef, useState } from "react";
+import { ForwardedRef, forwardRef, HTMLAttributes, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 import styled from "styled-components";
 import BoundingBox from "./BoundingBox";
 import createFastContext from "!/utility/hooks/fastContext";
-import { MutableRefObject } from "react";
 import useIntersectionObserver from "!/utility/hooks/useIntersectionObserver";
 
 type DragCanvasValue = { zoom: number };
 
 const DragValueCTX = createFastContext<DragCanvasValue>({ zoom: 1 });
 
+export type DragCanvasControls = {
+   getElement: () => HTMLDivElement | null;
+   getZoom: () => number;
+};
+
 const Inner = styled(
-   forwardRef(({ children, className, ...props }: HTMLAttributes<HTMLDivElement>, fRef: ForwardedRef<HTMLDivElement>) => {
+   forwardRef(({ children, className, ...props }: HTMLAttributes<HTMLDivElement>, fRef: ForwardedRef<DragCanvasControls>) => {
       const [, setDragValue] = DragValueCTX.useFastContext<DragCanvasValue>((p) => p);
 
       const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -24,6 +28,15 @@ const Inner = styled(
       const boundsRef = useRef<HTMLDivElement>(null);
       const anchorRef = useRef<HTMLDivElement>(null);
       const centerRef = useRef<HTMLDivElement>(null);
+
+      useImperativeHandle(
+         fRef,
+         () => ({
+            getElement: () => outerRef.current,
+            getZoom: () => zoomRef.current,
+         }),
+         []
+      );
 
       const [isOutOfBounds, setIsOutOfBounds] = useState({
          borderTopColor: "transparent",
@@ -134,22 +147,8 @@ const Inner = styled(
          }
       }, [checkBounds]);
 
-      const createRef = useCallback(
-         (el: HTMLDivElement) => {
-            (outerRef as MutableRefObject<HTMLDivElement>).current = el;
-            if (fRef) {
-               if (typeof fRef === "function") {
-                  fRef(el);
-               } else {
-                  fRef.current = el;
-               }
-            }
-         },
-         [fRef]
-      );
-
       return (
-         <div className={`${className ?? ""} meta-dragcanvas ${isDragging ? "state-dragging" : ""}`} {...props} ref={createRef}>
+         <div className={`${className ?? ""} meta-dragcanvas ${isDragging ? "state-dragging" : ""}`} {...props} ref={outerRef}>
             <ScrollHandle ref={dragRef} />
             <Pan className={"gridded"} ref={panRef}>
                <Center ref={centerRef}>
@@ -173,7 +172,7 @@ const Inner = styled(
    isolation: isolate;
 `;
 
-const DragCanvas = forwardRef(({ children, ...props }: HTMLAttributes<HTMLDivElement>, fRef: ForwardedRef<HTMLDivElement>) => {
+const DragCanvas = forwardRef(({ children, ...props }: HTMLAttributes<HTMLDivElement>, fRef: ForwardedRef<DragCanvasControls>) => {
    return (
       <DragValueCTX.Provider>
          <Inner {...props} ref={fRef}>

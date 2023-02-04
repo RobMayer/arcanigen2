@@ -11,6 +11,8 @@ const initialState: IArcaneGraph = {
       ROOT: {
          nodeId: "ROOT",
          canvasColor: { r: 1, g: 1, b: 1, a: 1 },
+         canvasWidth: { value: 800, unit: "px" },
+         canvasHeight: { value: 800, unit: "px" },
          type: NodeTypes.RESULT,
          in: {
             result: null,
@@ -80,7 +82,7 @@ const useStoreData = () => {
       positionListeners.current.forEach((callback) => callback());
    }, []);
 
-   const set = useCallback(<T,>(lens: string) => {
+   const setLensed = useCallback(<T,>(lens: string) => {
       return (arg: T | ((previous: T) => T)) => {
          const prev = lodash.get(graphStore.current, lens) as T;
          graphStore.current = fp.set<IArcaneGraph>(lens, typeof arg === "function" ? (arg as (v: T) => T)(prev) : arg, graphStore.current);
@@ -88,12 +90,18 @@ const useStoreData = () => {
       };
    }, []);
 
-   const setPartial = useCallback(<T,>(lens: string) => {
+   const setPartialLens = useCallback(<T,>(lens: string) => {
       return (arg: Partial<T> | ((previous: T) => T)) => {
          const prev = lodash.get(graphStore.current, lens) as T;
          graphStore.current = fp.set<IArcaneGraph>(lens, typeof arg === "function" ? (arg as (v: T) => T)(prev) : { ...prev, ...arg }, graphStore.current);
          graphListeners.current.forEach((callback) => callback());
       };
+   }, []);
+
+   const setGraph = useCallback((arg: Partial<IArcaneGraph> | ((v: IArcaneGraph) => IArcaneGraph)) => {
+      const prev = graphStore.current;
+      graphStore.current = typeof arg === "function" ? arg(prev) : { ...graphStore.current, ...arg };
+      graphListeners.current.forEach((callback) => callback());
    }, []);
 
    return useMemo(
@@ -111,10 +119,11 @@ const useStoreData = () => {
             addNode,
             removeNode,
          },
-         set,
-         setPartial,
+         setGraph,
+         setLensed,
+         setPartialLens,
       }),
-      [addNode, connect, disconnect, getGraph, getPositions, removeNode, set, setPartial, setPosition, subToGraph, subToPos]
+      [addNode, connect, disconnect, getGraph, getPositions, removeNode, setLensed, setPartialLens, setPosition, subToGraph, subToPos, setGraph]
    );
 };
 
@@ -133,27 +142,35 @@ const nodeHooks = <T extends INodeDefinition>() => {
 
    const useInput = <K extends keyof T["inputs"]>(nodeId: string, socket: K) => {
       const store = useContext(StoreContext)!;
-      return useSyncExternalStore(store.subToGraph, () => getNodeInput<T, K>(store.getGraph(), nodeId, socket));
+
+      const linkId = useSyncExternalStore(store.subToGraph, () => store.getGraph().nodes[nodeId]?.in?.[socket as string]) ?? "";
+      const { fromNode, fromSocket } = useSyncExternalStore(store.subToGraph, () => store.getGraph().links[linkId]) ?? {};
+      const { type, nodeId: otherNode } = useSyncExternalStore(store.subToGraph, () => store.getGraph().nodes[fromNode]) ?? {};
+
+      if (type && otherNode) {
+         return (getNodeHelper(type) as INodeHelper<any>).getOutput(store.getGraph(), otherNode, fromSocket);
+      }
    };
 
-   const useInputNodeId = <K extends keyof T["inputs"]>(nodeId: string, socket: K) => {
+   const useInputNode = <K extends keyof T["inputs"]>(nodeId: string, socket: K) => {
       const store = useContext(StoreContext)!;
-      return useSyncExternalStore(store.subToGraph, () => {
-         const graph = store.getGraph();
-         const linkId = (graph.nodes?.[nodeId] as INodeInstance<T>)?.in?.[socket];
-         if (linkId) {
-            return graph.links?.[linkId]?.fromNode;
-         }
-      });
+
+      const linkId = useSyncExternalStore(store.subToGraph, () => store.getGraph().nodes[nodeId]?.in?.[socket as string]) ?? "";
+      const { fromNode, fromSocket } = useSyncExternalStore(store.subToGraph, () => store.getGraph().links[linkId]) ?? {};
+      const { type, nodeId: otherNode } = useSyncExternalStore(store.subToGraph, () => store.getGraph().nodes[fromNode]) ?? {};
+
+      if (type && otherNode) {
+         const res = (getNodeHelper(type) as INodeHelper<any>).getOutput(store.getGraph(), otherNode, fromSocket);
+         return [res, otherNode] as [typeof res, typeof otherNode];
+      }
+      return [];
    };
 
    const useCoalesce = <K extends keyof T["inputs"], J extends keyof T["values"]>(nodeId: string, socket: K, key: J) => {
-      const store = useContext(StoreContext)!;
+      const input = useInput<K>(nodeId, socket);
+      const value = useValue<J>(nodeId, key);
 
-      return useSyncExternalStore(store.subToGraph, () => {
-         const graph = store.getGraph();
-         return getNodeInput<T, K>(graph, nodeId, socket) ?? getNodeValue<T, J>(graph, nodeId, key);
-      });
+      return input ?? value;
    };
 
    const useValueState = <K extends keyof T["values"]>(nodeId: string, slot: K) => {
@@ -164,7 +181,7 @@ const nodeHooks = <T extends INodeDefinition>() => {
       });
 
       const set = useMemo(() => {
-         return store.set<T["values"][K]>(`nodes.${nodeId}.${slot as string}`);
+         return store.setLensed<T["values"][K]>(`nodes.${nodeId}.${slot as string}`);
       }, [store, nodeId, slot]);
 
       return [state, set] as [typeof state, typeof set];
@@ -179,13 +196,51 @@ const nodeHooks = <T extends INodeDefinition>() => {
       });
    };
 
+   const useAlterNode = (nodeId: string) => {
+      const store = useContext(StoreContext)!;
+
+      const node = useSyncExternalStore(store.subToGraph, () => store.getGraph().nodes[nodeId]);
+
+      const setNode = useMemo(() => {
+         return store.setPartialLens<INodeInstance<T>>(`nodes.${nodeId}`);
+      }, [store, nodeId]);
+
+      return [node, setNode, store.setGraph] as [INodeInstance<T>, typeof setNode, typeof store.setGraph];
+   };
+
    return {
       useValue,
       useValueState,
       useHasLink,
       useInput,
-      useInputNodeId,
+      useInputNode,
       useCoalesce,
+      useAlterNode,
+   };
+};
+
+const nodeMethods = <T extends INodeDefinition>() => {
+   const getValue = <K extends keyof T["values"]>(graph: IArcaneGraph, nodeId: string, key: K) => {
+      return getNodeValue<T, K>(graph, nodeId, key);
+   };
+
+   const getInput = <K extends keyof T["inputs"]>(graph: IArcaneGraph, nodeId: string, socket: K) => {
+      return getNodeInput<T, K>(graph, nodeId, socket);
+   };
+
+   const hasInput = <K extends keyof T["inputs"]>(graph: IArcaneGraph, nodeId: string, socket: K) => {
+      return !!(graph.nodes?.[nodeId] as INodeInstance<T>)?.in?.[socket];
+   };
+
+   const coalesce = <K extends keyof T["inputs"], J extends keyof T["values"]>(graph: IArcaneGraph, nodeId: string, socket: K, key: J) => {
+      return getNodeInput<T, K>(graph, nodeId, socket) ?? getNodeValue<T, J>(graph, nodeId, key);
+   };
+
+   return {
+      getValue,
+      getInput,
+      hasInput,
+      coalesce,
    };
 };
 
@@ -214,15 +269,19 @@ const useLinklist = () => {
 const useLinkWatcher = (fromNode: string, toNode: string) => {
    const store = useContext(StoreContext)!;
 
-   return useSyncExternalStore(store.subToGraph, () => {
-      const graph = store.getGraph();
-      const fN = graph.nodes[fromNode]?.out;
-      const tN = graph.nodes[toNode]?.in;
-      return [fN, tN] as [typeof fN, typeof tN];
+   const fromNodeOut = useSyncExternalStore(store.subToGraph, () => {
+      return store.getGraph().nodes[fromNode]?.out;
    });
+
+   const toNodeIn = useSyncExternalStore(store.subToGraph, () => {
+      return store.getGraph().nodes[toNode]?.in;
+   });
+
+   return [fromNodeOut, toNodeIn] as [typeof fromNodeOut, typeof toNodeIn];
 };
 
 const ArcaneGraph = {
+   nodeMethods,
    nodeHooks,
    useGraph,
    useNodelist,
@@ -244,7 +303,8 @@ const getNodeInput = <T extends INodeDefinition, K extends keyof T["inputs"]>(gr
       if (fromSocket && fromNode) {
          const { type } = graph.nodes?.[fromNode] ?? {};
          if (type) {
-            return (getNodeHelper(type) as INodeHelper<any>).getOutput(graph, fromNode, fromSocket) as T["inputs"][K];
+            const result = (getNodeHelper(type) as INodeHelper<any>).getOutput(graph, fromNode, fromSocket) as T["inputs"][K];
+            return result;
          }
       }
    }
@@ -278,8 +338,8 @@ const GraphHelper = {
          nodes: {
             ...graph.nodes,
             ...(prevLink
-               ? ObjHelper.modify(graph.nodes, fromNode, (prev) => {
-                    const s = graph.links[prevLink!].fromSocket;
+               ? ObjHelper.modify(graph.nodes, graph.links[prevLink].fromNode, (prev) => {
+                    const s = graph.links[prevLink].fromSocket;
                     return {
                        ...prev,
                        out: {

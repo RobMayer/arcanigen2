@@ -5,14 +5,14 @@ import MathHelper from "!/utility/mathhelper";
 import { Color, Length } from "!/utility/types/units";
 import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
-import BaseNode from "../node";
-import { SocketIn } from "../socket";
+import BaseNode from "../../nodeView/node";
+import { SocketIn } from "../../nodeView/socket";
 import { INodeDefinition, INodeHelper, NodeRenderer, NodeTypes, SocketTypes } from "../types";
 import { faFlagCheckered as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 
 interface IResultNode extends INodeDefinition {
    inputs: {
-      shape: NodeRenderer;
+      input: NodeRenderer;
       canvasColor: Color;
       canvasWidth: Length;
       canvasHeight: Length;
@@ -24,36 +24,33 @@ interface IResultNode extends INodeDefinition {
    };
 }
 
-const getHooks = () => {
-   return ArcaneGraph.nodeHooks<IResultNode>();
-};
+const nodeHelper = ArcaneGraph.nodeHooks<IResultNode>();
 
 const Controls = memo(({ nodeId }: { nodeId: string }) => {
-   const node = getHooks();
-   const [canvasColor, setCanvasColor] = node.useValueState(nodeId, "canvasColor");
-   const [canvasWidth, setCanvasWidth] = node.useValueState(nodeId, "canvasWidth");
-   const [canvasHeight, setCanvasHeight] = node.useValueState(nodeId, "canvasHeight");
+   const [canvasColor, setCanvasColor] = nodeHelper.useValueState(nodeId, "canvasColor");
+   const [canvasWidth, setCanvasWidth] = nodeHelper.useValueState(nodeId, "canvasWidth");
+   const [canvasHeight, setCanvasHeight] = nodeHelper.useValueState(nodeId, "canvasHeight");
 
-   const hasCanvasColor = node.useHasLink(nodeId, "canvasColor");
-   const hasCanvasWidth = node.useHasLink(nodeId, "canvasWidth");
-   const hasCanvasHeight = node.useHasLink(nodeId, "canvasHeight");
+   const hasCanvasColor = nodeHelper.useHasLink(nodeId, "canvasColor");
+   const hasCanvasWidth = nodeHelper.useHasLink(nodeId, "canvasWidth");
+   const hasCanvasHeight = nodeHelper.useHasLink(nodeId, "canvasHeight");
 
    return (
       <>
-         <SocketIn<IResultNode> type={SocketTypes.SHAPE} nodeId={nodeId} socketId={"shape"}>
-            Shape
+         <SocketIn<IResultNode> type={SocketTypes.SHAPE} nodeId={nodeId} socketId={"input"}>
+            Input
          </SocketIn>
          <SocketIn<IResultNode> type={SocketTypes.COLOR} nodeId={nodeId} socketId={"canvasColor"}>
             <BaseNode.Input label={"Canvas Color"}>
                <HexColorInput value={canvasColor} onValidCommit={setCanvasColor} disabled={hasCanvasColor} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IResultNode> type={SocketTypes.COLOR} nodeId={nodeId} socketId={"canvasWidth"}>
+         <SocketIn<IResultNode> type={SocketTypes.LENGTH} nodeId={nodeId} socketId={"canvasWidth"}>
             <BaseNode.Input label={"Canvas Width"}>
                <LengthInput value={canvasWidth} onChange={setCanvasWidth} disabled={hasCanvasWidth} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IResultNode> type={SocketTypes.COLOR} nodeId={nodeId} socketId={"canvasHeight"}>
+         <SocketIn<IResultNode> type={SocketTypes.LENGTH} nodeId={nodeId} socketId={"canvasHeight"}>
             <BaseNode.Input label={"Canvas Height"}>
                <LengthInput value={canvasHeight} onChange={setCanvasHeight} disabled={hasCanvasHeight} />
             </BaseNode.Input>
@@ -80,18 +77,16 @@ const ResultNodeHelper: INodeHelper<IResultNode> = {
 export default ResultNodeHelper;
 
 export const RootNodeRenderer = () => {
-   const node = getHooks();
-   const canvasColor = node.useCoalesce("ROOT", "canvasColor", "canvasColor");
-   const canvasHeight = node.useCoalesce("ROOT", "canvasHeight", "canvasHeight");
-   const canvasWidth = node.useCoalesce("ROOT", "canvasWidth", "canvasWidth");
+   const canvasColor = nodeHelper.useCoalesce("ROOT", "canvasColor", "canvasColor");
+   const canvasHeight = nodeHelper.useCoalesce("ROOT", "canvasHeight", "canvasHeight");
+   const canvasWidth = nodeHelper.useCoalesce("ROOT", "canvasWidth", "canvasWidth");
 
    const h = useMemo(() => MathHelper.lengthToPx(canvasHeight ?? { value: 800, unit: "px" }), [canvasHeight]);
    const w = useMemo(() => MathHelper.lengthToPx(canvasWidth ?? { value: 800, unit: "px" }), [canvasWidth]);
 
-   const Output = node.useInput("ROOT", "shape");
-   const childNodeId = node.useInputNodeId("ROOT", "shape");
+   const [OutputRenderer, childNodeId] = nodeHelper.useInputNode("ROOT", "input");
 
-   useWhyDidYouUpdate("RootNodeRenderer", { h, w, Output, childNodeId });
+   useWhyDidYouUpdate("RootNodeRenderer", { h, w, Output: OutputRenderer, childNodeId });
 
    return (
       <svg
@@ -100,7 +95,7 @@ export const RootNodeRenderer = () => {
          viewBox={`${w / -2} ${h / -2} ${w} ${h}`}
          style={{ backgroundColor: MathHelper.colorToHex(canvasColor, "#ffff") }}
       >
-         {Output && childNodeId && <Output nodeId={childNodeId} />}
+         {OutputRenderer && childNodeId && <OutputRenderer nodeId={childNodeId} />}
       </svg>
    );
 };

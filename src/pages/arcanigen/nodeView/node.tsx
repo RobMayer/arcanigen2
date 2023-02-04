@@ -6,8 +6,8 @@ import { IconProp } from "@fortawesome/fontawesome-svg-core";
 import { faCaretDown, faCaretRight, faClose } from "@fortawesome/pro-solid-svg-icons";
 import { HTMLAttributes, memo, ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import styled from "styled-components";
-import ArcaneGraph, { useNodePosition } from "./graph";
-import { useNodeGraphEventBus } from "../nodeView";
+import ArcaneGraph, { useNodePosition } from "../definitions/graph";
+import { useNodeGraphEventBus } from ".";
 import { useDragCanvasValue } from "!/components/containers/DragCanvas";
 
 type IProps = {
@@ -55,15 +55,15 @@ const BaseNode = ({ nodeId, children, nodeIcon, flavour, label, noRemove = false
 
    useEffect(() => {
       const n = mainRef.current;
-      const c = origin.current ?? document;
+      const c = origin.current;
       if (n && c) {
          n.style.zIndex = "auto";
          const handleMe = (e: CustomEvent<HTMLElement>) => {
             n.style.zIndex = e.detail !== n ? "auto" : "2";
          };
-         c.addEventListener("trh:dragmove", handleMe);
+         c.addEventListener("trh:dragpane.move", handleMe);
          return () => {
-            c.removeEventListener("trh:dragmove", handleMe);
+            c.removeEventListener("trh:dragpane.move", handleMe);
          };
       }
    }, [origin]);
@@ -98,12 +98,18 @@ const BaseNode = ({ nodeId, children, nodeIcon, flavour, label, noRemove = false
             document.removeEventListener("mouseup", up);
          };
          const down = (e: MouseEvent) => {
-            c.dispatchEvent(new CustomEvent<HTMLElement>("trh:dragmove", { detail: n }));
             document.addEventListener("mousemove", move);
             document.addEventListener("mouseup", up);
          };
+
+         const depther = () => {
+            c.dispatchEvent(new CustomEvent<HTMLElement>("trh:dragpane.move", { detail: m }));
+         };
+
          n.addEventListener("mousedown", down);
+         m.addEventListener("focusin", depther);
          return () => {
+            m.removeEventListener("focusin", depther);
             n.removeEventListener("mousedown", down);
             document.removeEventListener("mouseup", up);
             document.removeEventListener("mousemove", move);
@@ -120,7 +126,7 @@ const BaseNode = ({ nodeId, children, nodeIcon, flavour, label, noRemove = false
    }, []);
 
    return (
-      <MoveWrapper ref={mainRef}>
+      <MoveWrapper ref={mainRef} tabIndex={-1}>
          <Main {...props} className={isOpen ? "state-open" : "state-closed"}>
             <Label className={`flavour-${flavour}`}>
                <ProxySocket className={"in"} data-trh-graph-sockethost={nodeId} data-trh-graph-fallback={"in"} />

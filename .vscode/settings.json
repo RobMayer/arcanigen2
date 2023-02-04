@@ -1,0 +1,21 @@
+{
+  "[javascript]": {
+    // js
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.autoClosingBrackets": "beforeWhitespace"
+  },
+  "[typescript]": {
+    // ts
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.autoClosingBrackets": "beforeWhitespace"
+  },
+  "[typescriptreact]": {
+    // tsx
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.autoClosingBrackets": "beforeWhitespace"
+  },
+  "typescript.tsdk": "node_modules\\typescript\\lib"
+}

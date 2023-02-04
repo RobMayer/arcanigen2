@@ -1,0 +1,10 @@
+{
+   "Bind Class Methods": {
+      "prefix": ["bind"],
+      "body": ["this.$1 = this.$1.bind(this);"]
+   },
+   "Scope": {
+      "prefix": ["@scope"],
+      "body": ["/** @scope ${1:default} ${2:..} */"]
+   }
+}

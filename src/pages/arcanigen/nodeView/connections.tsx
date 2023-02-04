@@ -194,6 +194,10 @@ const WipConnection = () => {
    const zoomRef = useRef<number>(zoom);
 
    useEffect(() => {
+      zoomRef.current = zoom;
+   }, [zoom]);
+
+   useEffect(() => {
       const eb = eventBus.current;
       const o = origin.current;
       if (eb && o) {

@@ -1,9 +1,9 @@
 import { Flavour } from "!/components";
 import { HTMLAttributes, ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
-import { areSocketsCompatible } from "./graph";
-import { useNodeGraphEventBus } from "../nodeView";
-import { ConnectionEvent, INodeDefinition, LinkEvent, SocketTypes } from "./types";
+import { areSocketsCompatible } from "../definitions/graph";
+import { useNodeGraphEventBus } from ".";
+import { ConnectionEvent, INodeDefinition, LinkEvent, SocketTypes } from "../definitions/types";
 
 type IProps<T extends INodeDefinition, D extends "inputs" | "outputs"> = {
    nodeId: string;

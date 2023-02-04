@@ -1,0 +1,16 @@
+{
+    "Styled Div Component": {
+        "prefix": ["$div"],
+        "body": [
+            "const $1 = styled(({$2...props}: HTMLAttributes<HTMLDivElement>) => {",
+            "   ",
+            "   return <div {...props}>",
+            "   $3",
+            "   </div>",
+            "})`",
+            "$4",
+            "`;"
+        ],
+        "scope": "typescriptreact"
+    }
+}

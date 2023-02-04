@@ -4,12 +4,12 @@ import { ComponentType } from "react";
 
 export enum NodeTypes {
    RESULT = "result",
-   //    SHAPE_CIRCLE = "shapeCircle",
-   //    SHAPE_RING = "shapeRing",
-   //    SHAPE_POLYGON = "shapePolygon",
-   //    SHAPE_POLYGRAM = "shapePolygram",
-   //    SHAPE_STAR = "shapeStar",
-   //    SHAPE_BURST = "shapeBurst",
+   SHAPE_CIRCLE = "shapeCircle",
+   SHAPE_RING = "shapeRing",
+   SHAPE_POLYGON = "shapePolygon",
+   SHAPE_POLYGRAM = "shapePolygram",
+   SHAPE_STAR = "shapeStar",
+   SHAPE_BURST = "shapeBurst",
    COL_LAYERS = "collectionLayers",
    //    COL_MASK = "collectionMask",
    //    VALUE_COLOR = "valueColor",
@@ -76,8 +76,8 @@ export type INodeInstance<T extends INodeDefinition> = {
    };
 } & T["values"];
 
-export type NodeRenderer = (p: { nodeId: string }) => JSX.Element;
-export type NodeControls = (p: { nodeId: string }) => JSX.Element;
+export type NodeRenderer = ComponentType<{ nodeId: string }>;
+export type NodeControls = ComponentType<{ nodeId: string }>;
 
 export type OutSocketsOf<T extends INodeDefinition> = keyof T["outputs"];
 
@@ -89,7 +89,7 @@ export interface INodeHelper<T extends INodeDefinition> {
    readonly type: NodeTypes;
    initialize: () => T["values"];
    controls: ComponentType<{ nodeId: string }>;
-   getOutput: <K extends keyof T["outputs"]>(graph: IArcaneGraph, nodeId: string, socket: K) => T["outputs"][K];
+   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof T["outputs"]) => T["outputs"][typeof socket];
 }
 
 export type IArcaneGraph = {
@@ -142,5 +142,6 @@ export type StrokeJoinMode = keyof typeof STROKEJOIN_MODES;
 
 export const BLEND_MODES = {
    normal: "Normal",
+   multiply: "Multiply",
 };
 export type BlendMode = keyof typeof BLEND_MODES;

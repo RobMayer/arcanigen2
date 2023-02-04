@@ -1,6 +1,6 @@
 import CardButton from "!/components/buttons/CardButton";
 import BoundingBox from "!/components/containers/BoundingBox";
-import DragCanvas from "!/components/containers/DragCanvas";
+import DragCanvas, { DragCanvasControls } from "!/components/containers/DragCanvas";
 import Slideout from "!/components/containers/Slideout";
 import faBlank from "!/components/icons/faBlank";
 import EventBus from "!/utility/eventbus";
@@ -9,9 +9,10 @@ import { createContext, ReactNode, RefObject, useCallback, useContext, useEffect
 import styled from "styled-components";
 import { getNodeHelper } from "../definitions";
 import ArcaneGraph, { areSocketsCompatible } from "../definitions/graph";
-import BaseNode from "../definitions/node";
+import BaseNode from "./node";
 import { NodeMoveEvent, LinkEvent, ConnectionEvent, NodeTypes, LinkTypes, SocketTypes } from "../definitions/types";
 import ConnectionCanvas from "./connections";
+import useDroppable from "!/utility/hooks/useDroppable";
 
 type NodeGraphEvents = {
    [key: `node[${string}].move`]: NodeMoveEvent;
@@ -34,11 +35,31 @@ const EventCTX = createContext<
 
 const NodeView = () => {
    const origin = useRef<HTMLDivElement>(null);
-   const canvasRef = useRef<HTMLDivElement>(null);
+   const wrapperRef = useRef<HTMLDivElement>(null);
+   const canvasRef = useRef<DragCanvasControls>(null);
    const eventBus = useRef(new EventBus<NodeGraphEvents>());
 
    const { connect, addNode } = ArcaneGraph.useGraph();
    const nodes = ArcaneGraph.useNodelist();
+
+   useDroppable(
+      wrapperRef,
+      useMemo(
+         () => ({
+            "trh/new_node": [
+               "copy",
+               (type, ev) => {
+                  if (origin.current && canvasRef.current) {
+                     const obb = origin.current.getBoundingClientRect();
+                     const zoom = canvasRef.current.getZoom();
+                     addNode(type as NodeTypes, { x: ev.clientX / zoom - obb.left, y: ev.clientY / zoom - obb.top });
+                  }
+               },
+            ],
+         }),
+         [addNode]
+      )
+   );
 
    useEffect(() => {
       const n = origin.current;
@@ -96,16 +117,19 @@ const NodeView = () => {
    const handleAdd = useCallback(
       (type: NodeTypes) => {
          if (origin.current && canvasRef.current) {
-            const obb = origin.current.getBoundingClientRect();
-            const cbb = canvasRef.current.getBoundingClientRect();
+            const el = canvasRef.current.getElement();
+            if (el) {
+               const obb = origin.current.getBoundingClientRect();
+               const cbb = el.getBoundingClientRect();
+               const zoom = canvasRef.current.getZoom();
 
-            const at = {
-               x: cbb.left + cbb.width / 2 - obb.left,
-               y: cbb.top + cbb.height / 2 - obb.top,
-            };
-            console.log(at);
+               const at = {
+                  x: (cbb.left + cbb.width / 2) / zoom - obb.left,
+                  y: (cbb.top + cbb.height / 2) / zoom - obb.top,
+               };
 
-            addNode(type, at);
+               addNode(type, at);
+            }
          }
       },
       [addNode]
@@ -113,16 +137,18 @@ const NodeView = () => {
 
    return (
       <Wrapper>
-         <Canvas ref={canvasRef}>
-            <BoundingBox.Contents ref={origin}>
-               <EventCTX.Provider value={{ eventBus, origin }}>
-                  <ConnectionCanvas />
-                  {Object.values(nodes).map(({ nodeId, type }) => (
-                     <EachNode key={nodeId} nodeId={nodeId} type={type} />
-                  ))}
-               </EventCTX.Provider>
-            </BoundingBox.Contents>
-         </Canvas>
+         <CanvasWrapper ref={wrapperRef}>
+            <Canvas ref={canvasRef}>
+               <BoundingBox.Contents ref={origin}>
+                  <EventCTX.Provider value={{ eventBus, origin }}>
+                     <ConnectionCanvas />
+                     {Object.values(nodes).map(({ nodeId, type }) => (
+                        <EachNode key={nodeId} nodeId={nodeId} type={type} />
+                     ))}
+                  </EventCTX.Provider>
+               </BoundingBox.Contents>
+            </Canvas>
+         </CanvasWrapper>
          <Slideout label={"Options"} isOpen direction={"up"} size={"clamp(100px, 20vw, 400px)"}>
             <Grid>
                {NODE_BUTTONS.map((t) => {
@@ -142,6 +168,8 @@ const Wrapper = styled.div`
    display: grid;
    grid-template-rows: 1fr auto;
 `;
+
+const CanvasWrapper = styled.div``;
 
 const Canvas = styled(DragCanvas)`
    border: 1px solid var(--effect-border-highlight);
