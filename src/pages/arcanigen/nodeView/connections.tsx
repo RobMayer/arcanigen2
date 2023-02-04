@@ -1,5 +1,6 @@
 import { Flavour } from "!/components";
 import { useDragCanvasValue } from "!/components/containers/DragCanvas";
+import useResizeObserver from "!/utility/hooks/useResizeObserver";
 import useKey from "@accessible/use-key";
 import { HTMLAttributes, useMemo, useRef, useState, useCallback, useEffect } from "react";
 import styled from "styled-components";
@@ -57,7 +58,8 @@ const Connection = ({ linkId, fromNode, toNode, fromSocket, toSocket, type }: IL
    const { eventBus, origin } = useNodeGraphEventBus();
    const { disconnect } = ArcaneGraph.useGraph();
 
-   const [fNodeOut, tNodeIn] = ArcaneGraph.useLinkWatcher(fromNode, toNode);
+   const fromNodeRef = useRef<Element>();
+   const toNodeRef = useRef<Element>();
 
    const fromSocketRef = useRef<HTMLElement>();
    const toSocketRef = useRef<HTMLElement>();
@@ -93,12 +95,11 @@ const Connection = ({ linkId, fromNode, toNode, fromSocket, toSocket, type }: IL
       }
    }, [origin]);
 
-   // useEffect(() => {
-   //    redraw();
-   // }, [zoom, redraw, fNode.out, tNode.in, tNode.out, fNode.in]);
-
    const retarget = useCallback(() => {
       if (origin.current) {
+         fromNodeRef.current = origin.current.querySelector<Element>(`[data-trh-graph-node='${fromNode}']`) ?? undefined;
+         toNodeRef.current = origin.current.querySelector<Element>(`[data-trh-graph-node='${toNode}']`) ?? undefined;
+
          fromSocketRef.current =
             origin.current.querySelector<HTMLElement>(`[data-trh-graph-sockethost='${fromNode}'][data-trh-graph-socket='${fromSocket}']`) ??
             origin.current.querySelector<HTMLElement>(`[data-trh-graph-sockethost='${fromNode}'][data-trh-graph-proxy~='${fromSocket}']`) ??
@@ -109,36 +110,28 @@ const Connection = ({ linkId, fromNode, toNode, fromSocket, toSocket, type }: IL
             origin.current.querySelector<HTMLElement>(`[data-trh-graph-sockethost='${toNode}'][data-trh-graph-proxy~='${toSocket}']`) ??
             origin.current.querySelector<HTMLElement>(`[data-trh-graph-sockethost='${toNode}'][data-trh-graph-fallback='in']`) ??
             undefined;
+         redraw();
       }
-   }, [origin, fromSocket, toSocket, fromNode, toNode]);
+   }, [origin, fromSocket, toSocket, fromNode, toNode, redraw]);
 
    useEffect(() => {
       retarget();
-      redraw();
-   }, [retarget, redraw, fNodeOut, tNodeIn]);
+   }, [retarget]);
 
-   const [zoom] = useDragCanvasValue((p) => p.zoom);
-
-   useEffect(() => {
-      redraw();
-   }, [zoom, redraw]);
+   useResizeObserver(fromNodeRef, redraw);
+   useResizeObserver(toNodeRef, redraw);
 
    useEffect(() => {
       const eb = eventBus.current;
       if (eb) {
-         const handle = () => {
-            retarget();
-            redraw();
-         };
-
-         eb.subscribe(`node[${fromNode}].collapse`, handle);
-         eb.subscribe(`node[${toNode}].collapse`, handle);
+         eb.subscribe(`node[${fromNode}].collapse`, retarget);
+         eb.subscribe(`node[${toNode}].collapse`, retarget);
          return () => {
-            eb.unsub(`node[${fromNode}].collapse`, handle);
-            eb.unsub(`node[${toNode}].collapse`, handle);
+            eb.unsub(`node[${fromNode}].collapse`, retarget);
+            eb.unsub(`node[${toNode}].collapse`, retarget);
          };
       }
-   }, [eventBus, fromNode, toNode, retarget, redraw]);
+   }, [eventBus, fromNode, toNode, retarget]);
 
    useEffect(() => {
       const eb = eventBus.current;

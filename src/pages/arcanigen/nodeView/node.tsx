@@ -132,7 +132,7 @@ const BaseNode = ({ nodeId, children, nodeIcon, flavour, label, noRemove = false
    }, []);
 
    return (
-      <MoveWrapper ref={mainRef} tabIndex={-1}>
+      <MoveWrapper ref={mainRef} tabIndex={-1} data-trh-graph-node={nodeId}>
          <Main {...props} className={isOpen ? "state-open" : "state-closed"}>
             <Label className={`flavour-${flavour}`}>
                <ProxySocket className={"in"} data-trh-graph-sockethost={nodeId} data-trh-graph-fallback={"in"} />

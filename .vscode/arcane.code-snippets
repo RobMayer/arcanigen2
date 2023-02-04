@@ -35,6 +35,8 @@
          "  $13",
          "}",
          "",
+         "const nodeMethods = ArcaneGraph.nodeMethods<I$1>();",
+         "",
          "const $1Helper: INodeHelper<I$1> = {",
          "  name: \"$5\",",
          "  buttonIcon,",
@@ -57,7 +59,7 @@
       "body": [
          "import { memo } from \"react\";",
          "import ArcaneGraph from \"../graph\";",
-         "import { INodeDefinition, INodeHelper, NodeTypes } from \"../types\";",
+         "import { IArcaneGraph, INodeDefinition, INodeHelper, NodeTypes } from \"../types\";",
          "import MathHelper from \"!/utility/mathhelper\";",
          "",
          "import { $12 as nodeIcon } from \"@fortawesome/pro-solid-svg-icons\";",

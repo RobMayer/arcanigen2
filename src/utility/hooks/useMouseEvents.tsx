@@ -10,10 +10,6 @@ export enum MouseButton {
 
 const useMouseEvents = (el: RefObject<HTMLElement>, onMove?: (e: MouseEvent) => void, onStart?: (e: MouseEvent) => void, onEnd?: (e: MouseEvent) => void) => {
    useEffect(() => {
-      console.log("element in useMouseEvents did change");
-   }, [el]);
-
-   useEffect(() => {
       const n = el.current;
       if (n) {
          const move = (e: MouseEvent) => {

@@ -76,7 +76,6 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
 
 const Renderer = memo(({ nodeId }: { nodeId: string }) => {
    const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius");
-   console.log("radius", radius);
    const strokeWidth = nodeHelper.useCoalesce(nodeId, "strokeWidth", "strokeWidth");
    const strokeColor = nodeHelper.useCoalesce(nodeId, "strokeColor", "strokeColor");
    const fillColor = nodeHelper.useCoalesce(nodeId, "fillColor", "fillColor");

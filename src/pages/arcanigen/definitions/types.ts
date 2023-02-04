@@ -4,22 +4,29 @@ import { ComponentType } from "react";
 
 export enum NodeTypes {
    RESULT = "result",
+
    SHAPE_CIRCLE = "shapeCircle",
    SHAPE_RING = "shapeRing",
    SHAPE_POLYGON = "shapePolygon",
    SHAPE_POLYGRAM = "shapePolygram",
    SHAPE_STAR = "shapeStar",
    SHAPE_BURST = "shapeBurst",
+
    COL_LAYERS = "collectionLayers",
-   //    COL_MASK = "collectionMask",
-   //    VALUE_COLOR = "valueColor",
-   //    VALUE_LENGTH = "valueLength",
-   //    EFFECT_SKETCH = "effectSketch",
-   //    MATH_ADD = "mathAdd",
-   //    MATH_SUB = "mathSub",
-   //    MATH_MUL = "mathMul",
-   //    MATH_DIV = "mathDiv",
-   //    MATH_MOD = "mathMod",
+   COL_MASK = "collectionMask",
+
+   VALUE_COLOR_HEX = "valueColorHex",
+   VALUE_LENGTH = "valueLength",
+
+   EFFECT_BRUSH = "effectBrush",
+   EFFECT_PENCIL = "effectPencil",
+   EFFECT_PEN = "effectPen",
+
+   MATH_ADD = "mathAdd",
+   MATH_SUB = "mathSub",
+   MATH_MUL = "mathMul",
+   MATH_DIV = "mathDiv",
+   MATH_MOD = "mathMod",
 }
 
 export enum SocketTypes {

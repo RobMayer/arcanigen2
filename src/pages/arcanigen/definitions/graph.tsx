@@ -1,10 +1,11 @@
 import { createContext, ReactNode, useCallback, useContext, useMemo, useRef, useSyncExternalStore } from "react";
-import { IArcaneGraph, INodeDefinition, INodeHelper, INodeInstance, LinkTypes, NodeTypes, SocketTypes } from "./types";
+import { IArcaneGraph, INodeDefinition, INodeHelper, INodeInstance, LinkTypes, NodeRenderer, NodeTypes, SocketTypes } from "./types";
 import { v4 as uuid } from "uuid";
 import ObjHelper from "!/utility/objHelper";
 import fp from "lodash/fp";
 import lodash from "lodash";
 import { getNodeHelper } from ".";
+import useWhyDidYouUpdate from "!/utility/hooks/useWhyDidYouUpdate";
 
 const initialState: IArcaneGraph = {
    nodes: {
@@ -152,7 +153,7 @@ const nodeHooks = <T extends INodeDefinition>() => {
       }
    };
 
-   const useInputNode = <K extends keyof T["inputs"]>(nodeId: string, socket: K) => {
+   const useInputNode = <K extends keyof T["inputs"]>(nodeId: string, socket: K): [NodeRenderer, string] | [null, null] => {
       const store = useContext(StoreContext)!;
 
       const linkId = useSyncExternalStore(store.subToGraph, () => store.getGraph().nodes[nodeId]?.in?.[socket as string]) ?? "";
@@ -161,9 +162,9 @@ const nodeHooks = <T extends INodeDefinition>() => {
 
       if (type && otherNode) {
          const res = (getNodeHelper(type) as INodeHelper<any>).getOutput(store.getGraph(), otherNode, fromSocket);
-         return [res, otherNode] as [typeof res, typeof otherNode];
+         return [res, otherNode];
       }
-      return [];
+      return [null, null];
    };
 
    const useCoalesce = <K extends keyof T["inputs"], J extends keyof T["values"]>(nodeId: string, socket: K, key: J) => {
@@ -277,6 +278,8 @@ const useLinkWatcher = (fromNode: string, toNode: string) => {
       return store.getGraph().nodes[toNode]?.in;
    });
 
+   useWhyDidYouUpdate("useLinkWatcher", { fromNodeOut, toNodeIn });
+
    return [fromNodeOut, toNodeIn] as [typeof fromNodeOut, typeof toNodeIn];
 };
 
@@ -338,16 +341,15 @@ const GraphHelper = {
          nodes: {
             ...graph.nodes,
             ...(prevLink
-               ? ObjHelper.modify(graph.nodes, graph.links[prevLink].fromNode, (prev) => {
-                    const s = graph.links[prevLink].fromSocket;
-                    return {
-                       ...prev,
+               ? {
+                    [graph.nodes[graph.links[prevLink].fromNode].nodeId]: {
+                       ...graph.nodes[graph.links[prevLink].fromNode],
                        out: {
-                          ...prev.out,
-                          [s]: prev.out[s].filter((l) => l !== prevLink),
+                          ...graph.nodes[graph.links[prevLink].fromNode].out,
+                          [graph.links[prevLink].fromSocket]: graph.nodes[graph.links[prevLink].fromNode].out[fromSocket].filter((l) => l !== prevLink),
                        },
-                    };
-                 })
+                    },
+                 }
                : {}),
             [toNode]: {
                ...graph.nodes[toNode],
