@@ -1,5 +1,5 @@
 import { IconProp } from "@fortawesome/fontawesome-svg-core";
-import { faMagicWandSparkles, faEye, faCog } from "@fortawesome/pro-solid-svg-icons";
+import { faMagicWandSparkles } from "@fortawesome/pro-solid-svg-icons";
 import { HTMLAttributes, useCallback, MouseEvent } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import styled from "styled-components";
@@ -11,12 +11,9 @@ const Menu = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) => {
    return (
       <div {...props}>
          <Group>
-            <MenuButton icon={faMagicWandSparkles} to={"/arcanigen/"} />
+            <MenuButton icon={faMagicWandSparkles} to={"/magic-circle/"} />
          </Group>
-         <Group>
-            <MenuButton icon={faEye} to={"/sandbox/"} />
-            <MenuButton icon={faCog} to={"/elsewhere/"} />
-         </Group>
+         <Group></Group>
       </div>
    );
 })`

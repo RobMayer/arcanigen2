@@ -84,6 +84,9 @@ const LengthInput = styled(
    grid-template-columns: 1fr auto;
    & > .textinput {
       padding-inline: 0.25em;
+      min-width: 100%;
+      max-width: 0;
+      width: auto;
    }
    & > .textinput,
    & > .dropdown {
@@ -116,11 +119,14 @@ const LengthInput = styled(
    &:is(.slim) {
       padding: 0 0.125em;
    }
-   &:is(.small) > .textinput {
-      width: 6em;
+   &:is(.medium) {
+      width: 12em;
    }
-   &:is(.tiny) > .textinput {
-      width: 3em;
+   &:is(.small) {
+      width: 9em;
+   }
+   &:is(.tiny) {
+      width: 6em;
    }
    &:is(.inline) {
       display: inline-grid;

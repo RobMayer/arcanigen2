@@ -1,6 +1,6 @@
 import { memo } from "react";
 import ArcaneGraph from "../graph";
-import { IArcaneGraph, INodeDefinition, INodeHelper, NodeRenderer, NodeTypes, SocketTypes } from "../types";
+import { IArcaneGraph, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, NodeTypes, SocketTypes } from "../types";
 
 import { faPenAlt as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 import { faPenAlt as buttonIcon } from "@fortawesome/pro-light-svg-icons";
@@ -9,6 +9,7 @@ import NumberInput from "!/components/inputs/NumberInput";
 import { Length } from "!/utility/types/units";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
+import MathHelper from "!/utility/mathhelper";
 
 interface IPenEffectNode extends INodeDefinition {
    inputs: {
@@ -43,13 +44,15 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    const hasJitter = nodeHelper.useHasLink(nodeId, "jitter");
 
    return (
-      <>
+      <BaseNode<IPenEffectNode> nodeId={nodeId} helper={PenEffectNodeHelper}>
          <SocketOut<IPenEffectNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
+         <hr />
          <SocketIn<IPenEffectNode> nodeId={nodeId} socketId={"input"} type={SocketTypes.SHAPE}>
             Input
          </SocketIn>
+         <hr />
          <SocketIn<IPenEffectNode> nodeId={nodeId} socketId={"nib"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Pen Nib"}>
                <LengthInput value={nib} onChange={setNib} disabled={hasNib} />
@@ -70,11 +73,11 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
                <NumberInput value={seed} onValidValue={setSeed} disabled={hasSeed} step={1} min={0} />
             </BaseNode.Input>
          </SocketIn>
-      </>
+      </BaseNode>
    );
 });
 
-const Renderer = memo(({ nodeId }: { nodeId: string }) => {
+const Renderer = memo(({ nodeId, layer }: NodeRendererProps) => {
    const seed = nodeHelper.useCoalesce(nodeId, "seed", "seed");
    const nib = nodeHelper.useCoalesce(nodeId, "nib", "nib");
    const smudge = nodeHelper.useCoalesce(nodeId, "smudge", "smudge");
@@ -84,16 +87,16 @@ const Renderer = memo(({ nodeId }: { nodeId: string }) => {
    return (
       <>
          <g>
-            <filter id={`effect_${nodeId}`} filterUnits={"userSpaceOnUse"} x={"-100%"} y={"-100%"} width={"200%"} height={"200%"}>
+            <filter id={`effect_${nodeId}_lyr-${layer ?? ""}`} filterUnits={"userSpaceOnUse"} x={"-100%"} y={"-100%"} width={"200%"} height={"200%"}>
                <feTurbulence type="fractalNoise" baseFrequency={1} numOctaves="20" result="fractal" seed={seed} stitchTiles="stitch" />
                <feGaussianBlur stdDeviation={0.75} result="fractal" />
-               <feMorphology in="SourceGraphic" radius={(nib.value * nib.unit) / 4} operator="dilate" />
+               <feMorphology in="SourceGraphic" radius={MathHelper.lengthToPx(nib) / 4} operator="dilate" />
                <feDisplacementMap in2="fractal" scale={5 + jitter * 15} xChannelSelector="R" yChannelSelector="G" />
                <feGaussianBlur stdDeviation={smudge} result="fractal" />
-               <feMorphology radius={(nib.value * nib.unit) / 4} operator="erode" />
+               <feMorphology radius={MathHelper.lengthToPx(nib) / 4} operator="erode" />
                <feBlend in2="SourceGraphic" />
             </filter>
-            <g filter={`url('#effect_${nodeId}')`}>{Content && cId && <Content nodeId={cId} />}</g>
+            <g filter={`url('#effect_${nodeId}_lyr-${layer ?? ""}')`}>{Content && cId && <Content nodeId={cId} layer={(layer ?? "") + `_${nodeId}`} />}</g>
          </g>
       </>
    );

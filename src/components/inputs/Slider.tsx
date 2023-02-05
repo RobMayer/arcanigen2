@@ -50,7 +50,7 @@ const Slider = styled(
    display: inline-grid;
    align-items: center;
    justify-items: center;
-   grid-template-columns: 1fr 2em;
+   grid-template-columns: 1fr;
    & > .slider {
       justify-self: stretch;
       padding-block: 0.25rem;

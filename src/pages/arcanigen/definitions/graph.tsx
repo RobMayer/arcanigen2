@@ -6,6 +6,7 @@ import fp from "lodash/fp";
 import lodash from "lodash";
 import { getNodeHelper } from ".";
 import useWhyDidYouUpdate from "!/utility/hooks/useWhyDidYouUpdate";
+import { RootNodeRenderer } from "./values/resultNode";
 
 const initialState: IArcaneGraph = {
    nodes: {
@@ -68,6 +69,45 @@ const useStoreData = () => {
       graphListeners.current.forEach((callback) => callback());
    }, []);
 
+   const debug = useCallback(() => {
+      console.log({ ...graphStore.current, ...posStore.current });
+   }, []);
+
+   const reset = useCallback(() => {
+      graphStore.current = {
+         nodes: {
+            ROOT: {
+               ...getNodeHelper(NodeTypes.RESULT).initialize(),
+               type: NodeTypes.RESULT,
+               nodeId: "ROOT",
+            } as INodeInstance<any>,
+         },
+         links: {},
+      };
+      posStore.current = {
+         ROOT: posStore.current.ROOT,
+      };
+
+      graphListeners.current.forEach((callback) => callback());
+      positionListeners.current.forEach((callback) => callback());
+   }, []);
+
+   const save = useCallback(() => {
+      return {
+         version: "0.0.1",
+         nodes: graphStore.current.nodes,
+         links: graphStore.current.links,
+         positions: posStore.current,
+      };
+   }, []);
+
+   const load = useCallback(({ nodes, links, positions }: IArcaneGraph & { positions: IArcanePos }) => {
+      graphStore.current = { nodes, links };
+      posStore.current = positions;
+      graphListeners.current.forEach((callback) => callback());
+      positionListeners.current.forEach((callback) => callback());
+   }, []);
+
    const addNode = useCallback((type: NodeTypes, at?: { x: number; y: number }) => {
       const nodeId = uuid();
       graphStore.current = GraphHelper.append(graphStore.current, nodeId, type, getNodeHelper(type).initialize());
@@ -119,12 +159,33 @@ const useStoreData = () => {
             disconnect,
             addNode,
             removeNode,
+            debug,
+            save,
+            load,
+            reset,
          },
          setGraph,
          setLensed,
          setPartialLens,
       }),
-      [addNode, connect, disconnect, getGraph, getPositions, removeNode, setLensed, setPartialLens, setPosition, subToGraph, subToPos, setGraph]
+      [
+         addNode,
+         connect,
+         disconnect,
+         getGraph,
+         getPositions,
+         removeNode,
+         setLensed,
+         setPartialLens,
+         setPosition,
+         subToGraph,
+         subToPos,
+         setGraph,
+         load,
+         save,
+         debug,
+         reset,
+      ]
    );
 };
 
@@ -133,6 +194,14 @@ const StoreContext = createContext<ReturnType<typeof useStoreData> | null>(null)
 export const ArcaneGraphProvider = ({ children }: { children: ReactNode }) => {
    const s = useStoreData();
    return <StoreContext.Provider value={s}>{children}</StoreContext.Provider>;
+};
+
+const useDebugger = () => {
+   const store = useContext(StoreContext)!;
+
+   return useCallback(() => {
+      console.log(store.getGraph());
+   }, [store]);
 };
 
 const nodeHooks = <T extends INodeDefinition>() => {
@@ -144,27 +213,32 @@ const nodeHooks = <T extends INodeDefinition>() => {
    const useInput = <K extends keyof T["inputs"]>(nodeId: string, socket: K) => {
       const store = useContext(StoreContext)!;
 
-      const linkId = useSyncExternalStore(store.subToGraph, () => store.getGraph().nodes[nodeId]?.in?.[socket as string]) ?? "";
-      const { fromNode, fromSocket } = useSyncExternalStore(store.subToGraph, () => store.getGraph().links[linkId]) ?? {};
-      const { type, nodeId: otherNode } = useSyncExternalStore(store.subToGraph, () => store.getGraph().nodes[fromNode]) ?? {};
+      const graph = useSyncExternalStore(store.subToGraph, () => store.getGraph());
 
-      if (type && otherNode) {
-         return (getNodeHelper(type) as INodeHelper<any>).getOutput(store.getGraph(), otherNode, fromSocket);
-      }
+      // TODO: FIX MY RETURN - Needs to handle undefined possibility...
+      return useMemo(() => {
+         return getNodeInput<T, K>(graph, nodeId, socket);
+      }, [graph, nodeId, socket]) as T["inputs"][K];
    };
 
    const useInputNode = <K extends keyof T["inputs"]>(nodeId: string, socket: K): [NodeRenderer, string] | [null, null] => {
       const store = useContext(StoreContext)!;
 
-      const linkId = useSyncExternalStore(store.subToGraph, () => store.getGraph().nodes[nodeId]?.in?.[socket as string]) ?? "";
-      const { fromNode, fromSocket } = useSyncExternalStore(store.subToGraph, () => store.getGraph().links[linkId]) ?? {};
-      const { type, nodeId: otherNode } = useSyncExternalStore(store.subToGraph, () => store.getGraph().nodes[fromNode]) ?? {};
+      const graph = useSyncExternalStore(store.subToGraph, () => store.getGraph());
 
-      if (type && otherNode) {
-         const res = (getNodeHelper(type) as INodeHelper<any>).getOutput(store.getGraph(), otherNode, fromSocket);
-         return [res, otherNode];
-      }
-      return [null, null];
+      // TODO: FIX MY RETURN - Needs to handle undefined possibility...
+      const value = useMemo(() => {
+         return getNodeInput<T, K>(graph, nodeId, socket);
+      }, [graph, nodeId, socket]) as T["inputs"][K];
+
+      const otherNode = useMemo(() => {
+         const linkId = graph.nodes[nodeId]?.in?.[socket as string];
+         if (linkId) {
+            return graph.links[linkId].fromNode;
+         }
+      }, [graph, nodeId, socket]);
+
+      return [value, otherNode ?? null];
    };
 
    const useCoalesce = <K extends keyof T["inputs"], J extends keyof T["values"]>(nodeId: string, socket: K, key: J) => {
@@ -334,29 +408,16 @@ export const useNodePosition = (nodeId: string) => {
 
 const GraphHelper = {
    connect: (graph: IArcaneGraph, linkId: string, fromNode: string, fromSocket: string, toNode: string, toSocket: string, type: LinkTypes): IArcaneGraph => {
-      const prevLink = graph.nodes?.[toNode].in?.[toSocket] ?? undefined;
+      const prevLink = graph.nodes?.[toNode].in?.[toSocket];
 
       if (prevLink) {
-         console.log(graph.nodes[graph.links[prevLink].fromNode].out, fromSocket);
+         graph = GraphHelper.disconnect(graph, prevLink);
       }
 
       return {
          ...graph,
          nodes: {
             ...graph.nodes,
-            ...(prevLink
-               ? {
-                    [graph.nodes[graph.links[prevLink].fromNode].nodeId]: {
-                       ...graph.nodes[graph.links[prevLink].fromNode],
-                       out: {
-                          ...graph.nodes[graph.links[prevLink].fromNode].out,
-                          [graph.links[prevLink].fromSocket]: graph.nodes[graph.links[prevLink].fromNode].out[graph.links[prevLink].fromSocket].filter(
-                             (l) => l !== prevLink
-                          ),
-                       },
-                    },
-                 }
-               : {}),
             [toNode]: {
                ...graph.nodes[toNode],
                in: {
@@ -373,7 +434,7 @@ const GraphHelper = {
             },
          },
          links: {
-            ...ObjHelper.remove(graph.links, prevLink),
+            ...graph.links,
             [linkId]: {
                linkId,
                fromNode,
@@ -413,6 +474,9 @@ const GraphHelper = {
 
    remove: (graph: IArcaneGraph, nodeId: string): IArcaneGraph => {
       const links = Object.values(graph.nodes[nodeId].out).reduce((acc, each) => {
+         if (!each) {
+            console.warn("null or empty id found on", nodeId);
+         }
          return [...acc, ...each];
       }, Object.values(graph.nodes[nodeId].in));
 

@@ -206,3 +206,19 @@ html, body {
     min-height: 0;
   }
   
+
+  input[type=file] {
+    position: absolute;
+    inset: 0 0 0 0;
+    opacity: 0;
+}
+
+input[type=file], /* FF, IE7+, chrome (except button) */
+input[type=file]::-webkit-file-upload-button { /* chromes and blink button */
+    cursor: pointer;
+}
+
+input[type=file]:disabled, /* FF, IE7+, chrome (except button) */
+input[type=file]:disabled::-webkit-file-upload-button { /* chromes and blink button */
+    cursor: default;
+}

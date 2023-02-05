@@ -1,5 +1,5 @@
 import { v4 as uuid } from "uuid";
-import { INodeDefinition, NodeRenderer, INodeHelper, NodeTypes, BlendMode, INodeInstance, BLEND_MODES, SocketTypes } from "../types";
+import { INodeDefinition, NodeRenderer, INodeHelper, NodeTypes, BlendMode, INodeInstance, BLEND_MODES, SocketTypes, NodeRendererProps } from "../types";
 import { faClose, faLayerGroup as nodeIcon, faPlus } from "@fortawesome/pro-solid-svg-icons";
 import { faLayerGroup as buttonIcon } from "@fortawesome/pro-light-svg-icons";
 import ArcaneGraph from "../graph";
@@ -104,13 +104,16 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    );
 
    return (
-      <>
+      <BaseNode<ILayersNode> nodeId={nodeId} helper={LayersNodeHelper}>
+         <SocketOut<ILayersNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
+            Output
+         </SocketOut>
+         <hr />
          <BaseNode.Input>
             <ActionButton className={"slim"} onClick={addLayer}>
                <Icon icon={faPlus} /> Add Layer
             </ActionButton>
          </BaseNode.Input>
-         <hr />
          {node.sockets.map((id, i) => {
             return (
                <SocketIn<ILayersNode> nodeId={nodeId} socketId={id} type={SocketTypes.SHAPE} key={id}>
@@ -133,27 +136,23 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
                </SocketIn>
             );
          })}
-         <hr />
-         <SocketOut<ILayersNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
-            Output
-         </SocketOut>
-      </>
+      </BaseNode>
    );
 });
 
-const Renderer = memo(({ nodeId }: { nodeId: string }) => {
+const Renderer = memo(({ nodeId, layer }: NodeRendererProps) => {
    const sockets = nodeHelper.useValue(nodeId, "sockets") ?? [];
    const modes = nodeHelper.useValue(nodeId, "modes") ?? {};
    return (
       <g>
-         {sockets.map((sId) => {
-            return <Each key={sId} nodeId={nodeId} socketId={sId} blendMode={modes[sId]} />;
+         {sockets.map((sId, i) => {
+            return <Each key={sId} nodeId={nodeId} socketId={sId} blendMode={modes[sId]} layer={(layer ?? "") + `_${nodeId}.${i}`} />;
          })}
       </g>
    );
 });
 
-const Each = ({ nodeId, socketId, blendMode }: { nodeId: string; socketId: string; blendMode: BlendMode }) => {
+const Each = ({ nodeId, socketId, blendMode, layer }: { nodeId: string; socketId: string; blendMode: BlendMode; layer: string }) => {
    const [Comp, childId] = nodeHelper.useInputNode(nodeId, socketId);
    const styles = useMemo(
       () => ({
@@ -162,7 +161,7 @@ const Each = ({ nodeId, socketId, blendMode }: { nodeId: string; socketId: strin
       [blendMode]
    );
 
-   return <g style={styles}>{Comp && childId && <Comp nodeId={childId} />}</g>;
+   return <g style={styles}>{Comp && childId && <Comp nodeId={childId} layer={layer} />}</g>;
 };
 
 const LayersNodeHelper: INodeHelper<ILayersNode> = {

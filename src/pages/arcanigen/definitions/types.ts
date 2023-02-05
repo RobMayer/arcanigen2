@@ -11,12 +11,18 @@ export enum NodeTypes {
    SHAPE_POLYGRAM = "shapePolygram",
    SHAPE_STAR = "shapeStar",
    SHAPE_BURST = "shapeBurst",
+   SHAPE_ARC = "shapeArc",
+   SHAPE_FLOODFILL = "shapeFloodFill",
 
    COL_LAYERS = "collectionLayers",
    COL_MASK = "collectionMask",
 
+   ARRAY_VERTEX = "arrayVertex",
+   ARRAY_SPIRAL = "arraySpiral",
+
    VALUE_COLOR_HEX = "valueColorHex",
    VALUE_LENGTH = "valueLength",
+   VALUE_RANDOM = "valueRandom",
 
    EFFECT_BRUSH = "effectBrush",
    EFFECT_PENCIL = "effectPencil",
@@ -27,6 +33,9 @@ export enum NodeTypes {
    MATH_MUL = "mathMul",
    MATH_DIV = "mathDiv",
    MATH_MOD = "mathMod",
+   MATH_ABS = "mathAbs",
+
+   CONVERT_LENGTH = "convertToLength",
 }
 
 export enum SocketTypes {
@@ -83,8 +92,8 @@ export type INodeInstance<T extends INodeDefinition> = {
    };
 } & T["values"];
 
-export type NodeRenderer = ComponentType<{ nodeId: string }>;
-export type NodeControls = ComponentType<{ nodeId: string }>;
+export type NodeRendererProps = { nodeId: string; layer: string };
+export type NodeRenderer = ComponentType<NodeRendererProps>;
 
 export type OutSocketsOf<T extends INodeDefinition> = keyof T["outputs"];
 

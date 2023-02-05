@@ -60,9 +60,8 @@ const Button = styled(
 )`
    display: inline-flex;
    align-items: center;
-   cursor: pointer;
-   &.state-inactive {
-      cursor: default;
+   &:not(.state-inactive) {
+      cursor: pointer;
    }
    &.state-disabled {
       cursor: default;

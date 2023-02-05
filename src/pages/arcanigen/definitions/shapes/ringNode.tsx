@@ -1,6 +1,6 @@
 import { memo } from "react";
 import ArcaneGraph from "../graph";
-import { INodeDefinition, INodeHelper, NodeRenderer, NodeTypes, RadialMode, RADIAL_MODES, SocketTypes } from "../types";
+import { INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, NodeTypes, RadialMode, RADIAL_MODES, SocketTypes } from "../types";
 import MathHelper from "!/utility/mathhelper";
 import { faCircleDot as nodeIcon } from "@fortawesome/pro-regular-svg-icons";
 import { faCircleDot as buttonIcon } from "@fortawesome/pro-light-svg-icons";
@@ -56,7 +56,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    const hasFillColor = nodeHelper.useHasLink(nodeId, "fillColor");
 
    return (
-      <>
+      <BaseNode<IRingNode> nodeId={nodeId} helper={RingNodeHelper}>
          <SocketOut<IRingNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -66,29 +66,29 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          </BaseNode.Input>
          <SocketIn<IRingNode> nodeId={nodeId} socketId={"innerRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Inner Radius"}>
-               <LengthInput className={"inline small"} value={innerRadius} onChange={setInnerRadius} disabled={hasInnerRadius || radialMode === "spread"} />
+               <LengthInput value={innerRadius} onChange={setInnerRadius} disabled={hasInnerRadius || radialMode === "spread"} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IRingNode> nodeId={nodeId} socketId={"outerRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Outer Radius"}>
-               <LengthInput className={"inline small"} value={outerRadius} onChange={setOuterRadius} disabled={hasOuterRadius || radialMode === "spread"} />
+               <LengthInput value={outerRadius} onChange={setOuterRadius} disabled={hasOuterRadius || radialMode === "spread"} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IRingNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
-               <LengthInput className={"inline small"} value={radius} onChange={setRadius} disabled={hasRadius || radialMode === "inout"} />
+               <LengthInput value={radius} onChange={setRadius} disabled={hasRadius || radialMode === "inout"} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IRingNode> nodeId={nodeId} socketId={"spread"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Spread"}>
-               <LengthInput className={"inline small"} value={spread} onChange={setSpread} disabled={hasSpread || radialMode === "inout"} />
+               <LengthInput value={spread} onChange={setSpread} disabled={hasSpread || radialMode === "inout"} />
             </BaseNode.Input>
          </SocketIn>
          <hr />
          <BaseNode.Foldout label={"Appearance"} nodeId={nodeId} inputs={"strokeWidth strokeColor fillColor"} outputs={""}>
             <SocketIn<IRingNode> nodeId={nodeId} socketId={"strokeWidth"} type={SocketTypes.LENGTH}>
                <BaseNode.Input label={"Stroke Width"}>
-                  <LengthInput className={"inline small"} value={strokeWidth} onChange={setStrokeWidth} disabled={hasStrokeWidth} />
+                  <LengthInput value={strokeWidth} onChange={setStrokeWidth} disabled={hasStrokeWidth} />
                </BaseNode.Input>
             </SocketIn>
             <SocketIn<IRingNode> nodeId={nodeId} socketId={"strokeColor"} type={SocketTypes.COLOR}>
@@ -102,11 +102,11 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
                </BaseNode.Input>
             </SocketIn>
          </BaseNode.Foldout>
-      </>
+      </BaseNode>
    );
 });
 
-const Renderer = memo(({ nodeId }: { nodeId: string }) => {
+const Renderer = memo(({ nodeId }: NodeRendererProps) => {
    const radialMode = nodeHelper.useValue(nodeId, "radialMode");
    const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius");
    const spread = nodeHelper.useCoalesce(nodeId, "spread", "spread");

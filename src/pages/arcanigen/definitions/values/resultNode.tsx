@@ -36,10 +36,11 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    const hasCanvasHeight = nodeHelper.useHasLink(nodeId, "canvasHeight");
 
    return (
-      <>
+      <BaseNode<IResultNode> nodeId={nodeId} helper={ResultNodeHelper} noRemove>
          <SocketIn<IResultNode> type={SocketTypes.SHAPE} nodeId={nodeId} socketId={"input"}>
             Input
          </SocketIn>
+         <hr />
          <SocketIn<IResultNode> type={SocketTypes.COLOR} nodeId={nodeId} socketId={"canvasColor"}>
             <BaseNode.Input label={"Canvas Color"}>
                <HexColorInput value={canvasColor} onValidCommit={setCanvasColor} disabled={hasCanvasColor} />
@@ -55,7 +56,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
                <LengthInput value={canvasHeight} onChange={setCanvasHeight} disabled={hasCanvasHeight} />
             </BaseNode.Input>
          </SocketIn>
-      </>
+      </BaseNode>
    );
 });
 
@@ -89,8 +90,15 @@ export const RootNodeRenderer = () => {
    useWhyDidYouUpdate("RootNodeRenderer", { h, w, Output: OutputRenderer, childNodeId });
 
    return (
-      <svg width={`${w}px`} height={`${h}px`} viewBox={`${w / -2} ${h / -2} ${w} ${h}`} style={{ backgroundColor: MathHelper.colorToHex(canvasColor) }}>
-         {OutputRenderer && childNodeId && <OutputRenderer nodeId={childNodeId} />}
+      <svg
+         width={`${w}px`}
+         height={`${h}px`}
+         viewBox={`${w / -2} ${h / -2} ${w} ${h}`}
+         style={{ backgroundColor: MathHelper.colorToHex(canvasColor) }}
+         xmlns="http://www.w3.org/2000/svg"
+         xmlnsXlink="http://www.w3.org/1999/xlink"
+      >
+         {OutputRenderer && childNodeId && <OutputRenderer nodeId={childNodeId} layer={"ROOT"} />}
       </svg>
    );
 };

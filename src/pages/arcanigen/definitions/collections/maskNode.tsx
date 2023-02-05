@@ -1,6 +1,6 @@
 import { memo } from "react";
 import ArcaneGraph from "../graph";
-import { BlendMode, IArcaneGraph, INodeDefinition, INodeHelper, NodeRenderer, NodeTypes, SocketTypes } from "../types";
+import { BlendMode, IArcaneGraph, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, NodeTypes, SocketTypes } from "../types";
 
 import { faMask as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 import { faMask as buttonIcon } from "@fortawesome/pro-light-svg-icons";
@@ -32,10 +32,18 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    const [mode, setMode] = nodeHelper.useValueState(nodeId, "mode");
 
    return (
-      <>
+      <BaseNode<IMaskNode> nodeId={nodeId} helper={MaskNodeHelper}>
          <SocketOut<IMaskNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
-            Shape
+            Output
          </SocketOut>
+         <hr />
+         <SocketIn<IMaskNode> nodeId={nodeId} socketId={"content"} type={SocketTypes.SHAPE}>
+            Content
+         </SocketIn>
+         <SocketIn<IMaskNode> nodeId={nodeId} socketId={"mask"} type={SocketTypes.SHAPE}>
+            Mask
+         </SocketIn>
+         <hr />
          <Checkbox checked={display} onToggle={setDisplay}>
             Show Mask on Output
          </Checkbox>
@@ -45,18 +53,11 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          <Checkbox checked={invert} onToggle={setInvert} disabled={mode !== "luminance"}>
             Invert Luminance
          </Checkbox>
-         <hr />
-         <SocketIn<IMaskNode> nodeId={nodeId} socketId={"content"} type={SocketTypes.SHAPE}>
-            Content
-         </SocketIn>
-         <SocketIn<IMaskNode> nodeId={nodeId} socketId={"mask"} type={SocketTypes.SHAPE}>
-            Mask
-         </SocketIn>
-      </>
+      </BaseNode>
    );
 });
 
-const Renderer = memo(({ nodeId }: { nodeId: string }) => {
+const Renderer = memo(({ nodeId, layer }: NodeRendererProps) => {
    const [Content, cId] = nodeHelper.useInputNode(nodeId, "content");
    const [Mask, mId] = nodeHelper.useInputNode(nodeId, "mask");
    const invert = nodeHelper.useValue(nodeId, "invert");
@@ -67,15 +68,17 @@ const Renderer = memo(({ nodeId }: { nodeId: string }) => {
       <>
          <g>
             {display ? (
-               Mask && <Mask nodeId={mId} />
+               Mask && <Mask nodeId={mId} layer={(layer ?? "") + `_${nodeId}.mask`} />
             ) : (
                <>
-                  <mask id={`mask_${nodeId}`} mask-type={mode}>
-                     <rect x={"-100%"} y={"-100%"} width={"200%"} height={"200%"} fill={mode === "alpha" ? "none" : "#000f"} />
-                     {Mask && mId && <Mask nodeId={mId} />}
-                     {invert && mode === "luminance" && <rect x={"-100%"} y={"-100%"} width={"200%"} height={"200%"} fill={"#ffff"} style={INVERT} />}
+                  <mask id={`mask__${nodeId}_lyr-${layer ?? ""}`} mask-type={mode}>
+                     <rect x={"-1000%"} y={"-1000%"} width={"2000%"} height={"2000%"} fill={mode === "alpha" ? "none" : "#000f"} />
+                     {Mask && mId && <Mask nodeId={mId} layer={(layer ?? "") + `_${nodeId}.mask`} />}
+                     {invert && mode === "luminance" && <rect x={"-1000%"} y={"-1000%"} width={"2000%"} height={"2000%"} fill={"#ffff"} style={INVERT} />}
                   </mask>
-                  <g mask={`url(#mask_${nodeId})`}>{Content && cId && <Content nodeId={cId} />}</g>
+                  <g mask={`url('#mask__${nodeId}_lyr-${layer ?? ""}')`}>
+                     {Content && cId && <Content nodeId={cId} layer={(layer ?? "") + `_${nodeId}.content`} />}
+                  </g>
                </>
             )}
          </g>

@@ -15,6 +15,7 @@ import {
    useState,
 } from "react";
 import styled from "styled-components";
+import { useDragCanvasEvents } from "./DragCanvas";
 
 const CTX = createContext<{ add: (element: HTMLElement) => void; remove: (element: HTMLElement) => void }>({ add: () => {}, remove: () => {} });
 
@@ -57,6 +58,7 @@ const Contents = styled(
    height: max-content;
    position: relative;
    pointer-events: none;
+
    & > * {
       pointer-events: initial;
    }
@@ -69,11 +71,14 @@ const Wrapper = memo(styled(
 
       const boundsRef = useRef<HTMLDivElement>(null);
       const anchorRef = useRef<HTMLDivElement>(null);
+      const zoomRef = useRef<number>(1);
+
+      const dragEventBus = useDragCanvasEvents();
 
       const [bounds, setBounds] = useState<{ innerH: string; innerV: string; outer: string }>({
          outer: "10px 10px 10px 10px",
          innerH: "0px 20px 20px 0px",
-         innerV: "20px 0px 0px 20px",
+         innerV: "10px 0px 0px 10px",
       });
 
       const value = useMemo(() => {
@@ -117,46 +122,70 @@ const Wrapper = memo(styled(
          };
       }, [watched]);
 
+      const redraw = useCallback((c: Element[]) => {
+         return () => {
+            const bb = c.reduce(
+               (acc, each) => {
+                  const ib = each.getBoundingClientRect();
+                  if (ib.width < 1 && ib.height < 1) {
+                     return acc;
+                  }
+                  return {
+                     top: Math.min(acc.top, ib.top),
+                     left: Math.min(acc.left, ib.left),
+                     right: Math.max(acc.right, ib.right),
+                     bottom: Math.max(acc.bottom, ib.bottom),
+                  };
+               },
+               { top: Infinity, left: Infinity, right: -Infinity, bottom: -Infinity }
+            );
+            if (bb.top !== Infinity && anchorRef.current && boundsRef.current) {
+               const wb = anchorRef.current.getBoundingClientRect();
+               boundsRef.current.style.left = bb.left - wb.left + "px";
+               boundsRef.current.style.top = bb.top - wb.top + "px";
+               boundsRef.current.style.width = bb.right - bb.left + "px";
+               boundsRef.current.style.height = bb.bottom - bb.top + "px";
+
+               const t = {
+                  outer: `${wb.top - bb.top + 5}px ${bb.right - wb.right + 5}px ${bb.bottom - wb.bottom + 5}px ${wb.left - bb.left + 5}px`,
+                  innerH: `${wb.top - bb.top - 5}px ${bb.right - wb.right + 10}px ${bb.bottom - wb.bottom - 5}px ${wb.left - bb.left + 10}px`,
+                  innerV: `${wb.top - bb.top + 10}px ${bb.right - wb.right - 5}px ${bb.bottom - wb.bottom + 10}px ${wb.left - bb.left - 5}px`,
+               };
+
+               setBounds((p) => {
+                  if (p.outer !== t.outer || p.innerH !== t.innerH || p.innerV !== t.innerV) {
+                     return t;
+                  }
+                  return p;
+               });
+            }
+         };
+      }, []);
+
+      useEffect(() => {
+         if (dragEventBus?.current) {
+            return dragEventBus.current.subscribe("trh:dragcanvas.zoom", (v) => {
+               zoomRef.current = v.detail;
+               redraw(boundChildren);
+            });
+         }
+      }, [redraw, dragEventBus, boundChildren]);
+
+      useEffect(() => {
+         const onResize = lodash.debounce(redraw(boundChildren), 30);
+         const n = new ResizeObserver(onResize);
+         boundChildren.forEach((el) => {
+            n.observe(el);
+         });
+         return () => {
+            n.disconnect();
+         };
+      }, [boundChildren, redraw]);
+
       useEffect(() => {
          const i = anchorRef.current;
          if (i) {
-            const onIntersection = lodash.debounce(() => {
-               const bb = boundChildren.reduce(
-                  (acc, each) => {
-                     const ib = each.getBoundingClientRect();
-                     if (ib.width < 1 && ib.height < 1) {
-                        return acc;
-                     }
-                     return {
-                        top: Math.min(acc.top, ib.top),
-                        left: Math.min(acc.left, ib.left),
-                        right: Math.max(acc.right, ib.right),
-                        bottom: Math.max(acc.bottom, ib.bottom),
-                     };
-                  },
-                  { top: Infinity, left: Infinity, right: -Infinity, bottom: -Infinity }
-               );
-               if (bb.top !== Infinity && anchorRef.current && boundsRef.current) {
-                  const wb = anchorRef.current.getBoundingClientRect();
-                  boundsRef.current.style.left = bb.left - wb.left + "px";
-                  boundsRef.current.style.top = bb.top - wb.top + "px";
-                  boundsRef.current.style.width = bb.right - bb.left + "px";
-                  boundsRef.current.style.height = bb.bottom - bb.top + "px";
-
-                  const t = {
-                     outer: `${wb.top - bb.top + 5}px ${bb.right - wb.right + 5}px ${bb.bottom - wb.bottom + 5}px ${wb.left - bb.left + 5}px`,
-                     innerH: `${wb.top - bb.top - 5}px ${bb.right - wb.right + 10}px ${bb.bottom - wb.bottom - 5}px ${wb.left - bb.left + 10}px`,
-                     innerV: `${wb.top - bb.top + 10}px ${bb.right - wb.right - 5}px ${bb.bottom - wb.bottom + 10}px ${wb.left - bb.left - 5}px`,
-                  };
-
-                  setBounds((p) => {
-                     if (p.outer !== t.outer || p.innerH !== t.innerH || p.innerV !== t.innerV) {
-                        return t;
-                     }
-                     return p;
-                  });
-               }
-            }, 0);
+            const onIntersection = redraw(boundChildren);
 
             const innerVObserver = new IntersectionObserver(onIntersection, { root: i, rootMargin: bounds.innerV, threshold: 1.0 });
             const innerHObserver = new IntersectionObserver(onIntersection, { root: i, rootMargin: bounds.innerH, threshold: 1.0 });
@@ -172,7 +201,7 @@ const Wrapper = memo(styled(
                outerObserver.disconnect();
             };
          }
-      }, [bounds, boundChildren]);
+      }, [bounds, boundChildren, redraw]);
 
       const createBoundsRef = useCallback(
          (el: HTMLDivElement) => {
@@ -192,9 +221,7 @@ const Wrapper = memo(styled(
          <div {...props}>
             <Anchor ref={anchorRef}>
                <Bounds ref={createBoundsRef} />
-               <CTX.Provider value={value}>
-                  <Contents>{children}</Contents>
-               </CTX.Provider>
+               <CTX.Provider value={value}>{children}</CTX.Provider>
             </Anchor>
          </div>
       );
@@ -215,9 +242,6 @@ const Anchor = styled.div`
    position: relative;
    width: 0px;
    height: 0px;
-   display: grid;
-   place-items: center;
-   place-content: center;
 `;
 
 const Bounds = styled.div`

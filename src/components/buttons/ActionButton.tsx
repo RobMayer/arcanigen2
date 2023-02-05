@@ -21,10 +21,13 @@ const ActionButton = styled(
       }
    )
 )`
+   position: relative;
    margin: 0.25rem;
    padding: 0.25em 0.5em;
    border: 1px solid transparent;
    text-align: center;
+   justify-content: center;
+   gap: 0.5em;
    &:is(.state-inactive) {
       cursor: default;
    }

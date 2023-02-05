@@ -1,6 +1,6 @@
 import { memo } from "react";
 import ArcaneGraph from "../graph";
-import { INodeDefinition, INodeHelper, NodeRenderer, NodeTypes, SocketTypes } from "../types";
+import { INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, NodeTypes, SocketTypes } from "../types";
 import { faCircle as nodeIcon } from "@fortawesome/pro-regular-svg-icons";
 import { faCircle as buttonIcon } from "@fortawesome/pro-light-svg-icons";
 import { Color, Length } from "!/utility/types/units";
@@ -42,21 +42,21 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    const hasFillColor = nodeHelper.useHasLink(nodeId, "fillColor");
 
    return (
-      <>
+      <BaseNode<ICircleNode> nodeId={nodeId} helper={CircleNodeHelper}>
          <SocketOut<ICircleNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
-            Shape
+            Output
          </SocketOut>
          <hr />
          <SocketIn<ICircleNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
-               <LengthInput className={"inline small"} value={radius} onChange={setRadius} disabled={hasRadius} />
+               <LengthInput value={radius} onChange={setRadius} disabled={hasRadius} />
             </BaseNode.Input>
          </SocketIn>
          <hr />
          <BaseNode.Foldout label={"Appearance"} nodeId={nodeId} inputs={"strokeWidth strokeColor fillColor"} outputs={""}>
             <SocketIn<ICircleNode> nodeId={nodeId} socketId={"strokeWidth"} type={SocketTypes.LENGTH}>
                <BaseNode.Input label={"Stroke Width"}>
-                  <LengthInput className={"inline small"} value={strokeWidth} onChange={setStrokeWidth} disabled={hasStrokeWidth} />
+                  <LengthInput value={strokeWidth} onChange={setStrokeWidth} disabled={hasStrokeWidth} />
                </BaseNode.Input>
             </SocketIn>
             <SocketIn<ICircleNode> nodeId={nodeId} socketId={"strokeColor"} type={SocketTypes.COLOR}>
@@ -70,11 +70,11 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
                </BaseNode.Input>
             </SocketIn>
          </BaseNode.Foldout>
-      </>
+      </BaseNode>
    );
 });
 
-const Renderer = memo(({ nodeId }: { nodeId: string }) => {
+const Renderer = memo(({ nodeId }: NodeRendererProps) => {
    const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius");
    const strokeWidth = nodeHelper.useCoalesce(nodeId, "strokeWidth", "strokeWidth");
    const strokeColor = nodeHelper.useCoalesce(nodeId, "strokeColor", "strokeColor");

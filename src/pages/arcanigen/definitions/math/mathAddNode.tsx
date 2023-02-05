@@ -32,9 +32,9 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    const hasA = nodeHelper.useHasLink(nodeId, "aIn");
    const hasB = nodeHelper.useHasLink(nodeId, "bIn");
    return (
-      <>
+      <BaseNode<IMathAddNode> nodeId={nodeId} helper={MathAddNodeHelper}>
          <SocketOut<IMathAddNode> nodeId={nodeId} socketId={"result"} type={SocketTypes.NUMBER}>
-            Sum ({(hasA ? aIn : a) + (hasB ? bIn : b)})
+            <BaseNode.Output label={"Result"}>{(hasA ? aIn : a) + (hasB ? bIn : b)}</BaseNode.Output>
          </SocketOut>
          <hr />
          <SocketIn<IMathAddNode> nodeId={nodeId} socketId={"aIn"} type={SocketTypes.NUMBER}>
@@ -47,7 +47,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
                <NumberInput value={hasB ? bIn : b} onValue={setB} disabled={hasB} />
             </BaseNode.Input>
          </SocketIn>
-      </>
+      </BaseNode>
    );
 });
 

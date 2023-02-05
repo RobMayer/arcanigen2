@@ -1,6 +1,7 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
 import {
+   IArcaneGraph,
    INodeDefinition,
    INodeHelper,
    NodeRenderer,
@@ -9,34 +10,30 @@ import {
    RadialMode,
    RADIAL_MODES,
    SocketTypes,
-   StrokeCapMode,
-   STROKECAP_MODES,
    ThetaMode,
    THETA_MODES,
 } from "../types";
 import MathHelper from "!/utility/mathhelper";
 
-import { faStarOfLife as nodeIcon } from "@fortawesome/pro-regular-svg-icons";
-import { faStarOfLife as buttonIcon } from "@fortawesome/pro-light-svg-icons";
-import Checkbox from "!/components/buttons/Checkbox";
-import HexColorInput from "!/components/inputs/colorHexInput";
+import { faBezierCurve as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
+import { faBezierCurve as buttonIcon } from "@fortawesome/pro-light-svg-icons";
 import LengthInput from "!/components/inputs/LengthInput";
-import NumberInput from "!/components/inputs/NumberInput";
-import ToggleList from "!/components/selectors/ToggleList";
-import { Length, Color } from "!/utility/types/units";
-import lodash from "lodash";
+import SliderInput from "!/components/inputs/SliderInput";
+import { Length } from "!/utility/types/units";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
+import lodash from "lodash";
+import Checkbox from "!/components/buttons/Checkbox";
+import NumberInput from "!/components/inputs/NumberInput";
+import ToggleList from "!/components/selectors/ToggleList";
 
-interface IBurstNode extends INodeDefinition {
+interface ISpiralArrayNode extends INodeDefinition {
    inputs: {
-      spurCount: number;
+      input: NodeRenderer;
       radius: Length;
       spread: Length;
       innerRadius: Length;
       outerRadius: Length;
-      strokeWidth: Length;
-      strokeColor: Color;
       thetaStart: number;
       thetaEnd: number;
       thetaSteps: number;
@@ -45,6 +42,8 @@ interface IBurstNode extends INodeDefinition {
       output: NodeRenderer;
    };
    values: {
+      pointCount: number;
+      isRotating: boolean;
       radialMode: RadialMode;
       thetaMode: ThetaMode;
       thetaStart: number;
@@ -55,16 +54,15 @@ interface IBurstNode extends INodeDefinition {
       spread: Length;
       innerRadius: Length;
       outerRadius: Length;
-      spurCount: number;
-      strokeWidth: Length;
-      strokeCap: StrokeCapMode;
-      strokeColor: Color;
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<IBurstNode>();
+const nodeHelper = ArcaneGraph.nodeHooks<ISpiralArrayNode>();
 
 const Controls = memo(({ nodeId }: { nodeId: string }) => {
+   const [pointCount, setPointCount] = nodeHelper.useValueState(nodeId, "pointCount");
+   const [isRotating, setIsRotating] = nodeHelper.useValueState(nodeId, "isRotating");
+
    const [radius, setRadius] = nodeHelper.useValueState(nodeId, "radius");
    const [spread, setSpread] = nodeHelper.useValueState(nodeId, "spread");
    const [radialMode, setRadialMode] = nodeHelper.useValueState(nodeId, "radialMode");
@@ -77,14 +75,6 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    const [thetaSteps, setThetaSteps] = nodeHelper.useValueState(nodeId, "thetaSteps");
    const [thetaInclusive, setThetaInclusive] = nodeHelper.useValueState(nodeId, "thetaInclusive");
 
-   const [spurCount, setSpurCount] = nodeHelper.useValueState(nodeId, "spurCount");
-
-   const [strokeWidth, setStrokeWidth] = nodeHelper.useValueState(nodeId, "strokeWidth");
-   const [strokeCap, setStrokeCap] = nodeHelper.useValueState(nodeId, "strokeCap");
-
-   const [strokeColor, setStrokeColor] = nodeHelper.useValueState(nodeId, "strokeColor");
-
-   const hasSpurCount = nodeHelper.useHasLink(nodeId, "spurCount");
    const hasThetaStart = nodeHelper.useHasLink(nodeId, "thetaStart");
    const hasThetaEnd = nodeHelper.useHasLink(nodeId, "thetaEnd");
    const hasThetaSteps = nodeHelper.useHasLink(nodeId, "thetaSteps");
@@ -93,40 +83,39 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    const hasOuterRadius = nodeHelper.useHasLink(nodeId, "outerRadius");
    const hasRadius = nodeHelper.useHasLink(nodeId, "radius");
    const hasSpread = nodeHelper.useHasLink(nodeId, "spread");
-   const hasStrokeWidth = nodeHelper.useHasLink(nodeId, "strokeWidth");
-
-   const hasStrokeColor = nodeHelper.useHasLink(nodeId, "strokeColor");
 
    return (
-      <BaseNode<IBurstNode> nodeId={nodeId} helper={BurstNodeHelper}>
-         <SocketOut<IBurstNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
+      <BaseNode<ISpiralArrayNode> nodeId={nodeId} helper={SpiralArrayNodeHelper}>
+         <SocketOut<ISpiralArrayNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
          <hr />
-         <SocketIn<IBurstNode> nodeId={nodeId} socketId={"spurCount"} type={SocketTypes.INTEGER}>
-            <BaseNode.Input label={"Points"}>
-               <NumberInput value={spurCount} min={0} step={1} onValidValue={setSpurCount} disabled={hasSpurCount} />
-            </BaseNode.Input>
+         <SocketIn<ISpiralArrayNode> nodeId={nodeId} socketId={"input"} type={SocketTypes.SHAPE}>
+            Input
          </SocketIn>
+         <hr />
+         <BaseNode.Input label={"Points"}>
+            <SliderInput revertInvalid value={pointCount} onValidValue={setPointCount} min={3} max={24} step={1} />
+         </BaseNode.Input>
          <BaseNode.Input label={"Radial Mode"}>
             <ToggleList value={radialMode} onValue={setRadialMode} options={RADIAL_MODES} />
          </BaseNode.Input>
-         <SocketIn<IBurstNode> nodeId={nodeId} socketId={"innerRadius"} type={SocketTypes.LENGTH}>
+         <SocketIn<ISpiralArrayNode> nodeId={nodeId} socketId={"innerRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Inner Radius"}>
                <LengthInput className={"inline small"} value={innerRadius} onChange={setInnerRadius} disabled={hasInnerRadius || radialMode === "spread"} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IBurstNode> nodeId={nodeId} socketId={"outerRadius"} type={SocketTypes.LENGTH}>
+         <SocketIn<ISpiralArrayNode> nodeId={nodeId} socketId={"outerRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Outer Radius"}>
                <LengthInput className={"inline small"} value={outerRadius} onChange={setOuterRadius} disabled={hasOuterRadius || radialMode === "spread"} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IBurstNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
+         <SocketIn<ISpiralArrayNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
                <LengthInput className={"inline small"} value={radius} onChange={setRadius} disabled={hasRadius || radialMode === "inout"} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IBurstNode> nodeId={nodeId} socketId={"spread"} type={SocketTypes.LENGTH}>
+         <SocketIn<ISpiralArrayNode> nodeId={nodeId} socketId={"spread"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Spread"}>
                <LengthInput className={"inline small"} value={spread} onChange={setSpread} disabled={hasSpread || radialMode === "inout"} />
             </BaseNode.Input>
@@ -135,17 +124,17 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          <BaseNode.Input label={"Theta Mode"}>
             <ToggleList value={thetaMode} onValue={setThetaMode} options={THETA_MODES} />
          </BaseNode.Input>
-         <SocketIn<IBurstNode> nodeId={nodeId} socketId={"thetaSteps"} type={SocketTypes.ANGLE}>
+         <SocketIn<ISpiralArrayNode> nodeId={nodeId} socketId={"thetaSteps"} type={SocketTypes.ANGLE}>
             <BaseNode.Input label={"Incremental θ"}>
                <NumberInput value={thetaSteps} onValidValue={setThetaSteps} disabled={hasThetaSteps || thetaMode === "startstop"} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IBurstNode> nodeId={nodeId} socketId={"thetaStart"} type={SocketTypes.ANGLE}>
+         <SocketIn<ISpiralArrayNode> nodeId={nodeId} socketId={"thetaStart"} type={SocketTypes.ANGLE}>
             <BaseNode.Input label={"Start θ"}>
                <NumberInput value={thetaStart} onValidValue={setThetaStart} disabled={hasThetaStart || thetaMode === "incremental"} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IBurstNode> nodeId={nodeId} socketId={"thetaEnd"} type={SocketTypes.ANGLE}>
+         <SocketIn<ISpiralArrayNode> nodeId={nodeId} socketId={"thetaEnd"} type={SocketTypes.ANGLE}>
             <BaseNode.Input label={"End θ"}>
                <NumberInput value={thetaEnd} onValidValue={setThetaEnd} disabled={hasThetaEnd || thetaMode === "incremental"} />
             </BaseNode.Input>
@@ -154,27 +143,19 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
             Inclusive End θ
          </Checkbox>
          <hr />
-         <BaseNode.Foldout label={"Appearance"} nodeId={nodeId} inputs={"strokeWidth strokeColor fillColor"} outputs={""}>
-            <SocketIn<IBurstNode> nodeId={nodeId} socketId={"strokeWidth"} type={SocketTypes.LENGTH}>
-               <BaseNode.Input label={"Stroke Width"}>
-                  <LengthInput className={"inline small"} value={strokeWidth} onChange={setStrokeWidth} disabled={hasStrokeWidth} />
-               </BaseNode.Input>
-            </SocketIn>
-            <BaseNode.Input label={"Stroke Cap"}>
-               <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODES}></ToggleList>
-            </BaseNode.Input>
-            <SocketIn<IBurstNode> nodeId={nodeId} socketId={"strokeColor"} type={SocketTypes.COLOR}>
-               <BaseNode.Input label={"Stroke Color"}>
-                  <HexColorInput value={strokeColor} onValidCommit={setStrokeColor} disabled={hasStrokeColor} />
-               </BaseNode.Input>
-            </SocketIn>
-         </BaseNode.Foldout>
+         <Checkbox checked={isRotating} onToggle={setIsRotating}>
+            Rotate Iterations
+         </Checkbox>
       </BaseNode>
    );
 });
 
-const Renderer = memo(({ nodeId }: NodeRendererProps) => {
-   const spurCount = Math.max(0, nodeHelper.useCoalesce(nodeId, "spurCount", "spurCount"));
+const Renderer = memo(({ nodeId, layer }: NodeRendererProps) => {
+   const [Output, childNodeId] = nodeHelper.useInputNode(nodeId, "input");
+
+   const pointCount = nodeHelper.useValue(nodeId, "pointCount");
+   const isRotating = nodeHelper.useValue(nodeId, "isRotating");
+
    const radialMode = nodeHelper.useValue(nodeId, "radialMode");
    const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius");
    const spread = nodeHelper.useCoalesce(nodeId, "spread", "spread");
@@ -187,36 +168,38 @@ const Renderer = memo(({ nodeId }: NodeRendererProps) => {
    const thetaSteps = nodeHelper.useCoalesce(nodeId, "thetaSteps", "thetaSteps");
    const thetaInclusive = nodeHelper.useValue(nodeId, "thetaInclusive");
 
-   const strokeWidth = nodeHelper.useCoalesce(nodeId, "strokeWidth", "strokeWidth");
-   const strokeColor = nodeHelper.useCoalesce(nodeId, "strokeColor", "strokeColor");
-   const strokeCap = nodeHelper.useValue(nodeId, "strokeCap");
-
    const rI = radialMode === "inout" ? MathHelper.lengthToPx(innerRadius) : MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(spread) / 2;
    const rO = radialMode === "inout" ? MathHelper.lengthToPx(outerRadius) : MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(spread) / 2;
 
-   return (
-      <>
-         <g stroke={MathHelper.colorToHex(strokeColor, "#000f")} strokeWidth={MathHelper.lengthToPx(strokeWidth)} strokeLinecap={strokeCap}>
-            {lodash.range(spurCount).map((n) => {
-               const coeff = MathHelper.delerp(n, 0, thetaInclusive ? spurCount - 1 : spurCount);
-               const angle = thetaMode === "startstop" ? MathHelper.lerp(coeff, 1 * thetaStart, 1 * thetaEnd) : thetaSteps * n;
-               const c = Math.cos(MathHelper.deg2rad(angle - 90));
-               const s = Math.sin(MathHelper.deg2rad(angle - 90));
-               return <line key={n} x1={rI * c} y1={rI * s} x2={rO * c} y2={rO * s} />;
-            })}
-         </g>
-      </>
-   );
+   const children = useMemo(() => {
+      return lodash.range(pointCount).map((n, i) => {
+         const coeff = MathHelper.delerp(n, 0, thetaInclusive ? pointCount - 1 : pointCount);
+         const rot = thetaMode === "startstop" ? MathHelper.lerp(coeff, 1 * thetaStart, 1 * thetaEnd) : thetaSteps * n;
+
+         // const rot = MathHelper.lerp(coeff, 0, 360) - 180;
+         const rad = MathHelper.lerp(coeff, rI, rO);
+
+         return (
+            <g key={n} style={{ transform: `rotate(${rot + 180}deg) translate(0px, ${rad}px) rotate(${isRotating ? 180 : -rot - 180}deg)` }}>
+               {Output && childNodeId && <Output nodeId={childNodeId} layer={(layer ?? "") + `_${nodeId}.${i}`} />}
+            </g>
+         );
+      });
+   }, [pointCount, thetaMode, thetaStart, thetaEnd, thetaSteps, rI, rO, isRotating, Output, childNodeId, thetaInclusive, nodeId, layer]);
+
+   return <g>{children}</g>;
 });
 
-const BurstNodeHelper: INodeHelper<IBurstNode> = {
-   name: "Burst",
+const SpiralArrayNodeHelper: INodeHelper<ISpiralArrayNode> = {
+   name: "Spiral Array",
    buttonIcon,
    nodeIcon,
-   flavour: "emphasis",
-   type: NodeTypes.SHAPE_BURST,
-   getOutput: () => Renderer,
+   flavour: "danger",
+   type: NodeTypes.ARRAY_SPIRAL,
+   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof ISpiralArrayNode["outputs"]) => Renderer,
    initialize: () => ({
+      pointCount: 5,
+      isRotating: true,
       radius: { value: 150, unit: "px" },
       spread: { value: 20, unit: "px" },
       radialMode: "inout",
@@ -224,9 +207,6 @@ const BurstNodeHelper: INodeHelper<IBurstNode> = {
       spurCount: 5,
       innerRadius: { value: 140, unit: "px" },
       outerRadius: { value: 160, unit: "px" },
-      strokeWidth: { value: 1, unit: "px" },
-      strokeCap: "butt",
-      strokeColor: { r: 0, g: 0, b: 0, a: 1 },
       thetaStart: 0,
       thetaEnd: 90,
       thetaSteps: 30,
@@ -235,4 +215,4 @@ const BurstNodeHelper: INodeHelper<IBurstNode> = {
    controls: Controls,
 };
 
-export default BurstNodeHelper;
+export default SpiralArrayNodeHelper;

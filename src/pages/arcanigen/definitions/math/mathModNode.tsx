@@ -32,9 +32,9 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    const hasA = nodeHelper.useHasLink(nodeId, "aIn");
    const hasB = nodeHelper.useHasLink(nodeId, "bIn");
    return (
-      <>
+      <BaseNode<IMathModNode> nodeId={nodeId} helper={MathModNodeHelper}>
          <SocketOut<IMathModNode> nodeId={nodeId} socketId={"result"} type={SocketTypes.NUMBER}>
-            Remainder ({b === 0 ? 0 : ((a % b) + b) % b})
+            <BaseNode.Output label={"Result"}>{b === 0 ? 0 : ((a % b) + b) % b}</BaseNode.Output>
          </SocketOut>
          <hr />
          <SocketIn<IMathModNode> nodeId={nodeId} socketId={"aIn"} type={SocketTypes.NUMBER}>
@@ -47,7 +47,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
                <NumberInput value={hasB ? bIn : b} onValue={setB} disabled={hasB} />
             </BaseNode.Input>
          </SocketIn>
-      </>
+      </BaseNode>
    );
 });
 

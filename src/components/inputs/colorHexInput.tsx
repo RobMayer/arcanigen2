@@ -38,7 +38,6 @@ const HexColorInput = styled((props: AbstractInputProps<Color, HTMLInputElement>
       max-width: 0;
       width: auto;
       padding-inline: 0.25em;
-      background-color: transparent;
    }
    &.monospace {
       font-family: monospace;

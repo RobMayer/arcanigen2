@@ -132,6 +132,7 @@ const Orb = styled(({ nodeId, socketId, type, className, mode, ...rest }: IOrbPr
        flavour-${flavour}
     `}
          ref={ref}
+         title={`node: ${nodeId} socket: ${socketId}`}
          data-trh-graph-sockethost={nodeId}
          data-trh-graph-socket={socketId}
       />

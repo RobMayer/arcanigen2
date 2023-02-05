@@ -5,6 +5,7 @@ import {
    INodeDefinition,
    INodeHelper,
    NodeRenderer,
+   NodeRendererProps,
    NodeTypes,
    ScribeMode,
    SCRIBE_MODES,
@@ -28,6 +29,8 @@ import { SocketOut, SocketIn } from "../../nodeView/socket";
 
 interface IPolygramNode extends INodeDefinition {
    inputs: {
+      pointCount: number;
+      skipCount: number;
       radius: Length;
       strokeWidth: Length;
       strokeColor: Color;
@@ -63,6 +66,8 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    const [skipCount, setSkipCount] = nodeHelper.useValueState(nodeId, "skipCount");
    const [scribeMode, setScribeMode] = nodeHelper.useValueState(nodeId, "scribeMode");
 
+   const hasPointCount = nodeHelper.useHasLink(nodeId, "pointCount");
+   const hasSkipCount = nodeHelper.useHasLink(nodeId, "skipCount");
    const hasRadius = nodeHelper.useHasLink(nodeId, "radius");
    const hasStrokeWidth = nodeHelper.useHasLink(nodeId, "strokeWidth");
    const hasStrokeColor = nodeHelper.useHasLink(nodeId, "strokeColor");
@@ -82,28 +87,32 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    }, [pointCount, setSkipCount]);
 
    return (
-      <>
+      <BaseNode<IPolygramNode> nodeId={nodeId} helper={PolygramNodeHelper}>
          <SocketOut<IPolygramNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
          <hr />
-         <BaseNode.Input label={"Points"}>
-            <SliderInput revertInvalid value={pointCount} onValidValue={setPointCount} min={3} max={24} step={1} />
-         </BaseNode.Input>
-         <BaseNode.Input label={"Skip Count"}>
-            <SliderInput
-               revertInvalid
-               value={skipCount}
-               onValidValue={setSkipCount}
-               min={0}
-               max={Math.ceil(pointCount / 2) - 2}
-               step={1}
-               disabled={Math.ceil(pointCount / 2) - 2 <= 0}
-            />
-         </BaseNode.Input>
+         <SocketIn<IPolygramNode> nodeId={nodeId} socketId={"pointCount"} type={SocketTypes.INTEGER}>
+            <BaseNode.Input label={"Points"}>
+               <SliderInput revertInvalid value={pointCount} onValidValue={setPointCount} min={3} max={24} step={1} disabled={hasPointCount} />
+            </BaseNode.Input>
+         </SocketIn>
+         <SocketIn<IPolygramNode> nodeId={nodeId} socketId={"skipCount"} type={SocketTypes.INTEGER}>
+            <BaseNode.Input label={"Skip Count"}>
+               <SliderInput
+                  revertInvalid
+                  value={skipCount}
+                  onValidValue={setSkipCount}
+                  min={0}
+                  max={Math.ceil(pointCount / 2) - 2}
+                  step={1}
+                  disabled={Math.ceil(pointCount / 2) - 2 <= 0 || hasSkipCount}
+               />
+            </BaseNode.Input>
+         </SocketIn>
          <SocketIn<IPolygramNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
-               <LengthInput className={"inline small"} value={radius} onChange={setRadius} disabled={hasRadius} />
+               <LengthInput value={radius} onChange={setRadius} disabled={hasRadius} />
             </BaseNode.Input>
          </SocketIn>
          <BaseNode.Input label={"Scribe Mode"}>
@@ -114,7 +123,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          <BaseNode.Foldout label={"Appearance"} inputs={"strokeWidth strokeColor fillColor"} nodeId={nodeId} outputs={""}>
             <SocketIn<IPolygramNode> nodeId={nodeId} socketId={"strokeWidth"} type={SocketTypes.LENGTH}>
                <BaseNode.Input label={"Stroke Width"}>
-                  <LengthInput className={"inline small"} value={strokeWidth} onChange={setStrokeWidth} disabled={hasStrokeWidth} />
+                  <LengthInput value={strokeWidth} onChange={setStrokeWidth} disabled={hasStrokeWidth} />
                </BaseNode.Input>
             </SocketIn>
             <BaseNode.Input label={"Stroke Join"}>
@@ -142,18 +151,18 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
                Middle Radius
             </SocketOut>
          </BaseNode.Foldout>
-      </>
+      </BaseNode>
    );
 });
 
-const Renderer = memo(({ nodeId }: { nodeId: string }) => {
+const Renderer = memo(({ nodeId }: NodeRendererProps) => {
    const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius");
-   const pointCount = nodeHelper.useValue(nodeId, "pointCount");
+   const pointCount = nodeHelper.useCoalesce(nodeId, "pointCount", "pointCount");
    const scribeMode = nodeHelper.useValue(nodeId, "scribeMode");
 
    const theMax = Math.ceil(pointCount / 2) - 2;
 
-   const skipCount = Math.min(theMax, Math.max(0, nodeHelper.useValue(nodeId, "skipCount")));
+   const skipCount = Math.min(theMax, Math.max(0, nodeHelper.useCoalesce(nodeId, "skipCount", "skipCount")));
 
    const strokeWidth = nodeHelper.useCoalesce(nodeId, "strokeWidth", "strokeWidth");
    const strokeJoin = nodeHelper.useValue(nodeId, "strokeJoin");

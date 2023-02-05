@@ -1,5 +1,5 @@
 import { Flavour } from "!/components";
-import { useDragCanvasValue } from "!/components/containers/DragCanvas";
+import { useDragCanvasEvents } from "!/components/containers/DragCanvas";
 import useResizeObserver from "!/utility/hooks/useResizeObserver";
 import useKey from "@accessible/use-key";
 import { HTMLAttributes, useMemo, useRef, useState, useCallback, useEffect } from "react";
@@ -13,6 +13,18 @@ const ConnectionCanvas = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) =
    // -23.2143em; top: -4.07143em;
 
    const connections = ArcaneGraph.useLinklist();
+   const ref = useRef<SVGSVGElement>(null);
+
+   const dragEventBus = useDragCanvasEvents();
+   useEffect(() => {
+      const eb = dragEventBus?.current;
+      const r = ref.current;
+      if (eb && r) {
+         return eb.subscribe("trh:dragcanvas.zoom", (e) => {
+            (r.style as any).scale = 1.0 / e.detail;
+         });
+      }
+   }, [dragEventBus]);
 
    const bounds = useMemo(() => {
       const THING = 8000;
@@ -29,7 +41,7 @@ const ConnectionCanvas = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) =
 
    return (
       <div {...props}>
-         <svg {...bounds}>
+         <svg {...bounds} ref={ref}>
             {Object.entries(connections).map(([k, v]) => (
                <Connection key={k} {...v} />
             ))}
@@ -67,7 +79,7 @@ const Connection = ({ linkId, fromNode, toNode, fromSocket, toSocket, type }: IL
    const [shape, setShape] = useState("");
 
    const redraw = useCallback(() => {
-      if (origin.current && toSocketRef.current && fromSocketRef.current) {
+      if (origin?.current && toSocketRef.current && fromSocketRef.current) {
          const originBB = origin.current.getBoundingClientRect();
 
          const iBB = fromSocketRef.current.getBoundingClientRect();
@@ -88,15 +100,25 @@ const Connection = ({ linkId, fromNode, toNode, fromSocket, toSocket, type }: IL
             y: (from.y + to.y) / 2,
          };
 
-         const fSpur = from.x + 100;
-         const tSpur = to.x - 100;
+         const d = Math.sqrt((to.x - from.x) * (to.x - from.x) + (to.y - from.y) * (to.y - from.y));
+
+         const fSpur = from.x + d / 4;
+         const tSpur = to.x - d / 4;
 
          setShape(`M ${from.x} ${from.y} Q ${fSpur},${from.y} ${avg.x},${avg.y} Q ${tSpur},${to.y} ${to.x},${to.y}`);
       }
    }, [origin]);
 
+   const dragEventBus = useDragCanvasEvents();
+   useEffect(() => {
+      const eb = dragEventBus?.current;
+      if (eb) {
+         return eb.subscribe("trh:dragcanvas.zoom", redraw);
+      }
+   }, [dragEventBus, redraw]);
+
    const retarget = useCallback(() => {
-      if (origin.current) {
+      if (origin?.current) {
          fromNodeRef.current = origin.current.querySelector<Element>(`[data-trh-graph-node='${fromNode}']`) ?? undefined;
          toNodeRef.current = origin.current.querySelector<Element>(`[data-trh-graph-node='${toNode}']`) ?? undefined;
 
@@ -183,16 +205,9 @@ const WipConnection = () => {
 
    const [shape, setShape] = useState("");
 
-   const [zoom] = useDragCanvasValue((p) => p.zoom);
-   const zoomRef = useRef<number>(zoom);
-
-   useEffect(() => {
-      zoomRef.current = zoom;
-   }, [zoom]);
-
    useEffect(() => {
       const eb = eventBus.current;
-      const o = origin.current;
+      const o = origin?.current;
       if (eb && o) {
          const move = (e: MouseEvent) => {
             if (origin.current && startSocketRef.current) {
@@ -206,8 +221,8 @@ const WipConnection = () => {
                };
 
                const to = {
-                  x: e.clientX / zoomRef.current - originBB.left,
-                  y: e.clientY / zoomRef.current - originBB.top,
+                  x: e.clientX - originBB.left,
+                  y: e.clientY - originBB.top,
                };
 
                setShape(`M ${from.x} ${from.y} L ${to.x},${to.y}`);

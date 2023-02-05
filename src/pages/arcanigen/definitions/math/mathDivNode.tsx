@@ -32,9 +32,9 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    const hasA = nodeHelper.useHasLink(nodeId, "aIn");
    const hasB = nodeHelper.useHasLink(nodeId, "bIn");
    return (
-      <>
+      <BaseNode<IMathDivNode> nodeId={nodeId} helper={MathDivNodeHelper}>
          <SocketOut<IMathDivNode> nodeId={nodeId} socketId={"result"} type={SocketTypes.NUMBER}>
-            Quotient ({(hasB ? bIn : b) === 0 ? 0 : (hasA ? aIn : a) / (hasB ? bIn : b)})
+            <BaseNode.Output label={"Result"}>{(hasB ? bIn : b) === 0 ? 0 : (hasA ? aIn : a) / (hasB ? bIn : b)}</BaseNode.Output>
          </SocketOut>
          <hr />
          <SocketIn<IMathDivNode> nodeId={nodeId} socketId={"aIn"} type={SocketTypes.NUMBER}>
@@ -47,7 +47,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
                <NumberInput value={hasB ? bIn : b} onValue={setB} disabled={hasB} />
             </BaseNode.Input>
          </SocketIn>
-      </>
+      </BaseNode>
    );
 });
 

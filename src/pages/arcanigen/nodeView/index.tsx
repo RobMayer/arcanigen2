@@ -9,7 +9,6 @@ import { createContext, ReactNode, RefObject, useCallback, useContext, useEffect
 import styled from "styled-components";
 import { getNodeHelper } from "../definitions";
 import ArcaneGraph, { areSocketsCompatible } from "../definitions/graph";
-import BaseNode from "./node";
 import { NodeMoveEvent, LinkEvent, ConnectionEvent, NodeTypes, LinkTypes, SocketTypes } from "../definitions/types";
 import ConnectionCanvas from "./connections";
 import useDroppable from "!/utility/hooks/useDroppable";
@@ -52,7 +51,7 @@ const NodeView = () => {
                   if (origin.current && canvasRef.current) {
                      const obb = origin.current.getBoundingClientRect();
                      const zoom = canvasRef.current.getZoom();
-                     addNode(type as NodeTypes, { x: ev.clientX / zoom - obb.left, y: ev.clientY / zoom - obb.top });
+                     addNode(type as NodeTypes, { x: (ev.clientX - obb.left) / zoom, y: (ev.clientY - obb.top) / zoom });
                   }
                },
             ],
@@ -124,8 +123,8 @@ const NodeView = () => {
                const zoom = canvasRef.current.getZoom();
 
                const at = {
-                  x: (cbb.left + cbb.width / 2) / zoom - obb.left,
-                  y: (cbb.top + cbb.height / 2) / zoom - obb.top,
+                  x: (cbb.left + cbb.width / 2 - obb.left) / zoom,
+                  y: (cbb.top + cbb.height / 2 - obb.top) / zoom,
                };
 
                addNode(type, at);
@@ -139,17 +138,17 @@ const NodeView = () => {
       <Wrapper>
          <CanvasWrapper ref={wrapperRef}>
             <Canvas ref={canvasRef}>
-               <BoundingBox.Contents ref={origin}>
+               <BoxContents ref={origin}>
                   <EventCTX.Provider value={{ eventBus, origin }}>
                      <ConnectionCanvas />
                      {Object.values(nodes).map(({ nodeId, type }) => (
                         <EachNode key={nodeId} nodeId={nodeId} type={type} />
                      ))}
                   </EventCTX.Provider>
-               </BoundingBox.Contents>
+               </BoxContents>
             </Canvas>
          </CanvasWrapper>
-         <Slideout label={"Options"} isOpen direction={"up"} size={"clamp(100px, 20vw, 400px)"}>
+         <Slideout label={"Nodes"} isOpen direction={"up"} size={"clamp(100px, 20vw, 400px)"}>
             <Grid>
                {NODE_BUTTONS.map((t) => {
                   return <NodeButton key={t as string} onClick={handleAdd} type={t} />;
@@ -162,11 +161,17 @@ const NodeView = () => {
 
 const NODE_BUTTONS = Object.values(NodeTypes).filter((v) => v !== NodeTypes.RESULT);
 
+const BoxContents = styled(BoundingBox.Contents)`
+   display: grid;
+   justify-items: center;
+`;
+
 export default NodeView;
 
 const Wrapper = styled.div`
    display: grid;
    grid-template-rows: 1fr auto;
+   gap: 0.25em;
 `;
 
 const CanvasWrapper = styled.div``;
@@ -177,19 +182,8 @@ const Canvas = styled(DragCanvas)`
 
 const EachNode = ({ type, nodeId }: { type: NodeTypes; nodeId: string }) => {
    const helper = useMemo(() => getNodeHelper(type), [type]);
-   const Comp = useMemo(() => helper.controls, [helper]);
-   return (
-      <BaseNode
-         nodeId={nodeId}
-         label={helper.name}
-         nodeIcon={helper.nodeIcon}
-         flavour={helper.flavour}
-         key={nodeId}
-         noRemove={helper.type === NodeTypes.RESULT}
-      >
-         <Comp nodeId={nodeId} />
-      </BaseNode>
-   );
+   const ControlsComponent = useMemo(() => helper.controls, [helper]);
+   return <ControlsComponent nodeId={nodeId} />;
 };
 
 const getLinkType = (a: SocketTypes, b: SocketTypes): LinkTypes => {

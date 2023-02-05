@@ -1,3 +1,4 @@
+import BoundingBox from "!/components/containers/BoundingBox";
 import DragCanvas from "!/components/containers/DragCanvas";
 import { HTMLAttributes } from "react";
 import styled from "styled-components";
@@ -5,11 +6,29 @@ import { RootNodeRenderer } from "../definitions/values/resultNode";
 
 const OutputView = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) => {
    return (
-      <DragCanvas>
-         <div {...props}>
-            <RootNodeRenderer />
-         </div>
-      </DragCanvas>
+      <Canvas>
+         <BoxContents>
+            <div {...props} id={"EXPORT_ME"}>
+               <RootNodeRenderer />
+            </div>
+         </BoxContents>
+      </Canvas>
    );
-})``;
+})`
+   position: absolute;
+   pointer-events: none;
+
+   display: grid;
+   place-items: center;
+   place-content: center;
+`;
 export default OutputView;
+
+const Canvas = styled(DragCanvas)`
+   border: 1px solid var(--effect-border-highlight);
+`;
+
+const BoxContents = styled(BoundingBox.Contents)`
+   display: grid;
+   place-items: center;
+`;

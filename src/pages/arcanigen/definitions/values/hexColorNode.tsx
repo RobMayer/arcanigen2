@@ -26,21 +26,20 @@ const nodeHelper = ArcaneGraph.nodeHooks<IHexColorNode>();
 const Controls = memo(({ nodeId }: { nodeId: string }) => {
    const [value, setValue] = nodeHelper.useValueState(nodeId, "value");
    return (
-      <>
-         <BaseNode.Input label={"Value"}>
-            <HexColorInput value={value} onValidCommit={setValue} />
-         </BaseNode.Input>
-         <hr />
+      <BaseNode<IHexColorNode> nodeId={nodeId} helper={HexColorNodeHelper}>
          <SocketOut<IHexColorNode> nodeId={nodeId} socketId={"full"} type={SocketTypes.COLOR}>
-            rgbα
+            <BaseNode.Input label={"Value"}>
+               <HexColorInput value={value} onValidCommit={setValue} />
+            </BaseNode.Input>
          </SocketOut>
+         <hr />
          <SocketOut<IHexColorNode> nodeId={nodeId} socketId={"solid"} type={SocketTypes.COLOR}>
-            rgb
+            Solid
          </SocketOut>
          <SocketOut<IHexColorNode> nodeId={nodeId} socketId={"alpha"} type={SocketTypes.INTERVAL}>
-            α
+            Alpha
          </SocketOut>
-      </>
+      </BaseNode>
    );
 });
 

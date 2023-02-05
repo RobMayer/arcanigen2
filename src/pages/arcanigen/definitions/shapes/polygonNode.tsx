@@ -5,6 +5,7 @@ import {
    INodeDefinition,
    INodeHelper,
    NodeRenderer,
+   NodeRendererProps,
    NodeTypes,
    ScribeMode,
    SCRIBE_MODES,
@@ -28,6 +29,7 @@ import lodash from "lodash";
 
 interface IPolygonNode extends INodeDefinition {
    inputs: {
+      pointCount: number;
       radius: Length;
       strokeWidth: Length;
       strokeColor: Color;
@@ -61,22 +63,25 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    const [pointCount, setPointCount] = nodeHelper.useValueState(nodeId, "pointCount");
    const [scribeMode, setScribeMode] = nodeHelper.useValueState(nodeId, "scribeMode");
    const hasRadius = nodeHelper.useHasLink(nodeId, "radius");
+   const hasPointCount = nodeHelper.useHasLink(nodeId, "pointCount");
    const hasStrokeWidth = nodeHelper.useHasLink(nodeId, "strokeWidth");
    const hasStrokeColor = nodeHelper.useHasLink(nodeId, "strokeColor");
    const hasFillColor = nodeHelper.useHasLink(nodeId, "fillColor");
 
    return (
-      <>
+      <BaseNode<IPolygonNode> nodeId={nodeId} helper={PolygonNodeHelper}>
          <SocketOut<IPolygonNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
          <hr />
-         <BaseNode.Input label={"Points"}>
-            <SliderInput revertInvalid value={pointCount} onValidValue={setPointCount} min={3} max={24} step={1} />
-         </BaseNode.Input>
+         <SocketIn<IPolygonNode> nodeId={nodeId} socketId={"pointCount"} type={SocketTypes.INTEGER}>
+            <BaseNode.Input label={"Points"}>
+               <SliderInput revertInvalid value={pointCount} onValidValue={setPointCount} min={3} max={24} step={1} disabled={hasPointCount} />
+            </BaseNode.Input>
+         </SocketIn>
          <SocketIn<IPolygonNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
-               <LengthInput className={"inline small"} value={radius} onChange={setRadius} disabled={hasRadius} />
+               <LengthInput value={radius} onChange={setRadius} disabled={hasRadius} />
             </BaseNode.Input>
          </SocketIn>
          <BaseNode.Input label={"Scribe Mode"}>
@@ -86,7 +91,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          <BaseNode.Foldout label={"Appearance"} inputs={"strokeWidth strokeColor fillColor"} nodeId={nodeId} outputs={""}>
             <SocketIn<IPolygonNode> nodeId={nodeId} socketId={"strokeWidth"} type={SocketTypes.LENGTH}>
                <BaseNode.Input label={"Stroke Width"}>
-                  <LengthInput className={"inline small"} value={strokeWidth} onChange={setStrokeWidth} disabled={hasStrokeWidth} />
+                  <LengthInput value={strokeWidth} onChange={setStrokeWidth} disabled={hasStrokeWidth} />
                </BaseNode.Input>
             </SocketIn>
             <BaseNode.Input label={"Stroke Join"}>
@@ -114,13 +119,13 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
                Middle Radius
             </SocketOut>
          </BaseNode.Foldout>
-      </>
+      </BaseNode>
    );
 });
 
-const Renderer = memo(({ nodeId }: { nodeId: string }) => {
+const Renderer = memo(({ nodeId }: NodeRendererProps) => {
    const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius");
-   const pointCount = Math.min(24, Math.max(3, nodeHelper.useValue(nodeId, "pointCount")));
+   const pointCount = Math.min(24, Math.max(3, nodeHelper.useCoalesce(nodeId, "pointCount", "pointCount")));
    const scribeMode = nodeHelper.useValue(nodeId, "scribeMode");
 
    const strokeWidth = nodeHelper.useCoalesce(nodeId, "strokeWidth", "strokeWidth");

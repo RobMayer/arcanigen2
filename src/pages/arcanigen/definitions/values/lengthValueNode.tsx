@@ -15,6 +15,7 @@ interface ILengthValueNode extends INodeDefinition {
    outputs: {
       value: Length;
       unitless: number;
+      absolute: number;
       pxOut: Length;
       ptOut: Length;
       mmOut: Length;
@@ -32,13 +33,16 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    const [value, setValue] = nodeHelper.useValueState(nodeId, "value");
 
    return (
-      <>
+      <BaseNode<ILengthValueNode> nodeId={nodeId} helper={LengthValueNodeHelper}>
          <SocketOut<ILengthValueNode> nodeId={nodeId} socketId={"value"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Value"}>
-               <LengthInput className={"inline small"} value={value} onChange={setValue} />
+               <LengthInput value={value} onChange={setValue} />
             </BaseNode.Input>
          </SocketOut>
          <BaseNode.Foldout nodeId={nodeId} inputs={""} outputs={"unitless pxOut ptOut mmOut inOut cmOut"} label={"Additional Outputs"}>
+            <SocketOut<ILengthValueNode> nodeId={nodeId} socketId={"absolute"} type={SocketTypes.NUMBER}>
+               Absolute Value
+            </SocketOut>
             <SocketOut<ILengthValueNode> nodeId={nodeId} socketId={"unitless"} type={SocketTypes.NUMBER}>
                Unitless Value
             </SocketOut>
@@ -58,7 +62,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
                as in
             </SocketOut>
          </BaseNode.Foldout>
-      </>
+      </BaseNode>
    );
 });
 
@@ -71,6 +75,8 @@ const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof ILengthVal
          return v;
       case "unitless":
          return v.value;
+      case "absolute":
+         return MathHelper.lengthToPx(v);
       case "pxOut":
          return MathHelper.convertLength(v, "px");
       case "ptOut":

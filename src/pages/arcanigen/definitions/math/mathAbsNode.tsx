@@ -1,0 +1,62 @@
+import { memo } from "react";
+import ArcaneGraph from "../graph";
+import { IArcaneGraph, INodeDefinition, INodeHelper, NodeTypes, SocketTypes } from "../types";
+
+import { faValueAbsolute as nodeIcon } from "@fortawesome/pro-regular-svg-icons";
+import { faValueAbsolute as buttonIcon } from "@fortawesome/pro-light-svg-icons";
+import NumberInput from "!/components/inputs/NumberInput";
+import BaseNode from "../../nodeView/node";
+import { SocketOut, SocketIn } from "../../nodeView/socket";
+
+interface IMathAbsNode extends INodeDefinition {
+   inputs: {
+      aIn: number;
+   };
+   outputs: {
+      result: number;
+   };
+   values: {
+      a: number;
+   };
+}
+
+const nodeHelper = ArcaneGraph.nodeHooks<IMathAbsNode>();
+
+const Controls = memo(({ nodeId }: { nodeId: string }) => {
+   const [a, setA] = nodeHelper.useValueState(nodeId, "a");
+   const aIn = nodeHelper.useInput(nodeId, "aIn");
+   const hasA = nodeHelper.useHasLink(nodeId, "aIn");
+   return (
+      <BaseNode<IMathAbsNode> nodeId={nodeId} helper={MathAbsNodeHelper}>
+         <SocketOut<IMathAbsNode> nodeId={nodeId} socketId={"result"} type={SocketTypes.NUMBER}>
+            <BaseNode.Output label={"Result"}>{hasA ? aIn : a}</BaseNode.Output>
+         </SocketOut>
+         <hr />
+         <SocketIn<IMathAbsNode> nodeId={nodeId} socketId={"aIn"} type={SocketTypes.NUMBER}>
+            <BaseNode.Input label={"A"}>
+               <NumberInput value={hasA ? aIn : a} onValue={setA} disabled={hasA} />
+            </BaseNode.Input>
+         </SocketIn>
+      </BaseNode>
+   );
+});
+
+const nodeMethods = ArcaneGraph.nodeMethods<IMathAbsNode>();
+
+const MathAbsNodeHelper: INodeHelper<IMathAbsNode> = {
+   name: "Absolute",
+   buttonIcon,
+   nodeIcon,
+   flavour: "accent",
+   type: NodeTypes.MATH_ABS,
+   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IMathAbsNode["outputs"]) => {
+      const a = nodeMethods.coalesce(graph, nodeId, "aIn", "a");
+      return Math.abs(a);
+   },
+   initialize: () => ({
+      a: 0,
+   }),
+   controls: Controls,
+};
+
+export default MathAbsNodeHelper;

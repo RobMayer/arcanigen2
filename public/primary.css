@@ -53,12 +53,12 @@ html {
     place-items: center;
     width: 100vw;
     height: 100vh;
-    -webkit-app-region: drag;
+    /* -webkit-app-region: drag; */
   }
   #loader > img {
     grid-area: 1 / 1;
-    width: 100vmin;
-    height: 100vmin;
+    width: 50vmin;
+    height: 50vmin;
   }
 
   :root {

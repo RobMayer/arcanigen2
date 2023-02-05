@@ -5,6 +5,7 @@ import {
    INodeDefinition,
    INodeHelper,
    NodeRenderer,
+   NodeRendererProps,
    NodeTypes,
    RadialMode,
    RADIAL_MODES,
@@ -27,6 +28,7 @@ import { SocketOut, SocketIn } from "../../nodeView/socket";
 
 interface IStarNode extends INodeDefinition {
    inputs: {
+      pointCount: number;
       radius: Length;
       spread: Length;
       innerRadius: Length;
@@ -65,6 +67,8 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    const [strokeColor, setStrokeColor] = nodeHelper.useValueState(nodeId, "strokeColor");
    const [fillColor, setFillColor] = nodeHelper.useValueState(nodeId, "fillColor");
    const [strokeJoin, setStrokeJoin] = nodeHelper.useValueState(nodeId, "strokeJoin");
+
+   const hasPointCount = nodeHelper.useHasLink(nodeId, "pointCount");
    const hasInnerRadius = nodeHelper.useHasLink(nodeId, "innerRadius");
    const hasOuterRadius = nodeHelper.useHasLink(nodeId, "outerRadius");
    const hasRadius = nodeHelper.useHasLink(nodeId, "radius");
@@ -74,35 +78,37 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    const hasFillColor = nodeHelper.useHasLink(nodeId, "fillColor");
 
    return (
-      <>
+      <BaseNode<IStarNode> nodeId={nodeId} helper={StarNodeHelper}>
          <SocketOut<IStarNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
          <hr />
-         <BaseNode.Input label={"Points"}>
-            <SliderInput revertInvalid value={pointCount} onValidValue={setPointCount} min={3} max={24} step={1} />
-         </BaseNode.Input>
+         <SocketIn<IStarNode> nodeId={nodeId} socketId={"pointCount"} type={SocketTypes.INTEGER}>
+            <BaseNode.Input label={"Points"}>
+               <SliderInput revertInvalid value={pointCount} onValidValue={setPointCount} min={3} max={24} step={1} disabled={hasPointCount} />
+            </BaseNode.Input>
+         </SocketIn>
          <BaseNode.Input label={"Radial Mode"}>
             <ToggleList value={radialMode} onValue={setRadialMode} options={RADIAL_MODES} />
          </BaseNode.Input>
          <SocketIn<IStarNode> nodeId={nodeId} socketId={"innerRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Inner Radius"}>
-               <LengthInput className={"inline small"} value={innerRadius} onChange={setInnerRadius} disabled={hasInnerRadius || radialMode === "spread"} />
+               <LengthInput value={innerRadius} onChange={setInnerRadius} disabled={hasInnerRadius || radialMode === "spread"} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IStarNode> nodeId={nodeId} socketId={"outerRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Outer Radius"}>
-               <LengthInput className={"inline small"} value={outerRadius} onChange={setOuterRadius} disabled={hasOuterRadius || radialMode === "spread"} />
+               <LengthInput value={outerRadius} onChange={setOuterRadius} disabled={hasOuterRadius || radialMode === "spread"} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IStarNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
-               <LengthInput className={"inline small"} value={radius} onChange={setRadius} disabled={hasRadius || radialMode === "inout"} />
+               <LengthInput value={radius} onChange={setRadius} disabled={hasRadius || radialMode === "inout"} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IStarNode> nodeId={nodeId} socketId={"spread"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Spread"}>
-               <LengthInput className={"inline small"} value={spread} onChange={setSpread} disabled={hasSpread || radialMode === "inout"} />
+               <LengthInput value={spread} onChange={setSpread} disabled={hasSpread || radialMode === "inout"} />
             </BaseNode.Input>
          </SocketIn>
 
@@ -110,7 +116,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          <BaseNode.Foldout label={"Appearance"} nodeId={nodeId} inputs={"strokeWidth strokeColor fillColor"} outputs={""}>
             <SocketIn<IStarNode> nodeId={nodeId} socketId={"strokeWidth"} type={SocketTypes.LENGTH}>
                <BaseNode.Input label={"Stroke Width"}>
-                  <LengthInput className={"inline small"} value={strokeWidth} onChange={setStrokeWidth} disabled={hasStrokeWidth} />
+                  <LengthInput value={strokeWidth} onChange={setStrokeWidth} disabled={hasStrokeWidth} />
                </BaseNode.Input>
             </SocketIn>
             <BaseNode.Input label={"Stroke Join"}>
@@ -127,17 +133,17 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
                </BaseNode.Input>
             </SocketIn>
          </BaseNode.Foldout>
-      </>
+      </BaseNode>
    );
 });
 
-const Renderer = memo(({ nodeId }: { nodeId: string }) => {
+const Renderer = memo(({ nodeId }: NodeRendererProps) => {
    const radialMode = nodeHelper.useValue(nodeId, "radialMode");
    const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius");
    const spread = nodeHelper.useCoalesce(nodeId, "spread", "spread");
    const innerRadius = nodeHelper.useCoalesce(nodeId, "innerRadius", "innerRadius");
    const outerRadius = nodeHelper.useCoalesce(nodeId, "outerRadius", "outerRadius");
-   const pointCount = nodeHelper.useValue(nodeId, "pointCount");
+   const pointCount = Math.min(24, Math.max(3, nodeHelper.useCoalesce(nodeId, "pointCount", "pointCount")));
 
    const strokeWidth = nodeHelper.useCoalesce(nodeId, "strokeWidth", "strokeWidth");
    const strokeJoin = nodeHelper.useValue(nodeId, "strokeJoin");

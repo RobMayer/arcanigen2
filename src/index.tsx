@@ -10,7 +10,7 @@ const App = () => {
       <Router>
          <Layout>
             <Routes>
-               <Route path={"/arcanigen/"} element={<Pages.Arcanigen />} />
+               <Route path={"/magic-circle/"} element={<Pages.Arcanigen />} />
                <Route path={"/"} element={<Pages.Home />} />
             </Routes>
          </Layout>
@@ -27,7 +27,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
 const Layout = styled(({ children, ...props }: HTMLAttributes<HTMLDivElement>) => {
    return (
       <div {...props} id="layout">
-         <Menu />
+         {/* <Menu /> */}
          {children}
       </div>
    );
@@ -35,5 +35,5 @@ const Layout = styled(({ children, ...props }: HTMLAttributes<HTMLDivElement>) =
    width: 100%;
    height: 100%;
    display: grid;
-   grid-template-columns: auto 1fr;
+   grid-template-columns: 1fr;
 `;

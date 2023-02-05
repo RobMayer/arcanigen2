@@ -32,9 +32,9 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    const hasA = nodeHelper.useHasLink(nodeId, "aIn");
    const hasB = nodeHelper.useHasLink(nodeId, "bIn");
    return (
-      <>
+      <BaseNode<IMathSubNode> nodeId={nodeId} helper={MathSubNodeHelper}>
          <SocketOut<IMathSubNode> nodeId={nodeId} socketId={"result"} type={SocketTypes.NUMBER}>
-            Difference ({(hasA ? aIn : a) - (hasB ? bIn : b)})
+            <BaseNode.Output label={"Result"}>{(hasA ? aIn : a) - (hasB ? bIn : b)}</BaseNode.Output>
          </SocketOut>
          <hr />
          <SocketIn<IMathSubNode> nodeId={nodeId} socketId={"aIn"} type={SocketTypes.NUMBER}>
@@ -47,7 +47,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
                <NumberInput value={hasB ? bIn : b} onValue={setB} disabled={hasB} />
             </BaseNode.Input>
          </SocketIn>
-      </>
+      </BaseNode>
    );
 });
 

@@ -1,54 +1,69 @@
 import useResizeObserver from "!/utility/hooks/useResizeObserver";
-import { ForwardedRef, forwardRef, HTMLAttributes, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
+import {
+   createContext,
+   ForwardedRef,
+   forwardRef,
+   HTMLAttributes,
+   RefObject,
+   useCallback,
+   useContext,
+   useEffect,
+   useImperativeHandle,
+   useLayoutEffect,
+   useMemo,
+   useRef,
+   useState,
+} from "react";
 import styled from "styled-components";
 import BoundingBox from "./BoundingBox";
-import createFastContext from "!/utility/hooks/fastContext";
 import useIntersectionObserver from "!/utility/hooks/useIntersectionObserver";
+import DragCanvasControlBar from "./DragCanvasControlBar";
+import EventBus from "!/utility/eventbus";
+import { Vector2N } from "!/utility/types/units";
 
-type DragCanvasValue = { zoom: number };
+type DragCanvasEvents = {
+   "trh:dragcanvas.move": Vector2N;
+   "trh:dragcanvas.zoom": number;
+   "trh:dragcanvas.refresh": {};
+};
 
-const DragValueCTX = createFastContext<DragCanvasValue>({ zoom: 1 });
+const EventCTX = createContext<RefObject<EventBus<DragCanvasEvents>> | undefined>(undefined);
 
 export type DragCanvasControls = {
    getElement: () => HTMLDivElement | null;
    getZoom: () => number;
+   setPosition: (v: Vector2N | ((p: Vector2N) => Vector2N)) => void;
+   move: (x: number, y: number) => void;
+   setZoom: (n: number | ((p: number) => number)) => void;
+   center: () => void;
 };
 
-const Inner = styled(
+const DragCanvas = styled(
    forwardRef(({ children, className, ...props }: HTMLAttributes<HTMLDivElement>, fRef: ForwardedRef<DragCanvasControls>) => {
-      const [, setDragValue] = DragValueCTX.useFastContext<DragCanvasValue>((p) => p);
+      const eventBus = useRef<EventBus<DragCanvasEvents>>(new EventBus<DragCanvasEvents>());
 
       const [isDragging, setIsDragging] = useState<boolean>(false);
 
       const zoomRef = useRef<number>(1);
+      const posRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+
+      useEffect(() => {
+         return eventBus.current.subscribe("trh:dragcanvas.refresh", () => {
+            eventBus.current.trigger("trh:dragcanvas.move", posRef.current);
+            eventBus.current.trigger("trh:dragcanvas.zoom", zoomRef.current);
+         });
+      }, []);
 
       const outerRef = useRef<HTMLDivElement>(null);
       const panRef = useRef<HTMLDivElement>(null);
       const dragRef = useRef<HTMLDivElement>(null);
       const boundsRef = useRef<HTMLDivElement>(null);
       const anchorRef = useRef<HTMLDivElement>(null);
-      const centerRef = useRef<HTMLDivElement>(null);
-
-      useImperativeHandle(
-         fRef,
-         () => ({
-            getElement: () => outerRef.current,
-            getZoom: () => zoomRef.current,
-         }),
-         []
-      );
-
-      const [isOutOfBounds, setIsOutOfBounds] = useState({
-         borderTopColor: "transparent",
-         borderRightColor: "transparent",
-         borderBottomColor: "transparent",
-         borderLeftColor: "transparent",
-      });
 
       const checkBounds = useCallback(() => {
-         if (boundsRef.current && panRef.current) {
+         if (boundsRef.current && outerRef.current) {
             const bb = boundsRef.current.getBoundingClientRect();
-            const wb = panRef.current.getBoundingClientRect();
+            const wb = outerRef.current.getBoundingClientRect();
 
             const t = {
                borderTopColor: bb.top + bb.height / 2 < wb.top ? "" : "transparent",
@@ -71,6 +86,77 @@ const Inner = styled(
          }
       }, []);
 
+      const setInternalPosition = useCallback(
+         (x: number, y: number) => {
+            if (anchorRef.current && panRef.current) {
+               anchorRef.current.style.translate = `${x}px ${y}px`;
+               panRef.current.style.backgroundPositionX = `calc(50% + ${x}px)`;
+               panRef.current.style.backgroundPositionY = `calc(50% + ${y}px)`;
+            }
+            posRef.current.x = x;
+            posRef.current.y = y;
+            checkBounds();
+            eventBus.current.trigger("trh:dragcanvas.move", { x, y });
+         },
+         [checkBounds]
+      );
+
+      const center = useCallback(() => {
+         if (boundsRef.current && anchorRef.current) {
+            const bb = boundsRef.current.getBoundingClientRect();
+            const ab = anchorRef.current.getBoundingClientRect();
+
+            setInternalPosition((bb.left - ab.left + bb.width / 2) * -1, (bb.top - ab.top + bb.height / 2) * -1);
+         }
+      }, [setInternalPosition]);
+
+      const setInternalZoom = useCallback(
+         (z: number) => {
+            if (anchorRef.current && panRef.current) {
+               const nZ = Math.min(Math.max(0.125, z), 4);
+               zoomRef.current = nZ;
+               (anchorRef.current.style as any).scale = nZ;
+               panRef.current.style.backgroundSize = `calc(100vmin * ${nZ / 20})`;
+               checkBounds();
+               eventBus.current.trigger("trh:dragcanvas.zoom", nZ);
+            }
+         },
+         [checkBounds]
+      );
+
+      const controls: DragCanvasControls = useMemo(
+         () => ({
+            getElement: () => outerRef.current,
+            getZoom: () => zoomRef.current,
+            setPosition: (v: Vector2N | ((p: Vector2N) => Vector2N)) => {
+               const prev = posRef.current;
+               const nV = typeof v === "function" ? v(prev) : v;
+
+               setInternalPosition(nV.x, nV.y);
+            },
+            move: (x: number, y: number) => {
+               const prev = posRef.current;
+               setInternalPosition(prev.x + x, prev.y + y);
+            },
+            setZoom: (v: number | ((p: number) => number)) => {
+               const prev = zoomRef.current;
+               const nV = typeof v === "function" ? v(prev) : v;
+               setInternalZoom(nV);
+            },
+            center,
+         }),
+         [setInternalPosition, setInternalZoom, center]
+      );
+
+      useImperativeHandle(fRef, () => controls, [controls]);
+
+      const [isOutOfBounds, setIsOutOfBounds] = useState({
+         borderTopColor: "transparent",
+         borderRightColor: "transparent",
+         borderBottomColor: "transparent",
+         borderLeftColor: "transparent",
+      });
+
       useResizeObserver(outerRef, checkBounds);
       useResizeObserver(boundsRef, checkBounds);
       useIntersectionObserver(boundsRef, outerRef, checkBounds, INTERSECT_OPTS);
@@ -81,18 +167,8 @@ const Inner = styled(
          const a = anchorRef.current;
          if (n && a && p) {
             const handle = (e: WheelEvent) => {
-               // const bb = a.getBoundingClientRect();
-               // const offX = e.clientX - bb.left;
-               // const offY = e.clientY - bb.top;
-               const pZ = parseFloat((p.style as any).zoom);
-               const nZ = Math.min(Math.max(0.125, (isNaN(pZ) ? 1 : pZ) + e.deltaY * -0.001), 4);
-
-               // n.style.backgroundSize = `${nZ * 65}px`;
-
-               zoomRef.current = nZ;
-               setDragValue({ zoom: nZ });
-               (p.style as any).zoom = nZ;
-               checkBounds();
+               const pZ = zoomRef.current;
+               setInternalZoom(pZ + e.deltaY * -0.001);
             };
 
             n.addEventListener("wheel", handle);
@@ -100,32 +176,19 @@ const Inner = styled(
                n.removeEventListener("wheel", handle);
             };
          }
-      }, [setDragValue, checkBounds]);
+      }, [setInternalZoom]);
 
       useEffect(() => {
          const d = dragRef.current;
          if (d) {
-            // const debouncedCheck = lodash.debounce(checkBounds, 50);
-
             const move = (e: globalThis.MouseEvent) => {
                if (anchorRef.current && outerRef.current && panRef.current) {
-                  const sX = parseFloat(anchorRef.current.style.left);
-                  const sY = parseFloat(anchorRef.current.style.top);
-                  const z = zoomRef.current;
+                  const { x: sX, y: sY } = posRef.current;
 
-                  const nX = `${(isNaN(sX) ? 0 : sX) + e.movementX / z}px`;
-                  const nY = `${(isNaN(sY) ? 0 : sY) + e.movementY / z}px`;
+                  const nX = sX + e.movementX;
+                  const nY = sY + e.movementY;
 
-                  const bX = `${(isNaN(sX) ? 0 : sX) + e.movementX / z}px`;
-                  const bY = `${(isNaN(sY) ? 0 : sY) + e.movementY / z}px`;
-
-                  anchorRef.current.style.left = nX;
-                  anchorRef.current.style.top = nY;
-
-                  panRef.current.style.backgroundPositionX = `calc(50% + ${bX})`;
-                  panRef.current.style.backgroundPositionY = `calc(50% + ${bY})`;
-
-                  checkBounds();
+                  setInternalPosition(nX, nY);
                }
             };
             const end = () => {
@@ -145,20 +208,20 @@ const Inner = styled(
                d.removeEventListener("mousedown", start);
             };
          }
-      }, [checkBounds]);
+      }, [setInternalPosition]);
 
       return (
-         <div className={`${className ?? ""} meta-dragcanvas ${isDragging ? "state-dragging" : ""}`} {...props} ref={outerRef}>
-            <ScrollHandle ref={dragRef} />
-            <Pan className={"gridded"} ref={panRef}>
-               <Center ref={centerRef}>
-                  <Anchor ref={anchorRef}>
-                     <BoundingBox ref={boundsRef}>{children}</BoundingBox>
-                  </Anchor>
-               </Center>
-            </Pan>
-            <Signal style={isOutOfBounds} />
-         </div>
+         <EventCTX.Provider value={eventBus}>
+            <div className={`${className ?? ""} meta-dragcanvas ${isDragging ? "state-dragging" : ""}`} {...props} ref={outerRef}>
+               <ScrollHandle ref={dragRef} />
+               <Pan className={"gridded"} ref={panRef} />
+               <BoundingBox ref={boundsRef}>
+                  <Anchor ref={anchorRef}>{children}</Anchor>
+               </BoundingBox>
+               <Signal style={isOutOfBounds} />
+               <DragCanvasControlBar controls={controls} />
+            </div>
+         </EventCTX.Provider>
       );
    })
 )`
@@ -170,17 +233,9 @@ const Inner = styled(
    place-items: center;
    place-content: center;
    isolation: isolate;
+   -webkit-font-smoothing: antialiased;
+   transform: translateZ(0);
 `;
-
-const DragCanvas = forwardRef(({ children, ...props }: HTMLAttributes<HTMLDivElement>, fRef: ForwardedRef<DragCanvasControls>) => {
-   return (
-      <DragValueCTX.Provider>
-         <Inner {...props} ref={fRef}>
-            {children}
-         </Inner>
-      </DragValueCTX.Provider>
-   );
-});
 
 export default DragCanvas;
 
@@ -202,11 +257,9 @@ const Pan = styled.div`
    isolation: isolate;
    pointer-events: none;
    background-position: 50% 50%;
+   background-size: calc(100vmin / 20);
    &.gridded {
       background-image: url("/grid.svg");
-   }
-   & > * {
-      pointer-events: normal;
    }
 `;
 
@@ -216,8 +269,8 @@ const ScrollHandle = styled.div`
 `;
 
 const Anchor = styled.div`
-   width: 0;
-   height: 0;
+   width: 0px;
+   height: 0px;
    position: absolute;
 `;
 
@@ -227,7 +280,9 @@ const Center = styled.div`
    position: absolute;
 `;
 
-export const useDragCanvasValue = DragValueCTX.useFastContext;
+// export const useDragCanvasValue = DragValueCTX.useFastContext;
+
+export const useDragCanvasEvents = () => useContext(EventCTX);
 
 const INTERSECT_OPTS = {
    threshold: 0.5,

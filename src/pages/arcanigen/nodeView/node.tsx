@@ -1,24 +1,21 @@
-import { Flavour } from "!/components";
 import IconButton from "!/components/buttons/IconButton";
 import Icon from "!/components/icons";
 import faBlank from "!/components/icons/faBlank";
-import { IconProp } from "@fortawesome/fontawesome-svg-core";
 import { faCaretDown, faCaretRight, faClose } from "@fortawesome/pro-solid-svg-icons";
 import { HTMLAttributes, memo, ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import ArcaneGraph, { useNodePosition } from "../definitions/graph";
 import { useNodeGraphEventBus } from ".";
-import { useDragCanvasValue } from "!/components/containers/DragCanvas";
+import { useDragCanvasEvents } from "!/components/containers/DragCanvas";
+import { INodeDefinition, INodeHelper } from "../definitions/types";
 
-type IProps = {
+type IProps<T extends INodeDefinition> = {
    nodeId: string;
+   helper: INodeHelper<T>;
    noRemove?: boolean;
-   label: string;
-   nodeIcon: IconProp;
-   flavour?: Flavour;
 } & HTMLAttributes<HTMLDivElement>;
 
-const BaseNode = ({ nodeId, children, nodeIcon, flavour, label, noRemove = false, ...props }: IProps) => {
+const BaseNode = <T extends INodeDefinition>({ nodeId, children, helper, noRemove = false, ...props }: IProps<T>) => {
    const [initialPostion, commitPosition] = useNodePosition(nodeId);
    const { removeNode } = ArcaneGraph.useGraph();
    const [isOpen, setIsOpen] = useState<boolean>(true);
@@ -33,21 +30,29 @@ const BaseNode = ({ nodeId, children, nodeIcon, flavour, label, noRemove = false
    const gripRef = useRef<HTMLDivElement>(null);
    const mainRef = useRef<HTMLDivElement>(null);
 
-   const [zoom] = useDragCanvasValue((p) => p.zoom);
-   const zoomRef = useRef<number>(zoom);
-   useEffect(() => {
-      zoomRef.current = zoom;
-   }, [zoom]);
-
-   const nodeIdRef = useRef(nodeId);
-
+   const posRef = useRef<{ x: number; y: number }>(initialPostion);
    useEffect(() => {
       const m = mainRef.current;
       if (m) {
-         m.style.left = `${initialPostion.x}px`;
-         m.style.top = `${initialPostion.y}px`;
+         m.style.translate = `${initialPostion.x}px ${initialPostion.y}px`;
       }
+      posRef.current = initialPostion;
    }, [initialPostion]);
+
+   const dragEventBus = useDragCanvasEvents();
+   const zoomRef = useRef<number>(1);
+   useEffect(() => {
+      const eb = dragEventBus?.current;
+      if (eb) {
+         const unsub = eb.subscribe("trh:dragcanvas.zoom", (e) => {
+            zoomRef.current = e.detail;
+         });
+         eb.trigger("trh:dragcanvas.refresh", {});
+         return unsub;
+      }
+   }, [dragEventBus]);
+
+   const nodeIdRef = useRef(nodeId);
 
    useEffect(() => {
       nodeIdRef.current = nodeId;
@@ -55,7 +60,7 @@ const BaseNode = ({ nodeId, children, nodeIcon, flavour, label, noRemove = false
 
    useEffect(() => {
       const n = mainRef.current;
-      const c = origin.current;
+      const c = origin?.current;
       if (n && c) {
          n.style.zIndex = "auto";
          const handleMe = (e: CustomEvent<HTMLElement>) => {
@@ -71,29 +76,28 @@ const BaseNode = ({ nodeId, children, nodeIcon, flavour, label, noRemove = false
    useEffect(() => {
       const n = gripRef.current;
       const m = mainRef.current;
-      const c = origin.current;
+      const c = origin?.current;
       if (n && m && c) {
          const move = (e: MouseEvent) => {
             // set position
             // fire nodemove event
-            const sX = parseFloat(m.style.left);
-            const sY = parseFloat(m.style.top);
+            const { x: sX, y: sY } = posRef.current ?? { x: 0, y: 0 };
 
             const z = zoomRef.current ?? 1;
-            const nX = (isNaN(sX) ? 0 : sX) + e.movementX / z;
-            const nY = (isNaN(sY) ? 0 : sY) + e.movementY / z;
+            const nX = sX + e.movementX / z;
+            const nY = sY + e.movementY / z;
 
-            m.style.left = `${nX}px`;
-            m.style.top = `${nY}px`;
+            m.style.translate = `${nX}px ${nY}px`;
+            posRef.current.x = nX;
+            posRef.current.y = nY;
+
             if (eventBus.current) {
                eventBus.current.trigger(`node[${nodeId}].move`, { nodeId, x: nX, y: nY });
             }
          };
          const up = (e: MouseEvent) => {
-            const sX = parseFloat(m.style.left);
-            const sY = parseFloat(m.style.top);
             m.style.zIndex = "1";
-            commitPosition({ x: sX, y: sY });
+            commitPosition({ x: posRef.current.x, y: posRef.current.y });
             document.removeEventListener("mousemove", move);
             document.removeEventListener("mouseup", up);
          };
@@ -134,10 +138,10 @@ const BaseNode = ({ nodeId, children, nodeIcon, flavour, label, noRemove = false
    return (
       <MoveWrapper ref={mainRef} tabIndex={-1} data-trh-graph-node={nodeId}>
          <Main {...props} className={isOpen ? "state-open" : "state-closed"}>
-            <Label className={`flavour-${flavour}`}>
+            <Label className={`flavour-${helper.flavour}`}>
                <ProxySocket className={"in"} data-trh-graph-sockethost={nodeId} data-trh-graph-fallback={"in"} />
-               <IconButton flavour={"bare"} icon={nodeIcon} className={"muted"} onClick={handleToggle} />
-               <LabelInner ref={gripRef}>{label}</LabelInner>
+               <IconButton flavour={"bare"} icon={helper.nodeIcon} className={"muted"} onClick={handleToggle} />
+               <LabelInner ref={gripRef}>{helper.name}</LabelInner>
                {!noRemove ? <IconButton flavour={"bare"} icon={faClose} onClick={handleRemove} /> : <Icon icon={faBlank} />}
                <ProxySocket className={"out"} data-trh-graph-sockethost={nodeId} data-trh-graph-fallback={"out"} />
             </Label>
@@ -172,9 +176,6 @@ const Main = memo(styled.div`
    font-size: 0.875em;
 
    box-shadow: 0px 0px 8px #0008;
-   .meta-dragcanvas.state-dragging & {
-      box-shadow: none;
-   }
 
    &.state-open {
       grid-template-rows: auto 1fr;
@@ -239,6 +240,21 @@ const Input = styled(({ label, children, ...props }: { label?: ReactNode } & HTM
    grid-column: 2;
 `;
 
+const Output = styled(({ label, children, ...props }: { label?: ReactNode } & HTMLAttributes<HTMLDivElement>) => {
+   return (
+      <div {...props}>
+         {label && <InputLabel>{label}</InputLabel>}
+         <InputBody>
+            <OutputContent>{children}</OutputContent>
+         </InputBody>
+      </div>
+   );
+})`
+   display: grid;
+   grid-template-rows: auto 1fr;
+   grid-column: 2;
+`;
+
 const InputLabel = styled.div`
    font-size: 0.75em;
    justify-self: start;
@@ -247,6 +263,16 @@ const InputLabel = styled.div`
 
 const InputBody = styled.div`
    display: grid;
+`;
+
+const OutputContent = styled.div`
+   display: flex;
+   justify-content: center;
+   background: var(--layer-dn);
+   border: 1px solid var(--effect-border-highlight);
+   user-select: text;
+   overflow: hidden;
+   text-overflow: ellipsis;
 `;
 
 const Foldout = styled(
@@ -294,4 +320,5 @@ const Foldout = styled(
 `;
 
 BaseNode.Input = Input;
+BaseNode.Output = Output;
 BaseNode.Foldout = Foldout;
