@@ -1,14 +1,13 @@
-import { createContext, ReactNode, useCallback, useContext, useMemo, useRef, useSyncExternalStore } from "react";
+import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import { IArcaneGraph, INodeDefinition, INodeHelper, INodeInstance, LinkTypes, NodeRenderer, NodeTypes, SocketTypes } from "./types";
 import { v4 as uuid } from "uuid";
 import ObjHelper from "!/utility/objHelper";
 import fp from "lodash/fp";
 import lodash from "lodash";
 import { getNodeHelper } from ".";
-import useWhyDidYouUpdate from "!/utility/hooks/useWhyDidYouUpdate";
-import { RootNodeRenderer } from "./values/resultNode";
+import useLocalStorage from "!/utility/hooks/useLocalStorage";
 
-const initialState: IArcaneGraph = {
+const initState: IArcaneGraph = {
    nodes: {
       ROOT: {
          nodeId: "ROOT",
@@ -28,13 +27,13 @@ const initialState: IArcaneGraph = {
 
 type IArcanePos = { [key: string]: { x: number; y: number } };
 
-const initialPos: IArcanePos = {
+const initPos: IArcanePos = {
    ROOT: { x: 0, y: 0 },
 };
 
 const useStoreData = () => {
-   const graphStore = useRef<IArcaneGraph>(initialState);
-   const posStore = useRef<IArcanePos>(initialPos);
+   const graphStore = useRef<IArcaneGraph>(initState);
+   const posStore = useRef<IArcanePos>(initPos);
    const getGraph = useCallback(() => graphStore.current, []);
    const getPositions = useCallback(() => posStore.current, []);
 
@@ -70,8 +69,14 @@ const useStoreData = () => {
    }, []);
 
    const debug = useCallback(() => {
-      console.log({ ...graphStore.current, ...posStore.current });
+      console.log({
+         nodes: graphStore.current.nodes,
+         links: graphStore.current.links,
+         positions: posStore.current,
+      });
    }, []);
+
+   const { remove: removeFromLocalStorage } = useLocalStorage("arcanigen");
 
    const reset = useCallback(() => {
       graphStore.current = {
@@ -88,9 +93,11 @@ const useStoreData = () => {
          ROOT: posStore.current.ROOT,
       };
 
+      removeFromLocalStorage();
+
       graphListeners.current.forEach((callback) => callback());
       positionListeners.current.forEach((callback) => callback());
-   }, []);
+   }, [removeFromLocalStorage]);
 
    const save = useCallback(() => {
       return {
@@ -193,15 +200,23 @@ const StoreContext = createContext<ReturnType<typeof useStoreData> | null>(null)
 
 export const ArcaneGraphProvider = ({ children }: { children: ReactNode }) => {
    const s = useStoreData();
+
+   const { load, save } = useLocalStorage("arcanigen");
+
+   useEffect(() => {
+      s.graphMethods.load(
+         load() ?? {
+            nodes: initState.nodes,
+            links: initState.links,
+            positions: initPos,
+         }
+      );
+      return () => {
+         save(s.graphMethods.save());
+      };
+   }, [s, load, save]);
+
    return <StoreContext.Provider value={s}>{children}</StoreContext.Provider>;
-};
-
-const useDebugger = () => {
-   const store = useContext(StoreContext)!;
-
-   return useCallback(() => {
-      console.log(store.getGraph());
-   }, [store]);
 };
 
 const nodeHooks = <T extends INodeDefinition>() => {
@@ -341,29 +356,12 @@ const useLinklist = () => {
    });
 };
 
-const useLinkWatcher = (fromNode: string, toNode: string) => {
-   const store = useContext(StoreContext)!;
-
-   const fromNodeOut = useSyncExternalStore(store.subToGraph, () => {
-      return store.getGraph().nodes[fromNode]?.out;
-   });
-
-   const toNodeIn = useSyncExternalStore(store.subToGraph, () => {
-      return store.getGraph().nodes[toNode]?.in;
-   });
-
-   useWhyDidYouUpdate("useLinkWatcher", { fromNodeOut, toNodeIn });
-
-   return [fromNodeOut, toNodeIn] as [typeof fromNodeOut, typeof toNodeIn];
-};
-
 const ArcaneGraph = {
    nodeMethods,
    nodeHooks,
    useGraph,
    useNodelist,
    useLinklist,
-   useLinkWatcher,
 };
 export default ArcaneGraph;
 

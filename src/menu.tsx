@@ -1,16 +1,17 @@
 import { IconProp } from "@fortawesome/fontawesome-svg-core";
-import { faMagicWandSparkles } from "@fortawesome/pro-solid-svg-icons";
+import { faHome, faMagicWandSparkles } from "@fortawesome/pro-solid-svg-icons";
 import { HTMLAttributes, useCallback, MouseEvent } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import styled from "styled-components";
-import { Flavour } from "..";
-import { ButtonProps } from "../buttons/Button";
-import IconButton from "../buttons/IconButton";
+import { Flavour } from "./components";
+import { ButtonProps } from "./components/buttons/Button";
+import IconButton from "./components/buttons/IconButton";
 
-const Menu = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) => {
+const MainMenu = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) => {
    return (
       <div {...props}>
          <Group>
+            <MenuButton icon={faHome} to={"/"} />
             <MenuButton icon={faMagicWandSparkles} to={"/magic-circle/"} />
          </Group>
          <Group></Group>
@@ -23,7 +24,7 @@ const Menu = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) => {
    font-size: 1.375rem;
 `;
 
-export default Menu;
+export default MainMenu;
 
 const Group = styled.div`
    display: flex;

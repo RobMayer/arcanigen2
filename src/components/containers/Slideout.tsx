@@ -46,6 +46,7 @@ const Slideout = styled(
       ...rest
    }: IProps<T>) => {
       const [state, setState] = useState<boolean>(isOpen);
+
       useEffect(() => {
          setState(isOpen);
       }, [isOpen]);

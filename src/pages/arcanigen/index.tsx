@@ -1,6 +1,6 @@
 /** @scope default .. */
 
-import Page from "!/components/layout/Page";
+import Page from "!/components/content/Page";
 import styled from "styled-components";
 // import NodeView from "./nodeView";
 import { HTMLAttributes } from "react";

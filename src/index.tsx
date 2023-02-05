@@ -2,7 +2,7 @@ import React, { HTMLAttributes } from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import styled from "styled-components";
-import Menu from "./components/layout/Menu";
+import MainMenu from "./menu";
 import Pages from "./pages";
 
 const App = () => {
@@ -27,7 +27,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
 const Layout = styled(({ children, ...props }: HTMLAttributes<HTMLDivElement>) => {
    return (
       <div {...props} id="layout">
-         {/* <Menu /> */}
+         <MainMenu />
          {children}
       </div>
    );
@@ -35,5 +35,5 @@ const Layout = styled(({ children, ...props }: HTMLAttributes<HTMLDivElement>) =
    width: 100%;
    height: 100%;
    display: grid;
-   grid-template-columns: 1fr;
+   grid-template-columns: auto 1fr;
 `;

@@ -16,6 +16,7 @@ import ArcNodeHelper from "./shapes/arcNode";
 import BurstNodeHelper from "./shapes/burstNode";
 import CircleNodeHelper from "./shapes/circleNode";
 import FloodFillNodeHelper from "./shapes/floodFillNode";
+import GlyphNodeHelper from "./shapes/glyphNode";
 import PolygonNodeHelper from "./shapes/polygonNode";
 import PolygramNodeHelper from "./shapes/polygramNode";
 import RingNodeHelper from "./shapes/ringNode";
@@ -46,6 +47,7 @@ export const getNodeHelper = (key: NodeTypes) => {
       case NodeTypes.SHAPE_ARC: return ArcNodeHelper;
 
       case NodeTypes.SHAPE_FLOODFILL: return FloodFillNodeHelper;
+      case NodeTypes.SHAPE_GLYPH: return GlyphNodeHelper;
 
       case NodeTypes.VALUE_LENGTH: return LengthValueNodeHelper;
       case NodeTypes.VALUE_RANDOM: return RandomValueNodeHelper;

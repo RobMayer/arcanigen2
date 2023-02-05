@@ -167,8 +167,11 @@ const DragCanvas = styled(
          const a = anchorRef.current;
          if (n && a && p) {
             const handle = (e: WheelEvent) => {
-               const pZ = zoomRef.current;
-               setInternalZoom(pZ + e.deltaY * -0.001);
+               if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+               } else {
+                  const pZ = zoomRef.current;
+                  setInternalZoom(pZ + e.deltaY * -0.001);
+               }
             };
 
             n.addEventListener("wheel", handle);

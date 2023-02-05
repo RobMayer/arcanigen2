@@ -32,10 +32,10 @@ export type AbstractInputProps<T, E extends HTMLElement = HTMLInputElement> = {
    revertInvalid?: boolean;
 };
 
-type IProps = AbstractInputProps<string> & Omit<DetailedHTMLProps<InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>, "value" | "onChange">;
+type IProps<T extends HTMLElement> = AbstractInputProps<string, T> & Omit<DetailedHTMLProps<InputHTMLAttributes<T>, T>, "value" | "onChange">;
 
-export type SimpleInputProps<T> = AbstractInputProps<T, HTMLInputElement> &
-   Omit<DetailedHTMLProps<InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>, "value" | "onChange">;
+export type SimpleInputProps<T, E extends HTMLElement = HTMLInputElement> = AbstractInputProps<T, E> &
+   Omit<DetailedHTMLProps<InputHTMLAttributes<E>, E>, "value" | "onChange">;
 
 const AbstractTextInput = forwardRef(
    (
@@ -54,7 +54,7 @@ const AbstractTextInput = forwardRef(
          onInvalidCommit,
          onInvalidFinish,
          ...props
-      }: IProps,
+      }: IProps<HTMLInputElement>,
       fRef: ForwardedRef<HTMLInputElement>
    ) => {
       const [cache, setCache] = useState(value);
@@ -163,7 +163,7 @@ const AbstractNumberInput = forwardRef(
          revertInvalid,
          step,
          ...props
-      }: IProps,
+      }: IProps<HTMLInputElement>,
       fRef: ForwardedRef<HTMLInputElement>
    ) => {
       const [cache, setCache] = useState<string>(`${value}`);
@@ -281,7 +281,7 @@ const AbstractSliderInput = forwardRef(
          revertInvalid,
          step,
          ...props
-      }: IProps,
+      }: IProps<HTMLInputElement>,
       fRef: ForwardedRef<HTMLInputElement>
    ) => {
       const [cache, setCache] = useState<string>(`${value}`);
@@ -377,6 +377,114 @@ const AbstractSliderInput = forwardRef(
          [fRef]
       );
       return <input {...props} step={step ?? "any"} type={"range"} ref={setRef} value={cache} onChange={handleChange} />;
+   }
+);
+
+const AbstractTextArea = forwardRef(
+   (
+      {
+         value = "",
+         autoFocus,
+         revertInvalid,
+         onValidChange,
+         onChange,
+         onValidValue,
+         onValue,
+         onValidFinish,
+         onFinish,
+         onValidCommit,
+         onCommit,
+         onInvalidCommit,
+         onInvalidFinish,
+         ...props
+      }: IProps<HTMLTextAreaElement>,
+      fRef: ForwardedRef<HTMLTextAreaElement>
+   ) => {
+      const [cache, setCache] = useState(value);
+      const ref = useRef<HTMLTextAreaElement>();
+
+      useEffect(() => {
+         if (autoFocus && ref.current) {
+            ref.current.focus();
+         }
+      }, [autoFocus]);
+
+      useEffect(() => {
+         setCache(value);
+      }, [value]);
+
+      const handleChange = useCallback(
+         (e: ChangeEvent<HTMLTextAreaElement>) => {
+            setCache(e.currentTarget.value);
+            onChange && onChange(e);
+            onValue && onValue(e.currentTarget.value);
+            if (e.currentTarget.validity.valid) {
+               onValidChange && onValidChange(e);
+               onValidValue && onValidValue(e.currentTarget.value);
+            }
+         },
+         [onChange, onValue, onValidValue, onValidChange]
+      );
+
+      const handleFinish = useCallback(
+         (e: ChangeEvent<HTMLTextAreaElement>) => {
+            setCache(e.currentTarget.value);
+            onFinish && onFinish(e);
+            onCommit && onCommit(e.currentTarget.value);
+            if (e.currentTarget.validity.valid) {
+               onValidFinish && onValidFinish(e);
+               onValidCommit && onValidCommit(e.currentTarget.value);
+            } else {
+               onInvalidFinish && onInvalidFinish(e, revertInvalid);
+               onInvalidCommit && onInvalidCommit(e.currentTarget.value, revertInvalid);
+            }
+         },
+         [onFinish, onCommit, onValidFinish, onValidCommit, onInvalidCommit, onInvalidFinish, revertInvalid]
+      );
+
+      useEffect(() => {
+         const n = ref.current;
+         if (n && handleFinish) {
+            const cb = (e: Event) => {
+               let hasStopped = false;
+               const se: ChangeEvent<HTMLTextAreaElement> = {
+                  ...e,
+                  nativeEvent: e,
+                  persist: () => {},
+                  target: e.target as HTMLTextAreaElement,
+                  currentTarget: e.target as HTMLTextAreaElement,
+                  bubbles: true,
+                  cancelable: true,
+                  isDefaultPrevented: () => e.defaultPrevented,
+                  isPropagationStopped: () => hasStopped,
+                  stopPropagation: () => {
+                     e.stopPropagation();
+                     hasStopped = true;
+                  },
+               };
+               handleFinish(se);
+            };
+            n.addEventListener("change", cb);
+            return () => {
+               n.removeEventListener("change", cb);
+            };
+         }
+      }, [handleFinish]);
+
+      const setRef = useCallback(
+         (el: HTMLTextAreaElement) => {
+            ref.current = el;
+            if (fRef) {
+               if (typeof fRef === "function") {
+                  fRef(el);
+               } else {
+                  fRef.current = el;
+               }
+            }
+         },
+         [fRef]
+      );
+      return <textarea {...props} ref={setRef} value={cache} onChange={handleChange} />;
    }
 );
 
@@ -542,6 +650,7 @@ const AbstractInputs = {
    Text: AbstractTextInput,
    Number: AbstractNumberInput,
    Slider: AbstractSliderInput,
+   Area: AbstractTextArea,
    useAbstractHandlers,
    useAbstractProps,
 };

@@ -13,6 +13,7 @@ export enum NodeTypes {
    SHAPE_BURST = "shapeBurst",
    SHAPE_ARC = "shapeArc",
    SHAPE_FLOODFILL = "shapeFloodFill",
+   SHAPE_GLYPH = "shapeGlyph",
 
    COL_LAYERS = "collectionLayers",
    COL_MASK = "collectionMask",

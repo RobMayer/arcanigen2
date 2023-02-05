@@ -12,6 +12,7 @@ import ArcaneGraph, { areSocketsCompatible } from "../definitions/graph";
 import { NodeMoveEvent, LinkEvent, ConnectionEvent, NodeTypes, LinkTypes, SocketTypes } from "../definitions/types";
 import ConnectionCanvas from "./connections";
 import useDroppable from "!/utility/hooks/useDroppable";
+import useStoredState from "!/utility/hooks/useStoredState";
 
 type NodeGraphEvents = {
    [key: `node[${string}].move`]: NodeMoveEvent;
@@ -134,6 +135,8 @@ const NodeView = () => {
       [addNode]
    );
 
+   const [isDrawerOpen, setIsDrawerOpen] = useStoredState("uistate.nodeview.drawer", true);
+
    return (
       <Wrapper>
          <CanvasWrapper ref={wrapperRef}>
@@ -148,7 +151,15 @@ const NodeView = () => {
                </BoxContents>
             </Canvas>
          </CanvasWrapper>
-         <Slideout label={"Nodes"} isOpen direction={"up"} size={"clamp(100px, 20vw, 400px)"}>
+         <Slideout
+            label={"Nodes"}
+            isOpen={isDrawerOpen}
+            onToggle={() => {
+               setIsDrawerOpen((p) => !p);
+            }}
+            direction={"up"}
+            size={"clamp(100px, 20vw, 400px)"}
+         >
             <Grid>
                {NODE_BUTTONS.map((t) => {
                   return <NodeButton key={t as string} onClick={handleAdd} type={t} />;
