@@ -50,8 +50,9 @@ export enum SocketTypes {
    LENGTH = 32,
    COLOR = 64,
    SEQUENCE = 128,
+   POSITION = 256,
 
-   ANY = 1 | 2 | 4 | 8 | 16 | 32 | 64 | 128,
+   ANY = 1 | 2 | 4 | 8 | 16 | 32 | 64 | 128 | 256,
    NUMBER = 2 | 4 | 8 | 16,
 }
 
@@ -103,6 +104,14 @@ export type Sequence = {
    senderId: string;
    min: number;
    max: number;
+};
+
+export type Position = {
+   mode: "cartesian" | "polar";
+   x: number;
+   y: number;
+   a: number;
+   r: number;
 };
 
 export type OutSocketsOf<T extends INodeDefinition> = keyof T["outputs"];
@@ -169,6 +178,20 @@ export type StrokeJoinMode = keyof typeof STROKEJOIN_MODES;
 export const BLEND_MODES = {
    normal: "Normal",
    multiply: "Multiply",
+   color: "Color",
+   "color-burn": "Color Burn",
+   "color-dodge": "Color Dodge",
+   darken: "Darken",
+   difference: "Difference",
+   exclusion: "Exclusion",
+   "hard-light": "Hard Light",
+   hue: "Hue",
+   lighten: "Lighten",
+   luminosity: "Luminosity",
+   overlay: "Overlay",
+   saturation: "Saturation",
+   screen: "Screen",
+   "soft-light": "Soft Light",
 };
 export type BlendMode = keyof typeof BLEND_MODES;
 
@@ -179,3 +202,10 @@ export const SEQUENCE_MODES = {
 };
 
 export type SequenceMode = keyof typeof SEQUENCE_MODES;
+
+export const POSITION_MODES = {
+   cartesian: "Cartesian",
+   polar: "Polar",
+};
+
+export type PositionMode = keyof typeof POSITION_MODES;

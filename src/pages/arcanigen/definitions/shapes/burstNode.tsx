@@ -6,6 +6,7 @@ import {
    NodeRenderer,
    NodeRendererProps,
    NodeTypes,
+   PositionMode,
    RadialMode,
    RADIAL_MODES,
    SocketTypes,
@@ -27,6 +28,7 @@ import { Length, Color } from "!/utility/types/units";
 import lodash from "lodash";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
+import { TransformPrefabs } from "../../nodeView/prefabs";
 
 interface IBurstNode extends INodeDefinition {
    inputs: {
@@ -40,6 +42,12 @@ interface IBurstNode extends INodeDefinition {
       thetaStart: number;
       thetaEnd: number;
       thetaSteps: number;
+
+      positionX: Length;
+      positionY: Length;
+      positionRadius: Length;
+      positionTheta: number;
+      rotation: number;
    };
    outputs: {
       output: NodeRenderer;
@@ -59,6 +67,13 @@ interface IBurstNode extends INodeDefinition {
       strokeWidth: Length;
       strokeCap: StrokeCapMode;
       strokeColor: Color;
+
+      positionX: Length;
+      positionY: Length;
+      positionRadius: Length;
+      positionTheta: number;
+      positionMode: PositionMode;
+      rotation: number;
    };
 }
 
@@ -113,22 +128,22 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          </BaseNode.Input>
          <SocketIn<IBurstNode> nodeId={nodeId} socketId={"innerRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Inner Radius"}>
-               <LengthInput className={"inline small"} value={innerRadius} onChange={setInnerRadius} disabled={hasInnerRadius || radialMode === "spread"} />
+               <LengthInput value={innerRadius} onValidValue={setInnerRadius} disabled={hasInnerRadius || radialMode === "spread"} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IBurstNode> nodeId={nodeId} socketId={"outerRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Outer Radius"}>
-               <LengthInput className={"inline small"} value={outerRadius} onChange={setOuterRadius} disabled={hasOuterRadius || radialMode === "spread"} />
+               <LengthInput value={outerRadius} onValidValue={setOuterRadius} disabled={hasOuterRadius || radialMode === "spread"} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IBurstNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
-               <LengthInput className={"inline small"} value={radius} onChange={setRadius} disabled={hasRadius || radialMode === "inout"} />
+               <LengthInput value={radius} onValidValue={setRadius} disabled={hasRadius || radialMode === "inout"} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IBurstNode> nodeId={nodeId} socketId={"spread"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Spread"}>
-               <LengthInput className={"inline small"} value={spread} onChange={setSpread} disabled={hasSpread || radialMode === "inout"} />
+               <LengthInput value={spread} onValidValue={setSpread} disabled={hasSpread || radialMode === "inout"} />
             </BaseNode.Input>
          </SocketIn>
          <hr />
@@ -157,11 +172,11 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          <BaseNode.Foldout label={"Appearance"} nodeId={nodeId} inputs={"strokeWidth strokeColor fillColor"} outputs={""}>
             <SocketIn<IBurstNode> nodeId={nodeId} socketId={"strokeWidth"} type={SocketTypes.LENGTH}>
                <BaseNode.Input label={"Stroke Width"}>
-                  <LengthInput className={"inline small"} value={strokeWidth} onChange={setStrokeWidth} disabled={hasStrokeWidth} />
+                  <LengthInput value={strokeWidth} onValidValue={setStrokeWidth} disabled={hasStrokeWidth} min={0} />
                </BaseNode.Input>
             </SocketIn>
             <BaseNode.Input label={"Stroke Cap"}>
-               <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODES}></ToggleList>
+               <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODES} />
             </BaseNode.Input>
             <SocketIn<IBurstNode> nodeId={nodeId} socketId={"strokeColor"} type={SocketTypes.COLOR}>
                <BaseNode.Input label={"Stroke Color"}>
@@ -169,6 +184,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
                </BaseNode.Input>
             </SocketIn>
          </BaseNode.Foldout>
+         <TransformPrefabs.Full<IBurstNode> nodeId={nodeId} nodeHelper={nodeHelper} />
       </BaseNode>
    );
 });
@@ -180,6 +196,13 @@ const Renderer = memo(({ nodeId }: NodeRendererProps) => {
    const spread = nodeHelper.useCoalesce(nodeId, "spread", "spread");
    const innerRadius = nodeHelper.useCoalesce(nodeId, "innerRadius", "innerRadius");
    const outerRadius = nodeHelper.useCoalesce(nodeId, "outerRadius", "outerRadius");
+
+   const positionMode = nodeHelper.useValue(nodeId, "positionMode");
+   const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX");
+   const positionY = nodeHelper.useCoalesce(nodeId, "positionY", "positionY");
+   const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta");
+   const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius");
+   const rotation = nodeHelper.useCoalesce(nodeId, "rotation", "rotation");
 
    const thetaMode = nodeHelper.useValue(nodeId, "thetaMode");
    const thetaStart = nodeHelper.useCoalesce(nodeId, "thetaStart", "thetaStart");
@@ -195,8 +218,8 @@ const Renderer = memo(({ nodeId }: NodeRendererProps) => {
    const rO = radialMode === "inout" ? MathHelper.lengthToPx(outerRadius) : MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(spread) / 2;
 
    return (
-      <>
-         <g stroke={MathHelper.colorToHex(strokeColor, "#000f")} strokeWidth={MathHelper.lengthToPx(strokeWidth)} strokeLinecap={strokeCap}>
+      <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation}deg)` }}>
+         <g stroke={MathHelper.colorToHex(strokeColor, "#000f")} strokeWidth={Math.max(0, MathHelper.lengthToPx(strokeWidth))} strokeLinecap={strokeCap}>
             {lodash.range(spurCount).map((n) => {
                const coeff = MathHelper.delerp(n, 0, thetaInclusive ? spurCount - 1 : spurCount);
                const angle = thetaMode === "startstop" ? MathHelper.lerp(coeff, 1 * thetaStart, 1 * thetaEnd) : thetaSteps * n;
@@ -205,7 +228,7 @@ const Renderer = memo(({ nodeId }: NodeRendererProps) => {
                return <line key={n} x1={rI * c} y1={rI * s} x2={rO * c} y2={rO * s} />;
             })}
          </g>
-      </>
+      </g>
    );
 });
 
@@ -231,6 +254,13 @@ const BurstNodeHelper: INodeHelper<IBurstNode> = {
       thetaEnd: 90,
       thetaSteps: 30,
       thetaInclusive: true,
+
+      positionX: { value: 0, unit: "px" },
+      positionY: { value: 0, unit: "px" },
+      positionRadius: { value: 0, unit: "px" },
+      positionTheta: 0,
+      positionMode: "cartesian",
+      rotation: 0,
    }),
    controls: Controls,
 };

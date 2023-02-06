@@ -7,6 +7,7 @@ import {
    NodeRenderer,
    NodeRendererProps,
    NodeTypes,
+   PositionMode,
    SocketTypes,
    StrokeCapMode,
    STROKECAP_MODES,
@@ -25,6 +26,7 @@ import NumberInput from "!/components/inputs/NumberInput";
 import ToggleList from "!/components/selectors/ToggleList";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
+import { TransformPrefabs } from "../../nodeView/prefabs";
 
 interface IArcNode extends INodeDefinition {
    inputs: {
@@ -34,6 +36,12 @@ interface IArcNode extends INodeDefinition {
       fillColor: Color;
       thetaStart: number;
       thetaEnd: number;
+
+      positionX: Length;
+      positionY: Length;
+      positionRadius: Length;
+      positionTheta: number;
+      rotation: number;
    };
    outputs: {
       output: NodeRenderer;
@@ -48,6 +56,13 @@ interface IArcNode extends INodeDefinition {
       fillColor: Color;
       strokeJoin: StrokeJoinMode;
       strokeCap: StrokeCapMode;
+
+      positionX: Length;
+      positionY: Length;
+      positionRadius: Length;
+      positionTheta: number;
+      positionMode: PositionMode;
+      rotation: number;
    };
 }
 
@@ -82,7 +97,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          <hr />
          <SocketIn<IArcNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
-               <LengthInput className={"inline small"} value={radius} onChange={setRadius} disabled={hasRadius} />
+               <LengthInput value={radius} onValidValue={setRadius} disabled={hasRadius} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IArcNode> nodeId={nodeId} socketId={"thetaStart"} type={SocketTypes.ANGLE}>
@@ -102,7 +117,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          <BaseNode.Foldout label={"Appearance"} nodeId={nodeId} inputs={"strokeWidth strokeColor fillColor"} outputs={""}>
             <SocketIn<IArcNode> nodeId={nodeId} socketId={"strokeWidth"} type={SocketTypes.LENGTH}>
                <BaseNode.Input label={"Stroke Width"}>
-                  <LengthInput className={"inline small"} value={strokeWidth} onChange={setStrokeWidth} disabled={hasStrokeWidth} />
+                  <LengthInput value={strokeWidth} onValidValue={setStrokeWidth} disabled={hasStrokeWidth} min={0} />
                </BaseNode.Input>
             </SocketIn>
             <BaseNode.Input label={"Stroke Cap"}>
@@ -122,6 +137,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
                </BaseNode.Input>
             </SocketIn>
          </BaseNode.Foldout>
+         <TransformPrefabs.Full<IArcNode> nodeId={nodeId} nodeHelper={nodeHelper} />
       </BaseNode>
    );
 });
@@ -137,6 +153,13 @@ const Renderer = memo(({ nodeId }: NodeRendererProps) => {
    const strokeJoin = nodeHelper.useValue(nodeId, "strokeJoin");
 
    const pieSlice = nodeHelper.useValue(nodeId, "pieSlice");
+
+   const positionMode = nodeHelper.useValue(nodeId, "positionMode");
+   const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX");
+   const positionY = nodeHelper.useCoalesce(nodeId, "positionY", "positionY");
+   const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta");
+   const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius");
+   const rotation = nodeHelper.useCoalesce(nodeId, "rotation", "rotation");
 
    const pathD = useMemo(() => {
       const rad = MathHelper.lengthToPx(radius);
@@ -156,14 +179,16 @@ const Renderer = memo(({ nodeId }: NodeRendererProps) => {
    }, [pieSlice, radius, thetaEnd, thetaStart]);
 
    return (
-      <g
-         stroke={MathHelper.colorToHex(strokeColor)}
-         fill={MathHelper.colorToHex(fillColor)}
-         strokeWidth={MathHelper.lengthToPx(strokeWidth)}
-         strokeLinecap={strokeCap}
-         strokeLinejoin={strokeJoin}
-      >
-         <path d={pathD} />
+      <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation}deg)` }}>
+         <g
+            stroke={MathHelper.colorToHex(strokeColor)}
+            fill={MathHelper.colorToHex(fillColor)}
+            strokeWidth={Math.max(0, MathHelper.lengthToPx(strokeWidth))}
+            strokeLinecap={strokeCap}
+            strokeLinejoin={strokeJoin}
+         >
+            <path d={pathD} />
+         </g>
       </g>
    );
 });
@@ -185,6 +210,13 @@ const ArcNodeHelper: INodeHelper<IArcNode> = {
       thetaStart: 0,
       thetaEnd: 90,
       pieSlice: false,
+
+      positionX: { value: 0, unit: "px" },
+      positionY: { value: 0, unit: "px" },
+      positionRadius: { value: 0, unit: "px" },
+      positionTheta: 0,
+      positionMode: "cartesian",
+      rotation: 0,
    }),
    controls: Controls,
 };

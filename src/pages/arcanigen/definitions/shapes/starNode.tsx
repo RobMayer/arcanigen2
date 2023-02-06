@@ -7,6 +7,7 @@ import {
    NodeRenderer,
    NodeRendererProps,
    NodeTypes,
+   PositionMode,
    RadialMode,
    RADIAL_MODES,
    SocketTypes,
@@ -25,6 +26,7 @@ import { Length, Color } from "!/utility/types/units";
 import lodash from "lodash";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
+import { TransformPrefabs } from "../../nodeView/prefabs";
 
 interface IStarNode extends INodeDefinition {
    inputs: {
@@ -36,6 +38,12 @@ interface IStarNode extends INodeDefinition {
       strokeWidth: Length;
       strokeColor: Color;
       fillColor: Color;
+
+      positionX: Length;
+      positionY: Length;
+      positionRadius: Length;
+      positionTheta: number;
+      rotation: number;
    };
    outputs: {
       output: NodeRenderer;
@@ -51,6 +59,13 @@ interface IStarNode extends INodeDefinition {
       strokeJoin: StrokeJoinMode;
       strokeColor: Color;
       fillColor: Color;
+
+      positionX: Length;
+      positionY: Length;
+      positionRadius: Length;
+      positionTheta: number;
+      positionMode: PositionMode;
+      rotation: number;
    };
 }
 
@@ -93,22 +108,22 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          </BaseNode.Input>
          <SocketIn<IStarNode> nodeId={nodeId} socketId={"innerRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Inner Radius"}>
-               <LengthInput value={innerRadius} onChange={setInnerRadius} disabled={hasInnerRadius || radialMode === "spread"} />
+               <LengthInput value={innerRadius} onValidValue={setInnerRadius} disabled={hasInnerRadius || radialMode === "spread"} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IStarNode> nodeId={nodeId} socketId={"outerRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Outer Radius"}>
-               <LengthInput value={outerRadius} onChange={setOuterRadius} disabled={hasOuterRadius || radialMode === "spread"} />
+               <LengthInput value={outerRadius} onValidValue={setOuterRadius} disabled={hasOuterRadius || radialMode === "spread"} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IStarNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
-               <LengthInput value={radius} onChange={setRadius} disabled={hasRadius || radialMode === "inout"} />
+               <LengthInput value={radius} onValidValue={setRadius} disabled={hasRadius || radialMode === "inout"} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IStarNode> nodeId={nodeId} socketId={"spread"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Spread"}>
-               <LengthInput value={spread} onChange={setSpread} disabled={hasSpread || radialMode === "inout"} />
+               <LengthInput value={spread} onValidValue={setSpread} disabled={hasSpread || radialMode === "inout"} />
             </BaseNode.Input>
          </SocketIn>
 
@@ -116,11 +131,11 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          <BaseNode.Foldout label={"Appearance"} nodeId={nodeId} inputs={"strokeWidth strokeColor fillColor"} outputs={""}>
             <SocketIn<IStarNode> nodeId={nodeId} socketId={"strokeWidth"} type={SocketTypes.LENGTH}>
                <BaseNode.Input label={"Stroke Width"}>
-                  <LengthInput value={strokeWidth} onChange={setStrokeWidth} disabled={hasStrokeWidth} />
+                  <LengthInput value={strokeWidth} onValidValue={setStrokeWidth} disabled={hasStrokeWidth} min={0} />
                </BaseNode.Input>
             </SocketIn>
             <BaseNode.Input label={"Stroke Join"}>
-               <ToggleList value={strokeJoin} onValue={setStrokeJoin} options={STROKEJOIN_MODES}></ToggleList>
+               <ToggleList value={strokeJoin} onValue={setStrokeJoin} options={STROKEJOIN_MODES} />
             </BaseNode.Input>
             <SocketIn<IStarNode> nodeId={nodeId} socketId={"strokeColor"} type={SocketTypes.COLOR}>
                <BaseNode.Input label={"Stroke Color"}>
@@ -133,6 +148,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
                </BaseNode.Input>
             </SocketIn>
          </BaseNode.Foldout>
+         <TransformPrefabs.Full<IStarNode> nodeId={nodeId} nodeHelper={nodeHelper} />
       </BaseNode>
    );
 });
@@ -150,6 +166,13 @@ const Renderer = memo(({ nodeId }: NodeRendererProps) => {
    const strokeColor = nodeHelper.useCoalesce(nodeId, "strokeColor", "strokeColor");
    const fillColor = nodeHelper.useValue(nodeId, "fillColor");
 
+   const positionMode = nodeHelper.useValue(nodeId, "positionMode");
+   const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX");
+   const positionY = nodeHelper.useCoalesce(nodeId, "positionY", "positionY");
+   const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta");
+   const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius");
+   const rotation = nodeHelper.useCoalesce(nodeId, "rotation", "rotation");
+
    const points = useMemo(() => {
       const rI = radialMode === "inout" ? MathHelper.lengthToPx(innerRadius) : MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(spread) / 2;
       const rO = radialMode === "inout" ? MathHelper.lengthToPx(outerRadius) : MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(spread) / 2;
@@ -165,13 +188,16 @@ const Renderer = memo(({ nodeId }: NodeRendererProps) => {
    }, [innerRadius, outerRadius, pointCount, radialMode, radius, spread]);
 
    return (
-      <polygon
-         points={points}
-         stroke={MathHelper.colorToHex(strokeColor, "#000f")}
-         fill={MathHelper.colorToHex(fillColor, "transparent")}
-         strokeWidth={MathHelper.lengthToPx(strokeWidth)}
-         strokeLinejoin={strokeJoin}
-      />
+      <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation}deg)` }}>
+         <g
+            stroke={MathHelper.colorToHex(strokeColor, "#000f")}
+            fill={MathHelper.colorToHex(fillColor, "transparent")}
+            strokeWidth={Math.max(0, MathHelper.lengthToPx(strokeWidth))}
+            strokeLinejoin={strokeJoin}
+         >
+            <polygon points={points} />
+         </g>
+      </g>
    );
 });
 
@@ -193,6 +219,13 @@ const StarNodeHelper: INodeHelper<IStarNode> = {
       strokeJoin: "miter",
       strokeColor: { r: 0, g: 0, b: 0, a: 1 },
       fillColor: null as Color,
+
+      positionX: { value: 0, unit: "px" },
+      positionY: { value: 0, unit: "px" },
+      positionRadius: { value: 0, unit: "px" },
+      positionTheta: 0,
+      positionMode: "cartesian",
+      rotation: 0,
    }),
    controls: Controls,
 };

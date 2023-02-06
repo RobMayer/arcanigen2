@@ -7,6 +7,7 @@ import {
    NodeRenderer,
    NodeRendererProps,
    NodeTypes,
+   PositionMode,
    ScribeMode,
    SCRIBE_MODES,
    SocketTypes,
@@ -26,6 +27,7 @@ import { Length, Color } from "!/utility/types/units";
 import lodash from "lodash";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
+import { TransformPrefabs } from "../../nodeView/prefabs";
 
 interface IPolygramNode extends INodeDefinition {
    inputs: {
@@ -35,6 +37,12 @@ interface IPolygramNode extends INodeDefinition {
       strokeWidth: Length;
       strokeColor: Color;
       fillColor: Color;
+
+      positionX: Length;
+      positionY: Length;
+      positionRadius: Length;
+      positionTheta: number;
+      rotation: number;
    };
    outputs: {
       output: NodeRenderer;
@@ -51,6 +59,13 @@ interface IPolygramNode extends INodeDefinition {
       scribeMode: ScribeMode;
       strokeColor: Color;
       fillColor: Color;
+
+      positionX: Length;
+      positionY: Length;
+      positionRadius: Length;
+      positionTheta: number;
+      positionMode: PositionMode;
+      rotation: number;
    };
 }
 
@@ -112,7 +127,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          </SocketIn>
          <SocketIn<IPolygramNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
-               <LengthInput value={radius} onChange={setRadius} disabled={hasRadius} />
+               <LengthInput value={radius} onValidValue={setRadius} disabled={hasRadius} />
             </BaseNode.Input>
          </SocketIn>
          <BaseNode.Input label={"Scribe Mode"}>
@@ -123,11 +138,11 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          <BaseNode.Foldout label={"Appearance"} inputs={"strokeWidth strokeColor fillColor"} nodeId={nodeId} outputs={""}>
             <SocketIn<IPolygramNode> nodeId={nodeId} socketId={"strokeWidth"} type={SocketTypes.LENGTH}>
                <BaseNode.Input label={"Stroke Width"}>
-                  <LengthInput value={strokeWidth} onChange={setStrokeWidth} disabled={hasStrokeWidth} />
+                  <LengthInput value={strokeWidth} onValidValue={setStrokeWidth} disabled={hasStrokeWidth} min={0} />
                </BaseNode.Input>
             </SocketIn>
             <BaseNode.Input label={"Stroke Join"}>
-               <ToggleList value={strokeJoin} onValue={setStrokeJoin} options={STROKEJOIN_MODES}></ToggleList>
+               <ToggleList value={strokeJoin} onValue={setStrokeJoin} options={STROKEJOIN_MODES} />
             </BaseNode.Input>
             <SocketIn<IPolygramNode> nodeId={nodeId} socketId={"strokeColor"} type={SocketTypes.COLOR}>
                <BaseNode.Input label={"Stroke Color"}>
@@ -140,6 +155,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
                </BaseNode.Input>
             </SocketIn>
          </BaseNode.Foldout>
+         <TransformPrefabs.Full<IPolygramNode> nodeId={nodeId} nodeHelper={nodeHelper} />
          <BaseNode.Foldout label={"Additional Outputs"} inputs={""} outputs={"rTangents rPoints rMiddle"} nodeId={nodeId}>
             <SocketOut<IPolygramNode> nodeId={nodeId} socketId={"rTangents"} type={SocketTypes.LENGTH}>
                Tangents Radius
@@ -169,6 +185,13 @@ const Renderer = memo(({ nodeId }: NodeRendererProps) => {
    const strokeColor = nodeHelper.useCoalesce(nodeId, "strokeColor", "strokeColor");
    const fillColor = nodeHelper.useValue(nodeId, "fillColor");
 
+   const positionMode = nodeHelper.useValue(nodeId, "positionMode");
+   const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX");
+   const positionY = nodeHelper.useCoalesce(nodeId, "positionY", "positionY");
+   const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta");
+   const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius");
+   const rotation = nodeHelper.useCoalesce(nodeId, "rotation", "rotation");
+
    const points = useMemo(() => {
       const tR = getTrueRadius(MathHelper.lengthToPx(radius), scribeMode, pointCount);
       const angles = lodash.range(0, pointCount).map((i) => MathHelper.lerp(MathHelper.delerp(i, 0, pointCount), 0, 360));
@@ -183,15 +206,16 @@ const Renderer = memo(({ nodeId }: NodeRendererProps) => {
    }, [radius, scribeMode, pointCount, skipCount]);
 
    return (
-      <>
-         <polygon
-            points={points}
+      <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation}deg)` }}>
+         <g
             stroke={MathHelper.colorToHex(strokeColor, "#000f")}
             fill={MathHelper.colorToHex(fillColor, "transparent")}
-            strokeWidth={MathHelper.lengthToPx(strokeWidth)}
+            strokeWidth={Math.max(0, MathHelper.lengthToPx(strokeWidth))}
             strokeLinejoin={strokeJoin}
-         />
-      </>
+         >
+            <polygon points={points} />
+         </g>
+      </g>
    );
 });
 
@@ -232,6 +256,13 @@ const PolygramNodeHelper: INodeHelper<IPolygramNode> = {
       scribeMode: "inscribe",
       strokeColor: { r: 0, g: 0, b: 0, a: 1 },
       fillColor: null as Color,
+
+      positionX: { value: 0, unit: "px" },
+      positionY: { value: 0, unit: "px" },
+      positionRadius: { value: 0, unit: "px" },
+      positionTheta: 0,
+      positionMode: "cartesian",
+      rotation: 0,
    }),
    controls: Controls,
 };

@@ -4,21 +4,41 @@ import styled from "styled-components";
 import AbstractInputs from "./abstract";
 
 type IProps = {
-   onChange?: (value: Length) => void;
+   onValue?: (value: Length) => void;
+   onValidValue?: (value: Length) => void;
+   onCommit?: (value: Length) => void;
+   onValidCommit?: (value: Length) => void;
    value?: Length;
    autoFocus?: boolean;
    disabled?: boolean;
+   min?: number;
+   max?: number;
+   step?: number | "any";
 };
 
 const LengthInput = styled(
    forwardRef(
       (
-         { autoFocus, className, disabled = false, onChange, value, ...props }: IProps & Omit<HTMLAttributes<HTMLDivElement>, "onChange">,
+         {
+            autoFocus,
+            className,
+            disabled = false,
+            onCommit,
+            onValidCommit,
+            onValue,
+            onValidValue,
+            value,
+            min,
+            max,
+            step,
+            ...props
+         }: IProps & Omit<HTMLAttributes<HTMLDivElement>, "onChange">,
          fRef: ForwardedRef<HTMLDivElement>
       ) => {
          const inputRef = useRef<HTMLInputElement>(null);
 
          const [cache, setCache] = useState<Length>(value ?? { value: 0, unit: "px" });
+         const valueRef = useRef<Length>(cache);
 
          useEffect(() => {
             setCache((p) => {
@@ -29,31 +49,73 @@ const LengthInput = styled(
                }
                return p;
             });
+            if (value) {
+               valueRef.current.value = value.value;
+               valueRef.current.unit = value.unit;
+            }
          }, [value]);
 
-         useEffect(() => {
-            if (!isNaN(cache.value) && (cache.value !== value?.value || cache.unit !== value?.unit)) {
-               onChange && onChange(cache);
-            }
-         }, [cache, value, onChange]);
-
-         const handleValueChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-            setCache((p) => {
-               return {
-                  unit: p.unit,
-                  value: Number(e.target.value),
+         const handleValueFinish = useCallback(
+            (e: ChangeEvent<HTMLInputElement>) => {
+               setCache((p) => {
+                  return {
+                     unit: p.unit,
+                     value: Number(e.target.value),
+                  };
+               });
+               valueRef.current = {
+                  ...valueRef.current,
+                  value: Number(e.currentTarget.value),
                };
-            });
-         }, []);
+               onCommit && onCommit(valueRef.current);
+               if (e.currentTarget.validity.valid) {
+                  onValidCommit && onValidCommit(valueRef.current);
+               }
+            },
+            [onCommit, onValidCommit]
+         );
 
-         const handleUnitChange = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
-            setCache((p) => {
-               return {
-                  value: p.value,
+         const handleValueChange = useCallback(
+            (e: ChangeEvent<HTMLInputElement>) => {
+               setCache((p) => {
+                  return {
+                     unit: p.unit,
+                     value: Number(e.target.value),
+                  };
+               });
+               valueRef.current = {
+                  ...valueRef.current,
+                  value: Number(e.currentTarget.value),
+               };
+               onValue && onValue(valueRef.current);
+               if (e.currentTarget.validity.valid) {
+                  onValidValue && onValidValue(valueRef.current);
+               }
+            },
+            [onValue, onValidValue]
+         );
+
+         const handleUnitChange = useCallback(
+            (e: ChangeEvent<HTMLSelectElement>) => {
+               setCache((p) => {
+                  return {
+                     value: p.value,
+                     unit: e.target.value as Length["unit"],
+                  };
+               });
+               valueRef.current = {
+                  ...valueRef.current,
                   unit: e.target.value as Length["unit"],
                };
-            });
-         }, []);
+               onValue && onValue(valueRef.current);
+               onCommit && onCommit(valueRef.current);
+               if (inputRef.current?.validity.valid) {
+                  onValidValue && onValidValue(valueRef.current);
+                  onValidCommit && onValidCommit(valueRef.current);
+               }
+            },
+            [onValue, onCommit, onValidValue, onValidCommit]
+         );
 
          useEffect(() => {
             if (autoFocus) {
@@ -62,7 +124,19 @@ const LengthInput = styled(
          }, [autoFocus]);
          return (
             <div className={`${className ?? ""} ${disabled ? "state-disabled" : ""}`} ref={fRef} {...props}>
-               <AbstractInputs.Number className={"textinput"} ref={inputRef} disabled={disabled} value={`${cache.value}`} onChange={handleValueChange} />
+               <AbstractInputs.Number
+                  className={"textinput"}
+                  ref={inputRef}
+                  disabled={disabled}
+                  value={`${cache.value}`}
+                  onChange={onValue ? handleValueChange : undefined}
+                  onValidChange={onValidValue ? handleValueChange : undefined}
+                  onFinish={onCommit ? handleValueFinish : undefined}
+                  onValidFinish={onValidCommit ? handleValueFinish : undefined}
+                  min={min}
+                  max={max}
+                  step={step ?? "any"}
+               />
                <select className={"dropdown"} disabled={disabled} value={cache.unit} onChange={handleUnitChange}>
                   <option value="px">px</option>
                   <option value="pt">pt</option>

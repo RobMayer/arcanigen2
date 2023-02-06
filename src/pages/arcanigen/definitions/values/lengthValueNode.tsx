@@ -36,7 +36,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
       <BaseNode<ILengthValueNode> nodeId={nodeId} helper={LengthValueNodeHelper}>
          <SocketOut<ILengthValueNode> nodeId={nodeId} socketId={"value"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Value"}>
-               <LengthInput value={value} onChange={setValue} />
+               <LengthInput value={value} onValidValue={setValue} />
             </BaseNode.Input>
          </SocketOut>
          <BaseNode.Foldout nodeId={nodeId} inputs={""} outputs={"unitless pxOut ptOut mmOut inOut cmOut"} label={"Additional Outputs"}>

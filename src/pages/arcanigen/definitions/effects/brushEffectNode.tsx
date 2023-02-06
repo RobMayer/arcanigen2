@@ -51,7 +51,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          <hr />
          <SocketIn<IBrushEffectNode> nodeId={nodeId} socketId={"brushTip"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Brush Tip"}>
-               <LengthInput value={brushTip} onChange={setBrushTip} disabled={hasBrushTip} />
+               <LengthInput value={brushTip} onValidValue={setBrushTip} disabled={hasBrushTip} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IBrushEffectNode> nodeId={nodeId} socketId={"shake"} type={SocketTypes.INTERVAL}>

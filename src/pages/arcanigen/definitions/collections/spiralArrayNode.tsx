@@ -7,6 +7,7 @@ import {
    NodeRenderer,
    NodeRendererProps,
    NodeTypes,
+   PositionMode,
    RadialMode,
    RADIAL_MODES,
    Sequence,
@@ -27,6 +28,7 @@ import lodash from "lodash";
 import Checkbox from "!/components/buttons/Checkbox";
 import NumberInput from "!/components/inputs/NumberInput";
 import ToggleList from "!/components/selectors/ToggleList";
+import { TransformPrefabs } from "../../nodeView/prefabs";
 
 interface ISpiralArrayNode extends INodeDefinition {
    inputs: {
@@ -39,6 +41,12 @@ interface ISpiralArrayNode extends INodeDefinition {
       thetaStart: number;
       thetaEnd: number;
       thetaSteps: number;
+
+      positionX: Length;
+      positionY: Length;
+      positionRadius: Length;
+      positionTheta: number;
+      rotation: number;
    };
    outputs: {
       output: NodeRenderer;
@@ -57,6 +65,13 @@ interface ISpiralArrayNode extends INodeDefinition {
       spread: Length;
       innerRadius: Length;
       outerRadius: Length;
+
+      positionX: Length;
+      positionY: Length;
+      positionRadius: Length;
+      positionTheta: number;
+      positionMode: PositionMode;
+      rotation: number;
    };
 }
 
@@ -108,22 +123,22 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          </BaseNode.Input>
          <SocketIn<ISpiralArrayNode> nodeId={nodeId} socketId={"innerRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Inner Radius"}>
-               <LengthInput value={innerRadius} onChange={setInnerRadius} disabled={hasInnerRadius || radialMode === "spread"} />
+               <LengthInput value={innerRadius} onValidValue={setInnerRadius} disabled={hasInnerRadius || radialMode === "spread"} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<ISpiralArrayNode> nodeId={nodeId} socketId={"outerRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Outer Radius"}>
-               <LengthInput value={outerRadius} onChange={setOuterRadius} disabled={hasOuterRadius || radialMode === "spread"} />
+               <LengthInput value={outerRadius} onValidValue={setOuterRadius} disabled={hasOuterRadius || radialMode === "spread"} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<ISpiralArrayNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
-               <LengthInput value={radius} onChange={setRadius} disabled={hasRadius || radialMode === "inout"} />
+               <LengthInput value={radius} onValidValue={setRadius} disabled={hasRadius || radialMode === "inout"} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<ISpiralArrayNode> nodeId={nodeId} socketId={"spread"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Spread"}>
-               <LengthInput value={spread} onChange={setSpread} disabled={hasSpread || radialMode === "inout"} />
+               <LengthInput value={spread} onValidValue={setSpread} disabled={hasSpread || radialMode === "inout"} />
             </BaseNode.Input>
          </SocketIn>
          <hr />
@@ -152,6 +167,8 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
             Rotate Iterations
          </Checkbox>
          <hr />
+         <TransformPrefabs.Full<ISpiralArrayNode> nodeId={nodeId} nodeHelper={nodeHelper} />
+         <hr />
          <SocketOut<ISpiralArrayNode> nodeId={nodeId} socketId={"sequence"} type={SocketTypes.SEQUENCE}>
             Sequence
          </SocketOut>
@@ -170,6 +187,13 @@ const Renderer = memo(({ nodeId, depth, sequenceData }: NodeRendererProps) => {
    const spread = nodeHelper.useCoalesce(nodeId, "spread", "spread");
    const innerRadius = nodeHelper.useCoalesce(nodeId, "innerRadius", "innerRadius");
    const outerRadius = nodeHelper.useCoalesce(nodeId, "outerRadius", "outerRadius");
+
+   const positionMode = nodeHelper.useValue(nodeId, "positionMode");
+   const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX");
+   const positionY = nodeHelper.useCoalesce(nodeId, "positionY", "positionY");
+   const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta");
+   const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius");
+   const rotation = nodeHelper.useCoalesce(nodeId, "rotation", "rotation");
 
    const thetaMode = nodeHelper.useValue(nodeId, "thetaMode");
    const thetaStart = nodeHelper.useCoalesce(nodeId, "thetaStart", "thetaStart");
@@ -196,7 +220,11 @@ const Renderer = memo(({ nodeId, depth, sequenceData }: NodeRendererProps) => {
       });
    }, [pointCount, thetaMode, thetaStart, thetaEnd, thetaSteps, rI, rO, isRotating, output, childNodeId, thetaInclusive, nodeId, depth, sequenceData]);
 
-   return <g>{children}</g>;
+   return (
+      <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation}deg)` }}>
+         {children}
+      </g>
+   );
 });
 
 const Each = ({ nodeId, sequenceData, depth, index, host, output: Output }: NodeRendererProps & { index: number; host: string; output: NodeRenderer }) => {
@@ -244,6 +272,13 @@ const SpiralArrayNodeHelper: INodeHelper<ISpiralArrayNode> = {
       thetaEnd: 90,
       thetaSteps: 30,
       thetaInclusive: true,
+
+      positionX: { value: 0, unit: "px" },
+      positionY: { value: 0, unit: "px" },
+      positionRadius: { value: 0, unit: "px" },
+      positionTheta: 0,
+      positionMode: "cartesian",
+      rotation: 0,
    }),
    controls: Controls,
 };

@@ -93,6 +93,16 @@ export const colorToHex = (color: Color, fallback: string = "") => {
 export const WHITE = { r: 1.0, g: 1.0, b: 1.0, a: 1.0 };
 export const BLACK = { r: 0.0, g: 0.0, b: 0.0, a: 1.0 };
 
+const getPosition = (mode: "cartesian" | "polar", x: Length, y: Length, theta: number, r: Length) => {
+   if (mode === "polar") {
+      const nX = lengthToPx(r) * Math.cos(((theta - 90) * Math.PI) / 180);
+      const nY = lengthToPx(r) * Math.sin(((theta - 90) * Math.PI) / 180);
+
+      return `translate(${nX}px, ${nY}px)`;
+   }
+   return `translate(${lengthToPx(x)}px, ${lengthToPx(y) * -1}px)`;
+};
+
 const MathHelper = {
    deg2rad,
    lerp,
@@ -102,6 +112,7 @@ const MathHelper = {
    colorToHex,
    hexToColor,
    convertLength,
+   getPosition,
    WHITE,
    BLACK,
 };

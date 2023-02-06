@@ -7,6 +7,7 @@ import {
    NodeRenderer,
    NodeRendererProps,
    NodeTypes,
+   PositionMode,
    ScribeMode,
    SCRIBE_MODES,
    Sequence,
@@ -24,12 +25,19 @@ import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
 import lodash from "lodash";
 import Checkbox from "!/components/buttons/Checkbox";
+import { TransformPrefabs } from "../../nodeView/prefabs";
 
 interface IVertexArrayNode extends INodeDefinition {
    inputs: {
       input: NodeRenderer;
       radius: Length;
       pointCount: number;
+
+      positionX: Length;
+      positionY: Length;
+      positionRadius: Length;
+      positionTheta: number;
+      rotation: number;
    };
    outputs: {
       output: NodeRenderer;
@@ -40,6 +48,13 @@ interface IVertexArrayNode extends INodeDefinition {
       scribeMode: ScribeMode;
       pointCount: number;
       isRotating: boolean;
+
+      positionX: Length;
+      positionY: Length;
+      positionRadius: Length;
+      positionTheta: number;
+      positionMode: PositionMode;
+      rotation: number;
    };
 }
 
@@ -71,7 +86,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          </SocketIn>
          <SocketIn<IVertexArrayNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
-               <LengthInput value={radius} onChange={setRadius} disabled={hasRadius} />
+               <LengthInput value={radius} onValidValue={setRadius} disabled={hasRadius} />
             </BaseNode.Input>
          </SocketIn>
          <BaseNode.Input label={"Scribe Mode"}>
@@ -80,6 +95,8 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          <Checkbox checked={isRotating} onToggle={setIsRotating}>
             Rotate Iterations
          </Checkbox>
+         <hr />
+         <TransformPrefabs.Full<IVertexArrayNode> nodeId={nodeId} nodeHelper={nodeHelper} />
          <hr />
          <SocketOut<IVertexArrayNode> nodeId={nodeId} socketId={"sequence"} type={SocketTypes.SEQUENCE}>
             Sequence
@@ -96,6 +113,13 @@ const Renderer = memo(({ nodeId, depth, sequenceData }: NodeRendererProps) => {
    const isRotating = nodeHelper.useValue(nodeId, "isRotating");
    const tR = getTrueRadius(MathHelper.lengthToPx(radius), scribeMode, pointCount);
 
+   const positionMode = nodeHelper.useValue(nodeId, "positionMode");
+   const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX");
+   const positionY = nodeHelper.useCoalesce(nodeId, "positionY", "positionY");
+   const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta");
+   const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius");
+   const rotation = nodeHelper.useCoalesce(nodeId, "rotation", "rotation");
+
    const children = useMemo(() => {
       return lodash.range(pointCount).map((n, i) => {
          const coeff = MathHelper.delerp(n, 0, pointCount);
@@ -109,7 +133,11 @@ const Renderer = memo(({ nodeId, depth, sequenceData }: NodeRendererProps) => {
       });
    }, [output, childNodeId, pointCount, tR, isRotating, nodeId, depth, sequenceData]);
 
-   return <>{children}</>;
+   return (
+      <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation}deg)` }}>
+         {children}
+      </g>
+   );
 });
 
 const Each = ({ nodeId, sequenceData, depth, index, host, output: Output }: NodeRendererProps & { index: number; host: string; output: NodeRenderer }) => {
@@ -148,6 +176,13 @@ const VertexArrayNodeHelper: INodeHelper<IVertexArrayNode> = {
       scribeMode: "inscribe",
       pointCount: 5,
       isRotating: true,
+
+      positionX: { value: 0, unit: "px" },
+      positionY: { value: 0, unit: "px" },
+      positionRadius: { value: 0, unit: "px" },
+      positionTheta: 0,
+      positionMode: "cartesian",
+      rotation: 0,
    }),
    controls: Controls,
 };

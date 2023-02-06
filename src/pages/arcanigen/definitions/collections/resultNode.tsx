@@ -1,6 +1,5 @@
 import HexColorInput from "!/components/inputs/colorHexInput";
 import LengthInput from "!/components/inputs/LengthInput";
-import useWhyDidYouUpdate from "!/utility/hooks/useWhyDidYouUpdate";
 import MathHelper from "!/utility/mathhelper";
 import { Color, Length } from "!/utility/types/units";
 import { memo, useMemo } from "react";
@@ -48,12 +47,12 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          </SocketIn>
          <SocketIn<IResultNode> type={SocketTypes.LENGTH} nodeId={nodeId} socketId={"canvasWidth"}>
             <BaseNode.Input label={"Canvas Width"}>
-               <LengthInput value={canvasWidth} onChange={setCanvasWidth} disabled={hasCanvasWidth} />
+               <LengthInput value={canvasWidth} onValidValue={setCanvasWidth} disabled={hasCanvasWidth} min={0} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IResultNode> type={SocketTypes.LENGTH} nodeId={nodeId} socketId={"canvasHeight"}>
             <BaseNode.Input label={"Canvas Height"}>
-               <LengthInput value={canvasHeight} onChange={setCanvasHeight} disabled={hasCanvasHeight} />
+               <LengthInput value={canvasHeight} onValidValue={setCanvasHeight} disabled={hasCanvasHeight} min={0} />
             </BaseNode.Input>
          </SocketIn>
       </BaseNode>
@@ -82,12 +81,10 @@ export const RootNodeRenderer = () => {
    const canvasHeight = nodeHelper.useCoalesce("ROOT", "canvasHeight", "canvasHeight");
    const canvasWidth = nodeHelper.useCoalesce("ROOT", "canvasWidth", "canvasWidth");
 
-   const h = useMemo(() => MathHelper.lengthToPx(canvasHeight ?? { value: 800, unit: "px" }), [canvasHeight]);
-   const w = useMemo(() => MathHelper.lengthToPx(canvasWidth ?? { value: 800, unit: "px" }), [canvasWidth]);
+   const h = useMemo(() => Math.max(0, MathHelper.lengthToPx(canvasHeight ?? { value: 800, unit: "px" })), [canvasHeight]);
+   const w = useMemo(() => Math.max(0, MathHelper.lengthToPx(canvasWidth ?? { value: 800, unit: "px" })), [canvasWidth]);
 
    const [OutputRenderer, childNodeId] = nodeHelper.useInputNode("ROOT", "input");
-
-   useWhyDidYouUpdate("RootNodeRenderer", { h, w, Output: OutputRenderer, childNodeId });
 
    return (
       <svg

@@ -1,6 +1,6 @@
 import { memo } from "react";
 import ArcaneGraph from "../graph";
-import { INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, NodeTypes, RadialMode, RADIAL_MODES, SocketTypes } from "../types";
+import { INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, NodeTypes, PositionMode, RadialMode, RADIAL_MODES, SocketTypes } from "../types";
 import MathHelper from "!/utility/mathhelper";
 import { faCircleDot as nodeIcon } from "@fortawesome/pro-regular-svg-icons";
 import { faCircleDot as buttonIcon } from "@fortawesome/pro-light-svg-icons";
@@ -10,6 +10,7 @@ import ToggleList from "!/components/selectors/ToggleList";
 import { Length, Color } from "!/utility/types/units";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
+import { TransformPrefabs } from "../../nodeView/prefabs";
 
 interface IRingNode extends INodeDefinition {
    inputs: {
@@ -20,6 +21,11 @@ interface IRingNode extends INodeDefinition {
       strokeWidth: Length;
       strokeColor: Color;
       fillColor: Color;
+
+      positionX: Length;
+      positionY: Length;
+      positionRadius: Length;
+      positionTheta: number;
    };
    outputs: {
       output: NodeRenderer;
@@ -33,6 +39,12 @@ interface IRingNode extends INodeDefinition {
       strokeWidth: Length;
       strokeColor: Color;
       fillColor: Color;
+
+      positionX: Length;
+      positionY: Length;
+      positionRadius: Length;
+      positionTheta: number;
+      positionMode: PositionMode;
    };
 }
 
@@ -66,29 +78,29 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          </BaseNode.Input>
          <SocketIn<IRingNode> nodeId={nodeId} socketId={"innerRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Inner Radius"}>
-               <LengthInput value={innerRadius} onChange={setInnerRadius} disabled={hasInnerRadius || radialMode === "spread"} />
+               <LengthInput value={innerRadius} onValidValue={setInnerRadius} disabled={hasInnerRadius || radialMode === "spread"} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IRingNode> nodeId={nodeId} socketId={"outerRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Outer Radius"}>
-               <LengthInput value={outerRadius} onChange={setOuterRadius} disabled={hasOuterRadius || radialMode === "spread"} />
+               <LengthInput value={outerRadius} onValidValue={setOuterRadius} disabled={hasOuterRadius || radialMode === "spread"} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IRingNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
-               <LengthInput value={radius} onChange={setRadius} disabled={hasRadius || radialMode === "inout"} />
+               <LengthInput value={radius} onValidValue={setRadius} disabled={hasRadius || radialMode === "inout"} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IRingNode> nodeId={nodeId} socketId={"spread"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Spread"}>
-               <LengthInput value={spread} onChange={setSpread} disabled={hasSpread || radialMode === "inout"} />
+               <LengthInput value={spread} onValidValue={setSpread} disabled={hasSpread || radialMode === "inout"} />
             </BaseNode.Input>
          </SocketIn>
          <hr />
          <BaseNode.Foldout label={"Appearance"} nodeId={nodeId} inputs={"strokeWidth strokeColor fillColor"} outputs={""}>
             <SocketIn<IRingNode> nodeId={nodeId} socketId={"strokeWidth"} type={SocketTypes.LENGTH}>
                <BaseNode.Input label={"Stroke Width"}>
-                  <LengthInput value={strokeWidth} onChange={setStrokeWidth} disabled={hasStrokeWidth} />
+                  <LengthInput value={strokeWidth} onValidValue={setStrokeWidth} disabled={hasStrokeWidth} min={0} />
                </BaseNode.Input>
             </SocketIn>
             <SocketIn<IRingNode> nodeId={nodeId} socketId={"strokeColor"} type={SocketTypes.COLOR}>
@@ -102,6 +114,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
                </BaseNode.Input>
             </SocketIn>
          </BaseNode.Foldout>
+         <TransformPrefabs.Position<IRingNode> nodeId={nodeId} nodeHelper={nodeHelper} />
       </BaseNode>
    );
 });
@@ -117,16 +130,25 @@ const Renderer = memo(({ nodeId }: NodeRendererProps) => {
    const strokeWidth = nodeHelper.useCoalesce(nodeId, "strokeWidth", "strokeWidth");
    const fillColor = nodeHelper.useCoalesce(nodeId, "fillColor", "fillColor");
 
+   const positionMode = nodeHelper.useValue(nodeId, "positionMode");
+   const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX");
+   const positionY = nodeHelper.useCoalesce(nodeId, "positionY", "positionY");
+   const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta");
+   const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius");
+
    const rI = radialMode === "inout" ? MathHelper.lengthToPx(innerRadius) : MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(spread) / 2;
    const rO = radialMode === "inout" ? MathHelper.lengthToPx(outerRadius) : MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(spread) / 2;
 
    return (
-      <path
-         d={`M ${rO},0 A 1,1 0 0,0 ${-rO},0 A 1,1 0 0,0 ${rO},0 M ${rI},0 A 1,1 0 0,1 ${-rI},0 A 1,1 0 0,1 ${rI},0`}
-         stroke={MathHelper.colorToHex(strokeColor, "#000f")}
-         fill={MathHelper.colorToHex(fillColor, "transparent")}
-         strokeWidth={MathHelper.lengthToPx(strokeWidth)}
-      />
+      <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)}` }}>
+         <g
+            stroke={MathHelper.colorToHex(strokeColor, "#000f")}
+            fill={MathHelper.colorToHex(fillColor, "transparent")}
+            strokeWidth={Math.max(0, MathHelper.lengthToPx(strokeWidth))}
+         >
+            <path d={`M ${rO},0 A 1,1 0 0,0 ${-rO},0 A 1,1 0 0,0 ${rO},0 M ${rI},0 A 1,1 0 0,1 ${-rI},0 A 1,1 0 0,1 ${rI},0`} />
+         </g>
+      </g>
    );
 });
 
@@ -146,6 +168,12 @@ const RingNodeHelper: INodeHelper<IRingNode> = {
       strokeWidth: { value: 1, unit: "px" },
       strokeColor: { r: 0, g: 0, b: 0, a: 1 },
       fillColor: null as Color,
+
+      positionX: { value: 0, unit: "px" },
+      positionY: { value: 0, unit: "px" },
+      positionRadius: { value: 0, unit: "px" },
+      positionTheta: 0,
+      positionMode: "cartesian",
    }),
    controls: Controls,
 };

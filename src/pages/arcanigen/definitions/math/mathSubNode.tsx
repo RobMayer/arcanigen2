@@ -39,12 +39,12 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          <hr />
          <SocketIn<IMathSubNode> nodeId={nodeId} socketId={"aIn"} type={SocketTypes.NUMBER}>
             <BaseNode.Input label={"A"}>
-               <NumberInput value={hasA ? aIn : a} onValue={setA} disabled={hasA} />
+               <NumberInput value={hasA ? aIn : a} onValidValue={setA} disabled={hasA} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IMathSubNode> nodeId={nodeId} socketId={"bIn"} type={SocketTypes.NUMBER}>
             <BaseNode.Input label={"B"}>
-               <NumberInput value={hasB ? bIn : b} onValue={setB} disabled={hasB} />
+               <NumberInput value={hasB ? bIn : b} onValidValue={setB} disabled={hasB} />
             </BaseNode.Input>
          </SocketIn>
       </BaseNode>

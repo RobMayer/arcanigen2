@@ -55,7 +55,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          <hr />
          <SocketIn<IPenEffectNode> nodeId={nodeId} socketId={"nib"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Pen Nib"}>
-               <LengthInput value={nib} onChange={setNib} disabled={hasNib} />
+               <LengthInput value={nib} onValidValue={setNib} disabled={hasNib} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IPenEffectNode> nodeId={nodeId} socketId={"smudge"} type={SocketTypes.INTERVAL}>

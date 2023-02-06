@@ -7,6 +7,7 @@ import {
    NodeRenderer,
    NodeRendererProps,
    NodeTypes,
+   PositionMode,
    ScribeMode,
    SCRIBE_MODES,
    SocketTypes,
@@ -26,6 +27,7 @@ import { Length, Color } from "!/utility/types/units";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
 import lodash from "lodash";
+import { TransformPrefabs } from "../../nodeView/prefabs";
 
 interface IPolygonNode extends INodeDefinition {
    inputs: {
@@ -34,6 +36,12 @@ interface IPolygonNode extends INodeDefinition {
       strokeWidth: Length;
       strokeColor: Color;
       fillColor: Color;
+
+      positionX: Length;
+      positionY: Length;
+      positionRadius: Length;
+      positionTheta: number;
+      rotation: number;
    };
    outputs: {
       output: NodeRenderer;
@@ -49,6 +57,13 @@ interface IPolygonNode extends INodeDefinition {
       strokeJoin: StrokeJoinMode;
       strokeColor: Color;
       fillColor: Color;
+
+      positionX: Length;
+      positionY: Length;
+      positionRadius: Length;
+      positionTheta: number;
+      positionMode: PositionMode;
+      rotation: number;
    };
 }
 
@@ -81,7 +96,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          </SocketIn>
          <SocketIn<IPolygonNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
-               <LengthInput value={radius} onChange={setRadius} disabled={hasRadius} />
+               <LengthInput value={radius} onValidValue={setRadius} disabled={hasRadius} />
             </BaseNode.Input>
          </SocketIn>
          <BaseNode.Input label={"Scribe Mode"}>
@@ -91,11 +106,11 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          <BaseNode.Foldout label={"Appearance"} inputs={"strokeWidth strokeColor fillColor"} nodeId={nodeId} outputs={""}>
             <SocketIn<IPolygonNode> nodeId={nodeId} socketId={"strokeWidth"} type={SocketTypes.LENGTH}>
                <BaseNode.Input label={"Stroke Width"}>
-                  <LengthInput value={strokeWidth} onChange={setStrokeWidth} disabled={hasStrokeWidth} />
+                  <LengthInput value={strokeWidth} onValidValue={setStrokeWidth} disabled={hasStrokeWidth} min={0} />
                </BaseNode.Input>
             </SocketIn>
             <BaseNode.Input label={"Stroke Join"}>
-               <ToggleList value={strokeJoin} onValue={setStrokeJoin} options={STROKEJOIN_MODES}></ToggleList>
+               <ToggleList value={strokeJoin} onValue={setStrokeJoin} options={STROKEJOIN_MODES} />
             </BaseNode.Input>
             <SocketIn<IPolygonNode> nodeId={nodeId} socketId={"strokeColor"} type={SocketTypes.COLOR}>
                <BaseNode.Input label={"Stroke Color"}>
@@ -108,6 +123,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
                </BaseNode.Input>
             </SocketIn>
          </BaseNode.Foldout>
+         <TransformPrefabs.Full<IPolygonNode> nodeId={nodeId} nodeHelper={nodeHelper} />
          <BaseNode.Foldout label={"Additional Outputs"} inputs={""} outputs={"rInscribe rCircumscribe rMiddle"} nodeId={nodeId}>
             <SocketOut<IPolygonNode> nodeId={nodeId} socketId={"rInscribe"} type={SocketTypes.LENGTH}>
                Inscribe Radius
@@ -133,6 +149,13 @@ const Renderer = memo(({ nodeId }: NodeRendererProps) => {
    const strokeColor = nodeHelper.useCoalesce(nodeId, "strokeColor", "strokeColor");
    const fillColor = nodeHelper.useCoalesce(nodeId, "fillColor", "fillColor");
 
+   const positionMode = nodeHelper.useValue(nodeId, "positionMode");
+   const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX");
+   const positionY = nodeHelper.useCoalesce(nodeId, "positionY", "positionY");
+   const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta");
+   const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius");
+   const rotation = nodeHelper.useCoalesce(nodeId, "rotation", "rotation");
+
    const points = useMemo(() => {
       const tR = getTrueRadius(MathHelper.lengthToPx(radius), scribeMode, pointCount);
       return lodash
@@ -145,13 +168,16 @@ const Renderer = memo(({ nodeId }: NodeRendererProps) => {
    }, [pointCount, radius, scribeMode]);
 
    return (
-      <polygon
-         points={points}
-         stroke={MathHelper.colorToHex(strokeColor, "#000f")}
-         fill={MathHelper.colorToHex(fillColor, "transparent")}
-         strokeWidth={MathHelper.lengthToPx(strokeWidth)}
-         strokeLinejoin={strokeJoin}
-      />
+      <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation}deg)` }}>
+         <g
+            stroke={MathHelper.colorToHex(strokeColor, "#000f")}
+            fill={MathHelper.colorToHex(fillColor, "transparent")}
+            strokeWidth={Math.max(0, MathHelper.lengthToPx(strokeWidth))}
+            strokeLinejoin={strokeJoin}
+         >
+            <polygon points={points} />
+         </g>
+      </g>
    );
 });
 
@@ -190,6 +216,13 @@ const PolygonNodeHelper: INodeHelper<IPolygonNode> = {
       scribeMode: "inscribe",
       strokeColor: { r: 0, g: 0, b: 0, a: 1 },
       fillColor: null as Color,
+
+      positionX: { value: 0, unit: "px" },
+      positionY: { value: 0, unit: "px" },
+      positionRadius: { value: 0, unit: "px" },
+      positionTheta: 0,
+      positionMode: "cartesian",
+      rotation: 0,
    }),
    controls: Controls,
 };

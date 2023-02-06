@@ -7,6 +7,7 @@ import {
    NodeRenderer,
    NodeRendererProps,
    NodeTypes,
+   PositionMode,
    SocketTypes,
    StrokeCapMode,
    STROKECAP_MODES,
@@ -25,6 +26,7 @@ import LengthInput from "!/components/inputs/LengthInput";
 import ToggleList from "!/components/selectors/ToggleList";
 import TextArea from "!/components/inputs/TextArea";
 import styled from "styled-components";
+import { TransformPrefabs } from "../../nodeView/prefabs";
 
 interface IGlyphNode extends INodeDefinition {
    inputs: {
@@ -32,6 +34,12 @@ interface IGlyphNode extends INodeDefinition {
       strokeColor: Color;
       fillColor: Color;
       radius: Length;
+
+      positionX: Length;
+      positionY: Length;
+      positionRadius: Length;
+      positionTheta: number;
+      rotation: number;
    };
    outputs: {
       output: NodeRenderer;
@@ -44,6 +52,13 @@ interface IGlyphNode extends INodeDefinition {
       strokeJoin: StrokeJoinMode;
       strokeCap: StrokeCapMode;
       fillColor: Color;
+
+      positionX: Length;
+      positionY: Length;
+      positionRadius: Length;
+      positionTheta: number;
+      positionMode: PositionMode;
+      rotation: number;
    };
 }
 
@@ -82,14 +97,14 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          </BaseNode.Foldout>
          <SocketIn<IGlyphNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
-               <LengthInput value={radius} onChange={setRadius} disabled={hasRadius} />
+               <LengthInput value={radius} onValidValue={setRadius} disabled={hasRadius} min={0} />
             </BaseNode.Input>
          </SocketIn>
          <hr />
          <BaseNode.Foldout label={"Appearance"} inputs={"strokeWidth strokeColor fillColor"} nodeId={nodeId} outputs={""}>
             <SocketIn<IGlyphNode> nodeId={nodeId} socketId={"strokeWidth"} type={SocketTypes.LENGTH}>
                <BaseNode.Input label={"Stroke Width"}>
-                  <LengthInput value={strokeWidth} onChange={setStrokeWidth} disabled={hasStrokeWidth} />
+                  <LengthInput value={strokeWidth} onValidValue={setStrokeWidth} disabled={hasStrokeWidth} min={0} />
                </BaseNode.Input>
             </SocketIn>
             <BaseNode.Input label={"Stroke Join"}>
@@ -109,6 +124,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
                </BaseNode.Input>
             </SocketIn>
          </BaseNode.Foldout>
+         <TransformPrefabs.Full<IGlyphNode> nodeId={nodeId} nodeHelper={nodeHelper} />
       </BaseNode>
    );
 });
@@ -122,22 +138,29 @@ const Renderer = memo(({ nodeId, depth }: NodeRendererProps) => {
    const strokeCap = nodeHelper.useValue(nodeId, "strokeCap");
    const strokeJoin = nodeHelper.useValue(nodeId, "strokeJoin");
 
+   const positionMode = nodeHelper.useValue(nodeId, "positionMode");
+   const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX");
+   const positionY = nodeHelper.useCoalesce(nodeId, "positionY", "positionY");
+   const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta");
+   const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius");
+   const rotation = nodeHelper.useCoalesce(nodeId, "rotation", "rotation");
+
    return (
-      <g>
+      <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation}deg)` }}>
          <symbol id={`glyph_${nodeId}_lyr-${depth ?? ""}`} viewBox="0 0 512 512">
             <path d={path} vectorEffect={"non-scaling-stroke"} />
          </symbol>
          <g
             stroke={MathHelper.colorToHex(strokeColor, "transparent")}
             fill={MathHelper.colorToHex(fillColor, "transparent")}
-            strokeWidth={MathHelper.lengthToPx(strokeWidth ?? { value: 0, unit: "px" })}
+            strokeWidth={Math.max(0, MathHelper.lengthToPx(strokeWidth ?? { value: 0, unit: "px" }))}
             strokeLinecap={strokeCap}
             strokeLinejoin={strokeJoin}
          >
             <use
                href={`#glyph_${nodeId}_lyr-${depth ?? ""}`}
-               width={MathHelper.lengthToPx(radius) * 2}
-               height={MathHelper.lengthToPx(radius) * 2}
+               width={Math.max(0, MathHelper.lengthToPx(radius) * 2)}
+               height={Math.max(0, MathHelper.lengthToPx(radius) * 2)}
                x={MathHelper.lengthToPx(radius) * -1}
                y={MathHelper.lengthToPx(radius) * -1}
             />
@@ -161,6 +184,13 @@ const GlyphNodeHelper: INodeHelper<IGlyphNode> = {
       strokeColor: null as Color,
       strokeJoin: "bevel",
       strokeCap: "butt",
+
+      positionX: { value: 0, unit: "px" },
+      positionY: { value: 0, unit: "px" },
+      positionRadius: { value: 0, unit: "px" },
+      positionTheta: 0,
+      positionMode: "cartesian",
+      rotation: 0,
    }),
    controls: Controls,
 };
