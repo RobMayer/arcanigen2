@@ -17,6 +17,7 @@ export enum NodeTypes {
 
    COL_LAYERS = "collectionLayers",
    COL_MASK = "collectionMask",
+   COL_SEQUENCE = "collectionSequence",
 
    ARRAY_VERTEX = "arrayVertex",
    ARRAY_SPIRAL = "arraySpiral",
@@ -45,16 +46,18 @@ export enum SocketTypes {
    FLOAT = 2,
    INTEGER = 4,
    INTERVAL = 8,
-   LENGTH = 16,
-   ANGLE = 32,
+   ANGLE = 16,
+   LENGTH = 32,
    COLOR = 64,
+   SEQUENCE = 128,
 
-   ANY = 1 | 2 | 4 | 8 | 16 | 32 | 64,
-   NUMBER = 2 | 4 | 8 | 32,
+   ANY = 1 | 2 | 4 | 8 | 16 | 32 | 64 | 128,
+   NUMBER = 2 | 4 | 8 | 16,
 }
 
 export enum LinkTypes {
    OTHER,
+   SEQUENCE,
    SHAPE,
 }
 
@@ -93,8 +96,14 @@ export type INodeInstance<T extends INodeDefinition> = {
    };
 } & T["values"];
 
-export type NodeRendererProps = { nodeId: string; layer: string };
+export type NodeRendererProps = { nodeId: string; depth: string; sequenceData: { [key: string]: number } };
 export type NodeRenderer = ComponentType<NodeRendererProps>;
+
+export type Sequence = {
+   senderId: string;
+   min: number;
+   max: number;
+};
 
 export type OutSocketsOf<T extends INodeDefinition> = keyof T["outputs"];
 
@@ -162,3 +171,11 @@ export const BLEND_MODES = {
    multiply: "Multiply",
 };
 export type BlendMode = keyof typeof BLEND_MODES;
+
+export const SEQUENCE_MODES = {
+   wrap: "Wrap",
+   clamp: "Clamp",
+   bounce: "Bounce",
+};
+
+export type SequenceMode = keyof typeof SEQUENCE_MODES;

@@ -77,7 +77,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    );
 });
 
-const Renderer = memo(({ nodeId, layer }: NodeRendererProps) => {
+const Renderer = memo(({ nodeId, depth, sequenceData }: NodeRendererProps) => {
    const seed = nodeHelper.useCoalesce(nodeId, "seed", "seed");
    const nib = nodeHelper.useCoalesce(nodeId, "nib", "nib");
    const smudge = nodeHelper.useCoalesce(nodeId, "smudge", "smudge");
@@ -87,7 +87,7 @@ const Renderer = memo(({ nodeId, layer }: NodeRendererProps) => {
    return (
       <>
          <g>
-            <filter id={`effect_${nodeId}_lyr-${layer ?? ""}`} filterUnits={"userSpaceOnUse"} x={"-100%"} y={"-100%"} width={"200%"} height={"200%"}>
+            <filter id={`effect_${nodeId}_lyr-${depth ?? ""}`} filterUnits={"userSpaceOnUse"} x={"-100%"} y={"-100%"} width={"200%"} height={"200%"}>
                <feTurbulence type="fractalNoise" baseFrequency={1} numOctaves="20" result="fractal" seed={seed} stitchTiles="stitch" />
                <feGaussianBlur stdDeviation={0.75} result="fractal" />
                <feMorphology in="SourceGraphic" radius={MathHelper.lengthToPx(nib) / 4} operator="dilate" />
@@ -96,7 +96,9 @@ const Renderer = memo(({ nodeId, layer }: NodeRendererProps) => {
                <feMorphology radius={MathHelper.lengthToPx(nib) / 4} operator="erode" />
                <feBlend in2="SourceGraphic" />
             </filter>
-            <g filter={`url('#effect_${nodeId}_lyr-${layer ?? ""}')`}>{Content && cId && <Content nodeId={cId} layer={(layer ?? "") + `_${nodeId}`} />}</g>
+            <g filter={`url('#effect_${nodeId}_lyr-${depth ?? ""}')`}>
+               {Content && cId && <Content sequenceData={sequenceData} nodeId={cId} depth={(depth ?? "") + `_${nodeId}`} />}
+            </g>
          </g>
       </>
    );

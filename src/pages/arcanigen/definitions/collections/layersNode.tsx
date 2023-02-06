@@ -140,19 +140,32 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    );
 });
 
-const Renderer = memo(({ nodeId, layer }: NodeRendererProps) => {
+const Renderer = memo(({ nodeId, depth, sequenceData }: NodeRendererProps) => {
    const sockets = nodeHelper.useValue(nodeId, "sockets") ?? [];
    const modes = nodeHelper.useValue(nodeId, "modes") ?? {};
    return (
       <g>
          {sockets.map((sId, i) => {
-            return <Each key={sId} nodeId={nodeId} socketId={sId} blendMode={modes[sId]} layer={(layer ?? "") + `_${nodeId}.${i}`} />;
+            return <Each key={sId} nodeId={nodeId} socketId={sId} blendMode={modes[sId]} host={nodeId} depth={depth} index={i} sequenceData={sequenceData} />;
          })}
       </g>
    );
 });
 
-const Each = ({ nodeId, socketId, blendMode, layer }: { nodeId: string; socketId: string; blendMode: BlendMode; layer: string }) => {
+const Each = ({
+   nodeId,
+   socketId,
+   blendMode,
+   depth,
+   host,
+   index,
+   sequenceData,
+}: NodeRendererProps & {
+   socketId: string;
+   blendMode: BlendMode;
+   host: string;
+   index: number;
+}) => {
    const [Comp, childId] = nodeHelper.useInputNode(nodeId, socketId);
    const styles = useMemo(
       () => ({
@@ -161,7 +174,14 @@ const Each = ({ nodeId, socketId, blendMode, layer }: { nodeId: string; socketId
       [blendMode]
    );
 
-   return <g style={styles}>{Comp && childId && <Comp nodeId={childId} layer={layer} />}</g>;
+   const newSequenceData = useMemo(() => {
+      return {
+         ...sequenceData,
+         [host]: index,
+      };
+   }, [sequenceData, host, index]);
+
+   return <g style={styles}>{Comp && childId && <Comp nodeId={childId} depth={(depth ?? "") + `_${host}.${index}`} sequenceData={newSequenceData} />}</g>;
 };
 
 const LayersNodeHelper: INodeHelper<ILayersNode> = {

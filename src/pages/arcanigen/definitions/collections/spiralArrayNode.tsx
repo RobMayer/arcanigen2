@@ -9,6 +9,7 @@ import {
    NodeTypes,
    RadialMode,
    RADIAL_MODES,
+   Sequence,
    SocketTypes,
    ThetaMode,
    THETA_MODES,
@@ -30,6 +31,7 @@ import ToggleList from "!/components/selectors/ToggleList";
 interface ISpiralArrayNode extends INodeDefinition {
    inputs: {
       input: NodeRenderer;
+      pointCount: number;
       radius: Length;
       spread: Length;
       innerRadius: Length;
@@ -40,6 +42,7 @@ interface ISpiralArrayNode extends INodeDefinition {
    };
    outputs: {
       output: NodeRenderer;
+      sequence: Sequence;
    };
    values: {
       pointCount: number;
@@ -75,6 +78,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    const [thetaSteps, setThetaSteps] = nodeHelper.useValueState(nodeId, "thetaSteps");
    const [thetaInclusive, setThetaInclusive] = nodeHelper.useValueState(nodeId, "thetaInclusive");
 
+   const hasPointCount = nodeHelper.useHasLink(nodeId, "pointCount");
    const hasThetaStart = nodeHelper.useHasLink(nodeId, "thetaStart");
    const hasThetaEnd = nodeHelper.useHasLink(nodeId, "thetaEnd");
    const hasThetaSteps = nodeHelper.useHasLink(nodeId, "thetaSteps");
@@ -94,30 +98,32 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
             Input
          </SocketIn>
          <hr />
-         <BaseNode.Input label={"Points"}>
-            <SliderInput revertInvalid value={pointCount} onValidValue={setPointCount} min={3} max={24} step={1} />
-         </BaseNode.Input>
+         <SocketIn<ISpiralArrayNode> nodeId={nodeId} socketId={"pointCount"} type={SocketTypes.INTEGER}>
+            <BaseNode.Input label={"Points"}>
+               <SliderInput revertInvalid value={pointCount} onValidValue={setPointCount} min={3} max={24} step={1} disabled={hasPointCount} />
+            </BaseNode.Input>
+         </SocketIn>
          <BaseNode.Input label={"Radial Mode"}>
             <ToggleList value={radialMode} onValue={setRadialMode} options={RADIAL_MODES} />
          </BaseNode.Input>
          <SocketIn<ISpiralArrayNode> nodeId={nodeId} socketId={"innerRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Inner Radius"}>
-               <LengthInput className={"inline small"} value={innerRadius} onChange={setInnerRadius} disabled={hasInnerRadius || radialMode === "spread"} />
+               <LengthInput value={innerRadius} onChange={setInnerRadius} disabled={hasInnerRadius || radialMode === "spread"} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<ISpiralArrayNode> nodeId={nodeId} socketId={"outerRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Outer Radius"}>
-               <LengthInput className={"inline small"} value={outerRadius} onChange={setOuterRadius} disabled={hasOuterRadius || radialMode === "spread"} />
+               <LengthInput value={outerRadius} onChange={setOuterRadius} disabled={hasOuterRadius || radialMode === "spread"} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<ISpiralArrayNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
-               <LengthInput className={"inline small"} value={radius} onChange={setRadius} disabled={hasRadius || radialMode === "inout"} />
+               <LengthInput value={radius} onChange={setRadius} disabled={hasRadius || radialMode === "inout"} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<ISpiralArrayNode> nodeId={nodeId} socketId={"spread"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Spread"}>
-               <LengthInput className={"inline small"} value={spread} onChange={setSpread} disabled={hasSpread || radialMode === "inout"} />
+               <LengthInput value={spread} onChange={setSpread} disabled={hasSpread || radialMode === "inout"} />
             </BaseNode.Input>
          </SocketIn>
          <hr />
@@ -142,18 +148,21 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          <Checkbox checked={thetaInclusive} onToggle={setThetaInclusive} disabled={thetaMode === "incremental"}>
             Inclusive End θ
          </Checkbox>
-         <hr />
          <Checkbox checked={isRotating} onToggle={setIsRotating}>
             Rotate Iterations
          </Checkbox>
+         <hr />
+         <SocketOut<ISpiralArrayNode> nodeId={nodeId} socketId={"sequence"} type={SocketTypes.SEQUENCE}>
+            Sequence
+         </SocketOut>
       </BaseNode>
    );
 });
 
-const Renderer = memo(({ nodeId, layer }: NodeRendererProps) => {
-   const [Output, childNodeId] = nodeHelper.useInputNode(nodeId, "input");
+const Renderer = memo(({ nodeId, depth, sequenceData }: NodeRendererProps) => {
+   const [output, childNodeId] = nodeHelper.useInputNode(nodeId, "input");
 
-   const pointCount = nodeHelper.useValue(nodeId, "pointCount");
+   const pointCount = Math.min(24, Math.max(3, nodeHelper.useCoalesce(nodeId, "pointCount", "pointCount")));
    const isRotating = nodeHelper.useValue(nodeId, "isRotating");
 
    const radialMode = nodeHelper.useValue(nodeId, "radialMode");
@@ -181,14 +190,27 @@ const Renderer = memo(({ nodeId, layer }: NodeRendererProps) => {
 
          return (
             <g key={n} style={{ transform: `rotate(${rot + 180}deg) translate(0px, ${rad}px) rotate(${isRotating ? 180 : -rot - 180}deg)` }}>
-               {Output && childNodeId && <Output nodeId={childNodeId} layer={(layer ?? "") + `_${nodeId}.${i}`} />}
+               {output && childNodeId && <Each output={output} nodeId={childNodeId} host={nodeId} depth={depth} sequenceData={sequenceData} index={i} />}
             </g>
          );
       });
-   }, [pointCount, thetaMode, thetaStart, thetaEnd, thetaSteps, rI, rO, isRotating, Output, childNodeId, thetaInclusive, nodeId, layer]);
+   }, [pointCount, thetaMode, thetaStart, thetaEnd, thetaSteps, rI, rO, isRotating, output, childNodeId, thetaInclusive, nodeId, depth, sequenceData]);
 
    return <g>{children}</g>;
 });
+
+const Each = ({ nodeId, sequenceData, depth, index, host, output: Output }: NodeRendererProps & { index: number; host: string; output: NodeRenderer }) => {
+   const newSequenceData = useMemo(() => {
+      return {
+         ...sequenceData,
+         [host]: index,
+      };
+   }, [sequenceData, host, index]);
+
+   return <Output nodeId={nodeId} sequenceData={newSequenceData} depth={(depth ?? "") + `_${host}.${index}`} />;
+};
+
+const nodeMethods = ArcaneGraph.nodeMethods<ISpiralArrayNode>();
 
 const SpiralArrayNodeHelper: INodeHelper<ISpiralArrayNode> = {
    name: "Spiral Array",
@@ -196,7 +218,18 @@ const SpiralArrayNodeHelper: INodeHelper<ISpiralArrayNode> = {
    nodeIcon,
    flavour: "danger",
    type: NodeTypes.ARRAY_SPIRAL,
-   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof ISpiralArrayNode["outputs"]) => Renderer,
+   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof ISpiralArrayNode["outputs"]) => {
+      switch (socket) {
+         case "output":
+            return Renderer;
+         case "sequence":
+            return {
+               senderId: nodeId,
+               min: 0,
+               max: nodeMethods.coalesce(graph, nodeId, "pointCount", "pointCount"),
+            };
+      }
+   },
    initialize: () => ({
       pointCount: 5,
       isRotating: true,

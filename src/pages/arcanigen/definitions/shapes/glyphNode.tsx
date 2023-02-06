@@ -24,6 +24,7 @@ import HexColorInput from "!/components/inputs/colorHexInput";
 import LengthInput from "!/components/inputs/LengthInput";
 import ToggleList from "!/components/selectors/ToggleList";
 import TextArea from "!/components/inputs/TextArea";
+import styled from "styled-components";
 
 interface IGlyphNode extends INodeDefinition {
    inputs: {
@@ -69,11 +70,11 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          </SocketOut>
          <hr />
          <BaseNode.Input label={"preview"}>
-            <svg viewBox={"0 0 512 512"}>
+            <Preview viewBox={"0 0 512 512"}>
                <g fill={"black"} stroke={"none"}>
                   <path d={path} />
                </g>
-            </svg>
+            </Preview>
          </BaseNode.Input>
          <BaseNode.Foldout label={"Custom Path"} inputs={""} nodeId={nodeId} outputs={""}>
             <div>Expected value is the 'd' attribute of an SVG Path with a vewbox of 512x512.</div>
@@ -112,7 +113,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    );
 });
 
-const Renderer = memo(({ nodeId, layer }: NodeRendererProps) => {
+const Renderer = memo(({ nodeId, depth }: NodeRendererProps) => {
    const path = nodeHelper.useValue(nodeId, "path");
    const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius");
    const strokeWidth = nodeHelper.useCoalesce(nodeId, "strokeWidth", "strokeWidth");
@@ -123,7 +124,7 @@ const Renderer = memo(({ nodeId, layer }: NodeRendererProps) => {
 
    return (
       <g>
-         <symbol id={`glyph_${nodeId}_lyr-${layer ?? ""}`} viewBox="0 0 512 512">
+         <symbol id={`glyph_${nodeId}_lyr-${depth ?? ""}`} viewBox="0 0 512 512">
             <path d={path} vectorEffect={"non-scaling-stroke"} />
          </symbol>
          <g
@@ -134,7 +135,7 @@ const Renderer = memo(({ nodeId, layer }: NodeRendererProps) => {
             strokeLinejoin={strokeJoin}
          >
             <use
-               href={`#glyph_${nodeId}_lyr-${layer ?? ""}`}
+               href={`#glyph_${nodeId}_lyr-${depth ?? ""}`}
                width={MathHelper.lengthToPx(radius) * 2}
                height={MathHelper.lengthToPx(radius) * 2}
                x={MathHelper.lengthToPx(radius) * -1}
@@ -165,3 +166,9 @@ const GlyphNodeHelper: INodeHelper<IGlyphNode> = {
 };
 
 export default GlyphNodeHelper;
+
+const Preview = styled.svg`
+   height: 128px;
+   width: 128px;
+   justify-self: center;
+`;

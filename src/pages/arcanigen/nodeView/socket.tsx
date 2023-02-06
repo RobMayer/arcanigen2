@@ -177,6 +177,8 @@ const getSocketFlavour = (type: SocketTypes): Flavour => {
       case SocketTypes.LENGTH:
       case SocketTypes.COLOR:
          return "help";
+      case SocketTypes.SEQUENCE:
+         return "emphasis";
       case SocketTypes.SHAPE:
          return "confirm";
    }

@@ -260,6 +260,8 @@ const getLinkFlavour = (type: LinkTypes): Flavour => {
    switch (type) {
       case LinkTypes.SHAPE:
          return "confirm";
+      case LinkTypes.SEQUENCE:
+         return "emphasis";
       case LinkTypes.OTHER:
          return "accent";
    }

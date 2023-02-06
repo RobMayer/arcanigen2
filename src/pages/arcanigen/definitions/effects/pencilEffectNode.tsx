@@ -47,21 +47,23 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    );
 });
 
-const Renderer = memo(({ nodeId, layer }: NodeRendererProps) => {
+const Renderer = memo(({ nodeId, depth, sequenceData }: NodeRendererProps) => {
    const seed = nodeHelper.useCoalesce(nodeId, "seed", "seed");
    const [Content, cId] = nodeHelper.useInputNode(nodeId, "input");
 
    return (
       <>
          <g>
-            <filter id={`effect_${nodeId}_lyr-${layer ?? ""}`} filterUnits={"userSpaceOnUse"} x={"-100%"} y={"-100%"} width={"200%"} height={"200%"}>
+            <filter id={`effect_${nodeId}_lyr-${depth ?? ""}`} filterUnits={"userSpaceOnUse"} x={"-100%"} y={"-100%"} width={"200%"} height={"200%"}>
                <feTurbulence type="fractalNoise" baseFrequency="1" numOctaves="8" stitchTiles="stitch" result="f1" seed={seed} />
                <feColorMatrix type="matrix" values="0 0 0 0 0, 0 0 0 0 0, 0 0 0 0 0, 0 0 0 -1.5 1.5" result="f2" />
                <feComposite operator="in" in2="f2" in="SourceGraphic" result="f3" />
                <feTurbulence type="fractalNoise" baseFrequency="1.2" numOctaves="3" result="noise" seed={seed + 500} />
                <feDisplacementMap xChannelSelector="R" yChannelSelector="G" scale="2.5" in="f3" result="f4" />
             </filter>
-            <g filter={`url('#effect_${nodeId}_lyr-${layer ?? ""}')`}>{Content && cId && <Content nodeId={cId} layer={(layer ?? "") + `_${nodeId}`} />}</g>
+            <g filter={`url('#effect_${nodeId}_lyr-${depth ?? ""}')`}>
+               {Content && cId && <Content sequenceData={sequenceData} nodeId={cId} depth={(depth ?? "") + `_${nodeId}`} />}
+            </g>
          </g>
       </>
    );

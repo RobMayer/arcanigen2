@@ -25,7 +25,8 @@ import { NodeTypes } from "./types";
 import HexColorNodeHelper from "./values/hexColorNode";
 import LengthValueNodeHelper from "./values/lengthValueNode";
 import RandomValueNodeHelper from "./values/randomValueNode";
-import ResultNodeHelper from "./values/resultNode";
+import ResultNodeHelper from "./collections/resultNode";
+import SequencerNodeHelper from "./collections/sequenceNode";
 
 // prettier-ignore
 export const getNodeHelper = (key: NodeTypes) => {
@@ -34,6 +35,7 @@ export const getNodeHelper = (key: NodeTypes) => {
       
       case NodeTypes.COL_LAYERS: return LayersNodeHelper;
       case NodeTypes.COL_MASK: return MaskNodeHelper;
+      case NodeTypes.COL_SEQUENCE: return SequencerNodeHelper;
 
       case NodeTypes.ARRAY_VERTEX: return VertexArrayNodeHelper;
       case NodeTypes.ARRAY_SPIRAL: return SpiralArrayNodeHelper;

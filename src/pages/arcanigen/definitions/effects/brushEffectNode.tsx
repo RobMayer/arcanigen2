@@ -68,7 +68,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    );
 });
 
-const Renderer = memo(({ nodeId, layer }: NodeRendererProps) => {
+const Renderer = memo(({ nodeId, depth, sequenceData }: NodeRendererProps) => {
    const seed = nodeHelper.useCoalesce(nodeId, "seed", "seed");
    const brushTip = nodeHelper.useCoalesce(nodeId, "brushTip", "brushTip");
    const shake = nodeHelper.useCoalesce(nodeId, "shake", "shake");
@@ -77,7 +77,7 @@ const Renderer = memo(({ nodeId, layer }: NodeRendererProps) => {
    return (
       <>
          <g>
-            <filter id={`effect_${nodeId}_lyr-${layer ?? ""}`} filterUnits={"userSpaceOnUse"} x={"-100%"} y={"-100%"} width={"200%"} height={"200%"}>
+            <filter id={`effect_${nodeId}_lyr-${depth ?? ""}`} filterUnits={"userSpaceOnUse"} x={"-100%"} y={"-100%"} width={"200%"} height={"200%"}>
                <feGaussianBlur stdDeviation="0.5" />
                <feColorMatrix result="out_prime" type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.5 0" />
 
@@ -104,7 +104,9 @@ const Renderer = memo(({ nodeId, layer }: NodeRendererProps) => {
                <feBlend in2="out_2" mode="multiply" />
                <feBlend in2="out_prime" mode="multiply" />
             </filter>
-            <g filter={`url('#effect_${nodeId}_lyr-${layer ?? ""}')`}>{Content && cId && <Content nodeId={cId} layer={(layer ?? "") + `_${nodeId}`} />}</g>
+            <g filter={`url('#effect_${nodeId}_lyr-${depth ?? ""}')`}>
+               {Content && cId && <Content nodeId={cId} depth={(depth ?? "") + `_${nodeId}`} sequenceData={sequenceData} />}
+            </g>
          </g>
       </>
    );

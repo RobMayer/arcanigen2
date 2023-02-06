@@ -98,7 +98,11 @@ export const RootNodeRenderer = () => {
          xmlns="http://www.w3.org/2000/svg"
          xmlnsXlink="http://www.w3.org/1999/xlink"
       >
-         {OutputRenderer && childNodeId && <OutputRenderer nodeId={childNodeId} layer={"ROOT"} />}
+         {OutputRenderer && childNodeId && <OutputRenderer nodeId={childNodeId} depth={"ROOT"} sequenceData={START_SEQUENCE} />}
       </svg>
    );
+};
+
+const START_SEQUENCE = {
+   ROOT: 0,
 };

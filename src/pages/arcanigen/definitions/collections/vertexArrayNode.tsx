@@ -1,6 +1,17 @@
 import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
-import { IArcaneGraph, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, NodeTypes, ScribeMode, SCRIBE_MODES, SocketTypes } from "../types";
+import {
+   IArcaneGraph,
+   INodeDefinition,
+   INodeHelper,
+   NodeRenderer,
+   NodeRendererProps,
+   NodeTypes,
+   ScribeMode,
+   SCRIBE_MODES,
+   Sequence,
+   SocketTypes,
+} from "../types";
 import MathHelper from "!/utility/mathhelper";
 
 import { faVectorCircle as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
@@ -18,9 +29,11 @@ interface IVertexArrayNode extends INodeDefinition {
    inputs: {
       input: NodeRenderer;
       radius: Length;
+      pointCount: number;
    };
    outputs: {
       output: NodeRenderer;
+      sequence: Sequence;
    };
    values: {
       radius: Length;
@@ -39,6 +52,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    const [isRotating, setIsRotating] = nodeHelper.useValueState(nodeId, "isRotating");
 
    const hasRadius = nodeHelper.useHasLink(nodeId, "radius");
+   const hasPointCount = nodeHelper.useHasLink(nodeId, "pointCount");
 
    return (
       <BaseNode<IVertexArrayNode> nodeId={nodeId} helper={VertexArrayNodeHelper}>
@@ -50,12 +64,14 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
             Input
          </SocketIn>
          <hr />
-         <BaseNode.Input label={"Points"}>
-            <SliderInput revertInvalid value={pointCount} onValidValue={setPointCount} min={3} max={24} step={1} />
-         </BaseNode.Input>
+         <SocketIn<IVertexArrayNode> nodeId={nodeId} socketId={"pointCount"} type={SocketTypes.INTEGER}>
+            <BaseNode.Input label={"Points"}>
+               <SliderInput revertInvalid value={pointCount} onValidValue={setPointCount} min={3} max={24} step={1} disabled={hasPointCount} />
+            </BaseNode.Input>
+         </SocketIn>
          <SocketIn<IVertexArrayNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
-               <LengthInput className={"inline small"} value={radius} onChange={setRadius} disabled={hasRadius} />
+               <LengthInput value={radius} onChange={setRadius} disabled={hasRadius} />
             </BaseNode.Input>
          </SocketIn>
          <BaseNode.Input label={"Scribe Mode"}>
@@ -64,15 +80,19 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          <Checkbox checked={isRotating} onToggle={setIsRotating}>
             Rotate Iterations
          </Checkbox>
+         <hr />
+         <SocketOut<IVertexArrayNode> nodeId={nodeId} socketId={"sequence"} type={SocketTypes.SEQUENCE}>
+            Sequence
+         </SocketOut>
       </BaseNode>
    );
 });
 
-const Renderer = memo(({ nodeId, layer }: NodeRendererProps) => {
-   const [Output, childNodeId] = nodeHelper.useInputNode(nodeId, "input");
+const Renderer = memo(({ nodeId, depth, sequenceData }: NodeRendererProps) => {
+   const [output, childNodeId] = nodeHelper.useInputNode(nodeId, "input");
    const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius");
    const scribeMode = nodeHelper.useValue(nodeId, "scribeMode");
-   const pointCount = nodeHelper.useValue(nodeId, "pointCount");
+   const pointCount = Math.min(24, Math.max(3, nodeHelper.useCoalesce(nodeId, "pointCount", "pointCount")));
    const isRotating = nodeHelper.useValue(nodeId, "isRotating");
    const tR = getTrueRadius(MathHelper.lengthToPx(radius), scribeMode, pointCount);
 
@@ -83,14 +103,27 @@ const Renderer = memo(({ nodeId, layer }: NodeRendererProps) => {
 
          return (
             <g key={n} style={{ transform: `rotate(${rot}deg) translate(0px, ${tR}px) rotate(${isRotating ? 180 : -rot}deg)` }}>
-               {Output && childNodeId && <Output nodeId={childNodeId} layer={(layer ?? "") + `_${nodeId}.${i}`} />}
+               {output && childNodeId && <Each output={output} host={nodeId} sequenceData={sequenceData} nodeId={childNodeId} depth={depth} index={i} />}
             </g>
          );
       });
-   }, [Output, childNodeId, pointCount, tR, isRotating, nodeId, layer]);
+   }, [output, childNodeId, pointCount, tR, isRotating, nodeId, depth, sequenceData]);
 
    return <>{children}</>;
 });
+
+const Each = ({ nodeId, sequenceData, depth, index, host, output: Output }: NodeRendererProps & { index: number; host: string; output: NodeRenderer }) => {
+   const newSequence = useMemo(() => {
+      return {
+         ...sequenceData,
+         [host]: index,
+      };
+   }, [sequenceData, host, index]);
+
+   return <Output nodeId={nodeId} sequenceData={newSequence} depth={(depth ?? "") + `_${host}.${index}`} />;
+};
+
+const nodeMethods = ArcaneGraph.nodeMethods<IVertexArrayNode>();
 
 const VertexArrayNodeHelper: INodeHelper<IVertexArrayNode> = {
    name: "Vertex Array",
@@ -98,7 +131,18 @@ const VertexArrayNodeHelper: INodeHelper<IVertexArrayNode> = {
    nodeIcon,
    flavour: "danger",
    type: NodeTypes.ARRAY_VERTEX,
-   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IVertexArrayNode["outputs"]) => Renderer,
+   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IVertexArrayNode["outputs"]) => {
+      switch (socket) {
+         case "output":
+            return Renderer;
+         case "sequence":
+            return {
+               senderId: nodeId,
+               min: 0,
+               max: nodeMethods.coalesce(graph, nodeId, "pointCount", "pointCount"),
+            };
+      }
+   },
    initialize: () => ({
       radius: { value: 100, unit: "px" },
       scribeMode: "inscribe",

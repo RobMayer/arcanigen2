@@ -57,7 +57,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    );
 });
 
-const Renderer = memo(({ nodeId, layer }: NodeRendererProps) => {
+const Renderer = memo(({ nodeId, depth, sequenceData }: NodeRendererProps) => {
    const [Content, cId] = nodeHelper.useInputNode(nodeId, "content");
    const [Mask, mId] = nodeHelper.useInputNode(nodeId, "mask");
    const invert = nodeHelper.useValue(nodeId, "invert");
@@ -68,16 +68,21 @@ const Renderer = memo(({ nodeId, layer }: NodeRendererProps) => {
       <>
          <g>
             {display ? (
-               Mask && <Mask nodeId={mId} layer={(layer ?? "") + `_${nodeId}.mask`} />
+               Mask && (
+                  <g>
+                     <rect x={"-1000%"} y={"-1000%"} width={"2000%"} height={"2000%"} fill={mode === "alpha" ? "none" : "#000f"} />
+                     <Mask nodeId={mId} depth={(depth ?? "") + `_${nodeId}.mask`} sequenceData={sequenceData} />
+                  </g>
+               )
             ) : (
                <>
-                  <mask id={`mask__${nodeId}_lyr-${layer ?? ""}`} mask-type={mode}>
+                  <mask id={`mask__${nodeId}_lyr-${depth ?? ""}`} mask-type={mode}>
                      <rect x={"-1000%"} y={"-1000%"} width={"2000%"} height={"2000%"} fill={mode === "alpha" ? "none" : "#000f"} />
-                     {Mask && mId && <Mask nodeId={mId} layer={(layer ?? "") + `_${nodeId}.mask`} />}
+                     {Mask && mId && <Mask nodeId={mId} depth={(depth ?? "") + `_${nodeId}.mask`} sequenceData={sequenceData} />}
                      {invert && mode === "luminance" && <rect x={"-1000%"} y={"-1000%"} width={"2000%"} height={"2000%"} fill={"#ffff"} style={INVERT} />}
                   </mask>
-                  <g mask={`url('#mask__${nodeId}_lyr-${layer ?? ""}')`}>
-                     {Content && cId && <Content nodeId={cId} layer={(layer ?? "") + `_${nodeId}.content`} />}
+                  <g mask={`url('#mask__${nodeId}_lyr-${depth ?? ""}')`}>
+                     {Content && cId && <Content nodeId={cId} depth={(depth ?? "") + `_${nodeId}.content`} sequenceData={sequenceData} />}
                   </g>
                </>
             )}
