@@ -1,6 +1,6 @@
 import { memo } from "react";
 import ArcaneGraph from "../graph";
-import { IArcaneGraph, INodeDefinition, INodeHelper, NodeTypes, SocketTypes } from "../types";
+import { ControlRendererProps, Globals, IArcaneGraph, INodeDefinition, INodeHelper, NodeTypes, SocketTypes } from "../types";
 
 import { faValueAbsolute as nodeIcon } from "@fortawesome/pro-regular-svg-icons";
 import { faValueAbsolute as buttonIcon } from "@fortawesome/pro-light-svg-icons";
@@ -22,9 +22,9 @@ interface IMathAbsNode extends INodeDefinition {
 
 const nodeHelper = ArcaneGraph.nodeHooks<IMathAbsNode>();
 
-const Controls = memo(({ nodeId }: { nodeId: string }) => {
+const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [a, setA] = nodeHelper.useValueState(nodeId, "a");
-   const aIn = nodeHelper.useInput(nodeId, "aIn");
+   const aIn = nodeHelper.useInput(nodeId, "aIn", globals);
    const hasA = nodeHelper.useHasLink(nodeId, "aIn");
    return (
       <BaseNode<IMathAbsNode> nodeId={nodeId} helper={MathAbsNodeHelper}>
@@ -49,8 +49,8 @@ const MathAbsNodeHelper: INodeHelper<IMathAbsNode> = {
    nodeIcon,
    flavour: "accent",
    type: NodeTypes.MATH_ABS,
-   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IMathAbsNode["outputs"]) => {
-      const a = nodeMethods.coalesce(graph, nodeId, "aIn", "a");
+   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IMathAbsNode["outputs"], globals: Globals) => {
+      const a = nodeMethods.coalesce(graph, nodeId, "aIn", "a", globals);
       return Math.abs(a);
    },
    initialize: () => ({

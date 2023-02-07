@@ -1,6 +1,7 @@
 import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
 import {
+   ControlRendererProps,
    IArcaneGraph,
    INodeDefinition,
    INodeHelper,
@@ -68,7 +69,7 @@ interface IArcNode extends INodeDefinition {
 
 const nodeHelper = ArcaneGraph.nodeHooks<IArcNode>();
 
-const Controls = memo(({ nodeId }: { nodeId: string }) => {
+const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [radius, setRadius] = nodeHelper.useValueState(nodeId, "radius");
    const [thetaStart, setThetaStart] = nodeHelper.useValueState(nodeId, "thetaStart");
    const [thetaEnd, setThetaEnd] = nodeHelper.useValueState(nodeId, "thetaEnd");
@@ -142,24 +143,24 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    );
 });
 
-const Renderer = memo(({ nodeId }: NodeRendererProps) => {
-   const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius");
-   const thetaStart = nodeHelper.useCoalesce(nodeId, "thetaStart", "thetaStart");
-   const thetaEnd = nodeHelper.useCoalesce(nodeId, "thetaEnd", "thetaEnd");
-   const strokeWidth = nodeHelper.useCoalesce(nodeId, "strokeWidth", "strokeWidth");
-   const strokeColor = nodeHelper.useCoalesce(nodeId, "strokeColor", "strokeColor");
-   const fillColor = nodeHelper.useCoalesce(nodeId, "fillColor", "fillColor");
+const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
+   const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius", globals);
+   const thetaStart = nodeHelper.useCoalesce(nodeId, "thetaStart", "thetaStart", globals);
+   const thetaEnd = nodeHelper.useCoalesce(nodeId, "thetaEnd", "thetaEnd", globals);
+   const strokeWidth = nodeHelper.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
+   const strokeColor = nodeHelper.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
+   const fillColor = nodeHelper.useCoalesce(nodeId, "fillColor", "fillColor", globals);
    const strokeCap = nodeHelper.useValue(nodeId, "strokeCap");
    const strokeJoin = nodeHelper.useValue(nodeId, "strokeJoin");
 
    const pieSlice = nodeHelper.useValue(nodeId, "pieSlice");
 
    const positionMode = nodeHelper.useValue(nodeId, "positionMode");
-   const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX");
-   const positionY = nodeHelper.useCoalesce(nodeId, "positionY", "positionY");
-   const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta");
-   const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius");
-   const rotation = nodeHelper.useCoalesce(nodeId, "rotation", "rotation");
+   const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX", globals);
+   const positionY = nodeHelper.useCoalesce(nodeId, "positionY", "positionY", globals);
+   const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
+   const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
+   const rotation = nodeHelper.useCoalesce(nodeId, "rotation", "rotation", globals);
 
    const pathD = useMemo(() => {
       const rad = MathHelper.lengthToPx(radius);

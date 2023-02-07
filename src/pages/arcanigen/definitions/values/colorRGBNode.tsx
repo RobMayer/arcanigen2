@@ -1,6 +1,6 @@
 import { HTMLAttributes, memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
-import { IArcaneGraph, INodeDefinition, INodeHelper, NodeTypes, SocketTypes } from "../types";
+import { ControlRendererProps, Globals, IArcaneGraph, INodeDefinition, INodeHelper, NodeTypes, SocketTypes } from "../types";
 
 import { faPalette as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 import { faPalette as buttonIcon } from "@fortawesome/pro-light-svg-icons";
@@ -32,7 +32,7 @@ interface IColorRGBNode extends INodeDefinition {
 
 const nodeHelper = ArcaneGraph.nodeHooks<IColorRGBNode>();
 
-const Controls = memo(({ nodeId }: { nodeId: string }) => {
+const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [r, setR] = nodeHelper.useValueState(nodeId, "r");
    const [g, setG] = nodeHelper.useValueState(nodeId, "g");
    const [b, setB] = nodeHelper.useValueState(nodeId, "b");
@@ -43,10 +43,10 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    const hasBIn = nodeHelper.useHasLink(nodeId, "bIn");
    const hasAIn = nodeHelper.useHasLink(nodeId, "aIn");
 
-   const actualR = nodeHelper.useCoalesce(nodeId, "rIn", "r");
-   const actualG = nodeHelper.useCoalesce(nodeId, "gIn", "g");
-   const actualB = nodeHelper.useCoalesce(nodeId, "bIn", "b");
-   const actualA = nodeHelper.useCoalesce(nodeId, "aIn", "a");
+   const actualR = nodeHelper.useCoalesce(nodeId, "rIn", "r", globals);
+   const actualG = nodeHelper.useCoalesce(nodeId, "gIn", "g", globals);
+   const actualB = nodeHelper.useCoalesce(nodeId, "bIn", "b", globals);
+   const actualA = nodeHelper.useCoalesce(nodeId, "aIn", "a", globals);
 
    const res = useMemo(() => {
       return MathHelper.colorToHex(
@@ -86,11 +86,11 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
 
 const nodeMethods = ArcaneGraph.nodeMethods<IColorRGBNode>();
 
-const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof IColorRGBNode["outputs"]) => {
-   const r = Math.max(0, Math.min(255, nodeMethods.coalesce(graph, nodeId, "rIn", "r")));
-   const g = Math.max(0, Math.min(255, nodeMethods.coalesce(graph, nodeId, "gIn", "g")));
-   const b = Math.max(0, Math.min(255, nodeMethods.coalesce(graph, nodeId, "bIn", "b")));
-   const a = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "aIn", "a")));
+const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof IColorRGBNode["outputs"], globals: Globals) => {
+   const r = Math.max(0, Math.min(255, nodeMethods.coalesce(graph, nodeId, "rIn", "r", globals)));
+   const g = Math.max(0, Math.min(255, nodeMethods.coalesce(graph, nodeId, "gIn", "g", globals)));
+   const b = Math.max(0, Math.min(255, nodeMethods.coalesce(graph, nodeId, "bIn", "b", globals)));
+   const a = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "aIn", "a", globals)));
    return rgb2Color(r, g, b, a);
 };
 

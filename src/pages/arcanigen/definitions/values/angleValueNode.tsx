@@ -1,6 +1,6 @@
 import { memo } from "react";
 import ArcaneGraph from "../graph";
-import { IArcaneGraph, INodeDefinition, INodeHelper, NodeTypes, SocketTypes } from "../types";
+import { ControlRendererProps, IArcaneGraph, INodeDefinition, INodeHelper, NodeTypes, SocketTypes } from "../types";
 
 import { faAngle as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 import { faAngle as buttonIcon } from "@fortawesome/pro-light-svg-icons";
@@ -22,7 +22,7 @@ interface IAngleValueNode extends INodeDefinition {
 
 const nodeHelper = ArcaneGraph.nodeHooks<IAngleValueNode>();
 
-const Controls = memo(({ nodeId }: { nodeId: string }) => {
+const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [value, setValue] = nodeHelper.useValueState(nodeId, "value");
 
    return (

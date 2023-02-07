@@ -1,6 +1,6 @@
 import { memo } from "react";
 import ArcaneGraph from "../graph";
-import { IArcaneGraph, INodeDefinition, INodeHelper, NodeTypes, SocketTypes } from "../types";
+import { ControlRendererProps, Globals, IArcaneGraph, INodeDefinition, INodeHelper, NodeTypes, SocketTypes } from "../types";
 
 import { faMinus as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 import { faMinus as buttonIcon } from "@fortawesome/pro-light-svg-icons";
@@ -24,11 +24,11 @@ interface IMathSubNode extends INodeDefinition {
 
 const nodeHelper = ArcaneGraph.nodeHooks<IMathSubNode>();
 
-const Controls = memo(({ nodeId }: { nodeId: string }) => {
+const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [a, setA] = nodeHelper.useValueState(nodeId, "a");
    const [b, setB] = nodeHelper.useValueState(nodeId, "b");
-   const aIn = nodeHelper.useInput(nodeId, "aIn");
-   const bIn = nodeHelper.useInput(nodeId, "bIn");
+   const aIn = nodeHelper.useInput(nodeId, "aIn", globals);
+   const bIn = nodeHelper.useInput(nodeId, "bIn", globals);
    const hasA = nodeHelper.useHasLink(nodeId, "aIn");
    const hasB = nodeHelper.useHasLink(nodeId, "bIn");
    return (
@@ -59,9 +59,9 @@ const MathSubNodeHelper: INodeHelper<IMathSubNode> = {
    nodeIcon,
    flavour: "accent",
    type: NodeTypes.MATH_SUB,
-   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IMathSubNode["outputs"]) => {
-      const b = nodeMethods.coalesce(graph, nodeId, "bIn", "b");
-      const a = nodeMethods.coalesce(graph, nodeId, "aIn", "a");
+   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IMathSubNode["outputs"], globals: Globals) => {
+      const b = nodeMethods.coalesce(graph, nodeId, "bIn", "b", globals);
+      const a = nodeMethods.coalesce(graph, nodeId, "aIn", "a", globals);
       return a - b;
    },
    initialize: () => ({

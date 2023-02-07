@@ -1,6 +1,6 @@
 import { memo, useCallback } from "react";
 import ArcaneGraph from "../graph";
-import { IArcaneGraph, INodeDefinition, INodeHelper, NodeTypes, SocketTypes } from "../types";
+import { ControlRendererProps, IArcaneGraph, INodeDefinition, INodeHelper, NodeTypes, SocketTypes } from "../types";
 
 import { faDice as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 import { faDice as buttonIcon } from "@fortawesome/pro-light-svg-icons";
@@ -21,7 +21,7 @@ interface IRandomValueNode extends INodeDefinition {
 
 const nodeHelper = ArcaneGraph.nodeHooks<IRandomValueNode>();
 
-const Controls = memo(({ nodeId }: { nodeId: string }) => {
+const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [result, setResult] = nodeHelper.useValueState(nodeId, "result");
 
    const doRandom = useCallback(() => {

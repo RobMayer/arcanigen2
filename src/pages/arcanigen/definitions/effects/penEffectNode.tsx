@@ -1,6 +1,6 @@
 import { memo } from "react";
 import ArcaneGraph from "../graph";
-import { IArcaneGraph, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, NodeTypes, SocketTypes } from "../types";
+import { ControlRendererProps, IArcaneGraph, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, NodeTypes, SocketTypes } from "../types";
 
 import { faPenAlt as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 import { faPenAlt as buttonIcon } from "@fortawesome/pro-light-svg-icons";
@@ -32,7 +32,7 @@ interface IPenEffectNode extends INodeDefinition {
 
 const nodeHelper = ArcaneGraph.nodeHooks<IPenEffectNode>();
 
-const Controls = memo(({ nodeId }: { nodeId: string }) => {
+const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [nib, setNib] = nodeHelper.useValueState(nodeId, "nib");
    const [seed, setSeed] = nodeHelper.useValueState(nodeId, "seed");
    const [smudge, setSmudge] = nodeHelper.useValueState(nodeId, "smudge");
@@ -77,12 +77,12 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    );
 });
 
-const Renderer = memo(({ nodeId, depth, sequenceData }: NodeRendererProps) => {
-   const seed = nodeHelper.useCoalesce(nodeId, "seed", "seed");
-   const nib = nodeHelper.useCoalesce(nodeId, "nib", "nib");
-   const smudge = nodeHelper.useCoalesce(nodeId, "smudge", "smudge");
-   const jitter = nodeHelper.useCoalesce(nodeId, "jitter", "jitter");
-   const [Content, cId] = nodeHelper.useInputNode(nodeId, "input");
+const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
+   const seed = nodeHelper.useCoalesce(nodeId, "seed", "seed", globals);
+   const nib = nodeHelper.useCoalesce(nodeId, "nib", "nib", globals);
+   const smudge = nodeHelper.useCoalesce(nodeId, "smudge", "smudge", globals);
+   const jitter = nodeHelper.useCoalesce(nodeId, "jitter", "jitter", globals);
+   const [Content, cId] = nodeHelper.useInputNode(nodeId, "input", globals);
 
    return (
       <>
@@ -97,7 +97,7 @@ const Renderer = memo(({ nodeId, depth, sequenceData }: NodeRendererProps) => {
                <feBlend in2="SourceGraphic" />
             </filter>
             <g filter={`url('#effect_${nodeId}_lyr-${depth ?? ""}')`}>
-               {Content && cId && <Content sequenceData={sequenceData} nodeId={cId} depth={(depth ?? "") + `_${nodeId}`} />}
+               {Content && cId && <Content globals={globals} nodeId={cId} depth={(depth ?? "") + `_${nodeId}`} />}
             </g>
          </g>
       </>

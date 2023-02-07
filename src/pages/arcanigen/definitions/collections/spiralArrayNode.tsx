@@ -1,6 +1,8 @@
 import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
 import {
+   ControlRendererProps,
+   Globals,
    IArcaneGraph,
    INodeDefinition,
    INodeHelper,
@@ -26,7 +28,6 @@ import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
 import lodash from "lodash";
 import Checkbox from "!/components/buttons/Checkbox";
-import NumberInput from "!/components/inputs/NumberInput";
 import ToggleList from "!/components/selectors/ToggleList";
 import { TransformPrefabs } from "../../nodeView/prefabs";
 import AngleInput from "!/components/inputs/AngleInput";
@@ -78,7 +79,7 @@ interface ISpiralArrayNode extends INodeDefinition {
 
 const nodeHelper = ArcaneGraph.nodeHooks<ISpiralArrayNode>();
 
-const Controls = memo(({ nodeId }: { nodeId: string }) => {
+const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [pointCount, setPointCount] = nodeHelper.useValueState(nodeId, "pointCount");
    const [isRotating, setIsRotating] = nodeHelper.useValueState(nodeId, "isRotating");
 
@@ -177,29 +178,29 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    );
 });
 
-const Renderer = memo(({ nodeId, depth, sequenceData }: NodeRendererProps) => {
-   const [output, childNodeId] = nodeHelper.useInputNode(nodeId, "input");
+const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
+   const [output, childNodeId] = nodeHelper.useInputNode(nodeId, "input", globals);
 
-   const pointCount = Math.min(24, Math.max(3, nodeHelper.useCoalesce(nodeId, "pointCount", "pointCount")));
+   const pointCount = Math.min(24, Math.max(3, nodeHelper.useCoalesce(nodeId, "pointCount", "pointCount", globals)));
    const isRotating = nodeHelper.useValue(nodeId, "isRotating");
 
    const radialMode = nodeHelper.useValue(nodeId, "radialMode");
-   const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius");
-   const spread = nodeHelper.useCoalesce(nodeId, "spread", "spread");
-   const innerRadius = nodeHelper.useCoalesce(nodeId, "innerRadius", "innerRadius");
-   const outerRadius = nodeHelper.useCoalesce(nodeId, "outerRadius", "outerRadius");
+   const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius", globals);
+   const spread = nodeHelper.useCoalesce(nodeId, "spread", "spread", globals);
+   const innerRadius = nodeHelper.useCoalesce(nodeId, "innerRadius", "innerRadius", globals);
+   const outerRadius = nodeHelper.useCoalesce(nodeId, "outerRadius", "outerRadius", globals);
 
    const positionMode = nodeHelper.useValue(nodeId, "positionMode");
-   const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX");
-   const positionY = nodeHelper.useCoalesce(nodeId, "positionY", "positionY");
-   const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta");
-   const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius");
-   const rotation = nodeHelper.useCoalesce(nodeId, "rotation", "rotation");
+   const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX", globals);
+   const positionY = nodeHelper.useCoalesce(nodeId, "positionY", "positionY", globals);
+   const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
+   const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
+   const rotation = nodeHelper.useCoalesce(nodeId, "rotation", "rotation", globals);
 
    const thetaMode = nodeHelper.useValue(nodeId, "thetaMode");
-   const thetaStart = nodeHelper.useCoalesce(nodeId, "thetaStart", "thetaStart");
-   const thetaEnd = nodeHelper.useCoalesce(nodeId, "thetaEnd", "thetaEnd");
-   const thetaSteps = nodeHelper.useCoalesce(nodeId, "thetaSteps", "thetaSteps");
+   const thetaStart = nodeHelper.useCoalesce(nodeId, "thetaStart", "thetaStart", globals);
+   const thetaEnd = nodeHelper.useCoalesce(nodeId, "thetaEnd", "thetaEnd", globals);
+   const thetaSteps = nodeHelper.useCoalesce(nodeId, "thetaSteps", "thetaSteps", globals);
    const thetaInclusive = nodeHelper.useValue(nodeId, "thetaInclusive");
 
    const rI = radialMode === "inout" ? MathHelper.lengthToPx(innerRadius) : MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(spread) / 2;
@@ -215,11 +216,11 @@ const Renderer = memo(({ nodeId, depth, sequenceData }: NodeRendererProps) => {
 
          return (
             <g key={n} style={{ transform: `rotate(${rot + 180}deg) translate(0px, ${rad}px) rotate(${isRotating ? 180 : -rot - 180}deg)` }}>
-               {output && childNodeId && <Each output={output} nodeId={childNodeId} host={nodeId} depth={depth} sequenceData={sequenceData} index={i} />}
+               {output && childNodeId && <Each output={output} nodeId={childNodeId} host={nodeId} depth={depth} globals={globals} index={i} />}
             </g>
          );
       });
-   }, [pointCount, thetaMode, thetaStart, thetaEnd, thetaSteps, rI, rO, isRotating, output, childNodeId, thetaInclusive, nodeId, depth, sequenceData]);
+   }, [pointCount, thetaMode, thetaStart, thetaEnd, thetaSteps, rI, rO, isRotating, output, childNodeId, thetaInclusive, nodeId, depth, globals]);
 
    return (
       <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation}deg)` }}>
@@ -228,15 +229,18 @@ const Renderer = memo(({ nodeId, depth, sequenceData }: NodeRendererProps) => {
    );
 });
 
-const Each = ({ nodeId, sequenceData, depth, index, host, output: Output }: NodeRendererProps & { index: number; host: string; output: NodeRenderer }) => {
-   const newSequenceData = useMemo(() => {
+const Each = ({ nodeId, globals, depth, index, host, output: Output }: NodeRendererProps & { index: number; host: string; output: NodeRenderer }) => {
+   const newGlobals = useMemo(() => {
       return {
-         ...sequenceData,
-         [host]: index,
+         ...globals,
+         sequenceData: {
+            ...globals.sequenceData,
+            [host]: index,
+         },
       };
-   }, [sequenceData, host, index]);
+   }, [globals, host, index]);
 
-   return <Output nodeId={nodeId} sequenceData={newSequenceData} depth={(depth ?? "") + `_${host}.${index}`} />;
+   return <Output nodeId={nodeId} globals={newGlobals} depth={(depth ?? "") + `_${host}.${index}`} />;
 };
 
 const nodeMethods = ArcaneGraph.nodeMethods<ISpiralArrayNode>();
@@ -247,7 +251,7 @@ const SpiralArrayNodeHelper: INodeHelper<ISpiralArrayNode> = {
    nodeIcon,
    flavour: "danger",
    type: NodeTypes.ARRAY_SPIRAL,
-   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof ISpiralArrayNode["outputs"]) => {
+   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof ISpiralArrayNode["outputs"], globals: Globals) => {
       switch (socket) {
          case "output":
             return Renderer;
@@ -255,7 +259,7 @@ const SpiralArrayNodeHelper: INodeHelper<ISpiralArrayNode> = {
             return {
                senderId: nodeId,
                min: 0,
-               max: nodeMethods.coalesce(graph, nodeId, "pointCount", "pointCount"),
+               max: nodeMethods.coalesce(graph, nodeId, "pointCount", "pointCount", globals),
             };
       }
    },

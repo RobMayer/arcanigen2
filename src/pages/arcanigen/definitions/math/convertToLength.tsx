@@ -1,6 +1,6 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
-import { IArcaneGraph, INodeDefinition, INodeHelper, NodeTypes, SocketTypes } from "../types";
+import { ControlRendererProps, Globals, IArcaneGraph, INodeDefinition, INodeHelper, NodeTypes, SocketTypes } from "../types";
 import { faPencilRuler as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 import { faPencilRuler as buttonIcon } from "@fortawesome/pro-light-svg-icons";
 import Dropdown from "!/components/selectors/Dropdown";
@@ -22,9 +22,9 @@ interface IToLengthNode extends INodeDefinition {
 
 const nodeHelper = ArcaneGraph.nodeHooks<IToLengthNode>();
 
-const Controls = memo(({ nodeId }: { nodeId: string }) => {
+const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [unit, setUnit] = nodeHelper.useValueState(nodeId, "unit");
-   const input = nodeHelper.useInput(nodeId, "input") ?? 0;
+   const input = nodeHelper.useInput(nodeId, "input", globals) ?? 0;
 
    return (
       <BaseNode<IToLengthNode> nodeId={nodeId} helper={ToLengthNodeHelper}>
@@ -42,8 +42,8 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    );
 });
 
-const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof IToLengthNode["outputs"]) => {
-   const value = nodeMethods.getInput(graph, nodeId, "input") ?? 0;
+const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof IToLengthNode["outputs"], globals: Globals) => {
+   const value = nodeMethods.getInput(graph, nodeId, "input", globals) ?? 0;
    const unit = nodeMethods.getValue(graph, nodeId, "unit");
    return { value, unit };
 };

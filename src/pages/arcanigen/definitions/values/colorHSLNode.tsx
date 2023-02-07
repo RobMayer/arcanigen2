@@ -1,6 +1,6 @@
 import { HTMLAttributes, memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
-import { IArcaneGraph, INodeDefinition, INodeHelper, NodeTypes, SocketTypes } from "../types";
+import { ControlRendererProps, Globals, IArcaneGraph, INodeDefinition, INodeHelper, NodeTypes, SocketTypes } from "../types";
 
 import { faPalette as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 import { faPalette as buttonIcon } from "@fortawesome/pro-light-svg-icons";
@@ -33,7 +33,7 @@ interface IColorHSLNode extends INodeDefinition {
 
 const nodeHelper = ArcaneGraph.nodeHooks<IColorHSLNode>();
 
-const Controls = memo(({ nodeId }: { nodeId: string }) => {
+const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [h, setH] = nodeHelper.useValueState(nodeId, "h");
    const [s, setS] = nodeHelper.useValueState(nodeId, "s");
    const [l, setL] = nodeHelper.useValueState(nodeId, "l");
@@ -44,10 +44,10 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    const hasLIn = nodeHelper.useHasLink(nodeId, "lIn");
    const hasAIn = nodeHelper.useHasLink(nodeId, "aIn");
 
-   const actualH = nodeHelper.useCoalesce(nodeId, "hIn", "h");
-   const actualS = nodeHelper.useCoalesce(nodeId, "sIn", "s");
-   const actualL = nodeHelper.useCoalesce(nodeId, "lIn", "l");
-   const actualA = nodeHelper.useCoalesce(nodeId, "aIn", "a");
+   const actualH = nodeHelper.useCoalesce(nodeId, "hIn", "h", globals);
+   const actualS = nodeHelper.useCoalesce(nodeId, "sIn", "s", globals);
+   const actualL = nodeHelper.useCoalesce(nodeId, "lIn", "l", globals);
+   const actualA = nodeHelper.useCoalesce(nodeId, "aIn", "a", globals);
 
    const res = useMemo(() => {
       return MathHelper.colorToHex(
@@ -87,11 +87,11 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
 
 const nodeMethods = ArcaneGraph.nodeMethods<IColorHSLNode>();
 
-const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof IColorHSLNode["outputs"]) => {
-   const h = MathHelper.mod(nodeMethods.coalesce(graph, nodeId, "hIn", "h"), 360);
-   const s = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "sIn", "s")));
-   const l = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "lIn", "l")));
-   const a = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "aIn", "a")));
+const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof IColorHSLNode["outputs"], globals: Globals) => {
+   const h = MathHelper.mod(nodeMethods.coalesce(graph, nodeId, "hIn", "h", globals), 360);
+   const s = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "sIn", "s", globals)));
+   const l = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "lIn", "l", globals)));
+   const a = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "aIn", "a", globals)));
    return hsl2Color(h, s, l, a);
 };
 

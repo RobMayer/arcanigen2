@@ -1,6 +1,6 @@
 import { memo } from "react";
 import ArcaneGraph from "../graph";
-import { INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, NodeTypes, PositionMode, SocketTypes } from "../types";
+import { ControlRendererProps, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, NodeTypes, PositionMode, SocketTypes } from "../types";
 import { faCircle as nodeIcon } from "@fortawesome/pro-regular-svg-icons";
 import { faCircle as buttonIcon } from "@fortawesome/pro-light-svg-icons";
 import { Color, Length } from "!/utility/types/units";
@@ -42,7 +42,7 @@ interface ICircleNode extends INodeDefinition {
 
 const nodeHelper = ArcaneGraph.nodeHooks<ICircleNode>();
 
-const Controls = memo(({ nodeId }: { nodeId: string }) => {
+const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [radius, setRadius] = nodeHelper.useValueState(nodeId, "radius");
    const [strokeWidth, setStrokeWidth] = nodeHelper.useValueState(nodeId, "strokeWidth");
    const [strokeColor, setStrokeColor] = nodeHelper.useValueState(nodeId, "strokeColor");
@@ -87,17 +87,17 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    );
 });
 
-const Renderer = memo(({ nodeId }: NodeRendererProps) => {
-   const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius");
-   const strokeWidth = nodeHelper.useCoalesce(nodeId, "strokeWidth", "strokeWidth");
-   const strokeColor = nodeHelper.useCoalesce(nodeId, "strokeColor", "strokeColor");
-   const fillColor = nodeHelper.useCoalesce(nodeId, "fillColor", "fillColor");
+const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
+   const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius", globals);
+   const strokeWidth = nodeHelper.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
+   const strokeColor = nodeHelper.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
+   const fillColor = nodeHelper.useCoalesce(nodeId, "fillColor", "fillColor", globals);
 
    const positionMode = nodeHelper.useValue(nodeId, "positionMode");
-   const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX");
-   const positionY = nodeHelper.useCoalesce(nodeId, "positionY", "positionY");
-   const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta");
-   const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius");
+   const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX", globals);
+   const positionY = nodeHelper.useCoalesce(nodeId, "positionY", "positionY", globals);
+   const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
+   const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
 
    return (
       <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)}` }}>

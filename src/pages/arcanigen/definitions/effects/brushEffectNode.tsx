@@ -1,6 +1,6 @@
 import { memo } from "react";
 import ArcaneGraph from "../graph";
-import { IArcaneGraph, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, NodeTypes, SocketTypes } from "../types";
+import { ControlRendererProps, IArcaneGraph, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, NodeTypes, SocketTypes } from "../types";
 import MathHelper from "!/utility/mathhelper";
 
 import { faBrush as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
@@ -30,7 +30,7 @@ interface IBrushEffectNode extends INodeDefinition {
 
 const nodeHelper = ArcaneGraph.nodeHooks<IBrushEffectNode>();
 
-const Controls = memo(({ nodeId }: { nodeId: string }) => {
+const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [brushTip, setBrushTip] = nodeHelper.useValueState(nodeId, "brushTip");
    const [seed, setSeed] = nodeHelper.useValueState(nodeId, "seed");
    const [shake, setShake] = nodeHelper.useValueState(nodeId, "shake");
@@ -68,11 +68,11 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    );
 });
 
-const Renderer = memo(({ nodeId, depth, sequenceData }: NodeRendererProps) => {
-   const seed = nodeHelper.useCoalesce(nodeId, "seed", "seed");
-   const brushTip = nodeHelper.useCoalesce(nodeId, "brushTip", "brushTip");
-   const shake = nodeHelper.useCoalesce(nodeId, "shake", "shake");
-   const [Content, cId] = nodeHelper.useInputNode(nodeId, "input");
+const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
+   const seed = nodeHelper.useCoalesce(nodeId, "seed", "seed", globals);
+   const brushTip = nodeHelper.useCoalesce(nodeId, "brushTip", "brushTip", globals);
+   const shake = nodeHelper.useCoalesce(nodeId, "shake", "shake", globals);
+   const [Content, cId] = nodeHelper.useInputNode(nodeId, "input", globals);
 
    return (
       <>
@@ -105,7 +105,7 @@ const Renderer = memo(({ nodeId, depth, sequenceData }: NodeRendererProps) => {
                <feBlend in2="out_prime" mode="multiply" />
             </filter>
             <g filter={`url('#effect_${nodeId}_lyr-${depth ?? ""}')`}>
-               {Content && cId && <Content nodeId={cId} depth={(depth ?? "") + `_${nodeId}`} sequenceData={sequenceData} />}
+               {Content && cId && <Content nodeId={cId} depth={(depth ?? "") + `_${nodeId}`} globals={globals} />}
             </g>
          </g>
       </>

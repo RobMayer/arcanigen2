@@ -6,7 +6,7 @@ import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
 import BaseNode from "../../nodeView/node";
 import { SocketIn } from "../../nodeView/socket";
-import { INodeDefinition, INodeHelper, NodeRenderer, NodeTypes, SocketTypes } from "../types";
+import { ControlRendererProps, INodeDefinition, INodeHelper, NodeRenderer, NodeTypes, SocketTypes } from "../types";
 import { faFlagCheckered as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 
 interface IResultNode extends INodeDefinition {
@@ -25,7 +25,7 @@ interface IResultNode extends INodeDefinition {
 
 const nodeHelper = ArcaneGraph.nodeHooks<IResultNode>();
 
-const Controls = memo(({ nodeId }: { nodeId: string }) => {
+const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [canvasColor, setCanvasColor] = nodeHelper.useValueState(nodeId, "canvasColor");
    const [canvasWidth, setCanvasWidth] = nodeHelper.useValueState(nodeId, "canvasWidth");
    const [canvasHeight, setCanvasHeight] = nodeHelper.useValueState(nodeId, "canvasHeight");
@@ -77,14 +77,16 @@ const ResultNodeHelper: INodeHelper<IResultNode> = {
 export default ResultNodeHelper;
 
 export const RootNodeRenderer = () => {
-   const canvasColor = nodeHelper.useCoalesce("ROOT", "canvasColor", "canvasColor");
-   const canvasHeight = nodeHelper.useCoalesce("ROOT", "canvasHeight", "canvasHeight");
-   const canvasWidth = nodeHelper.useCoalesce("ROOT", "canvasWidth", "canvasWidth");
+   const globals = useMemo(() => ({ sequenceData: START_SEQUENCE }), []);
+
+   const canvasColor = nodeHelper.useCoalesce("ROOT", "canvasColor", "canvasColor", globals);
+   const canvasHeight = nodeHelper.useCoalesce("ROOT", "canvasHeight", "canvasHeight", globals);
+   const canvasWidth = nodeHelper.useCoalesce("ROOT", "canvasWidth", "canvasWidth", globals);
 
    const h = useMemo(() => Math.max(0, MathHelper.lengthToPx(canvasHeight ?? { value: 800, unit: "px" })), [canvasHeight]);
    const w = useMemo(() => Math.max(0, MathHelper.lengthToPx(canvasWidth ?? { value: 800, unit: "px" })), [canvasWidth]);
 
-   const [OutputRenderer, childNodeId] = nodeHelper.useInputNode("ROOT", "input");
+   const [OutputRenderer, childNodeId] = nodeHelper.useInputNode("ROOT", "input", globals);
 
    return (
       <svg
@@ -95,7 +97,7 @@ export const RootNodeRenderer = () => {
          xmlns="http://www.w3.org/2000/svg"
          xmlnsXlink="http://www.w3.org/1999/xlink"
       >
-         {OutputRenderer && childNodeId && <OutputRenderer nodeId={childNodeId} depth={"ROOT"} sequenceData={START_SEQUENCE} />}
+         {OutputRenderer && childNodeId && <OutputRenderer nodeId={childNodeId} depth={"ROOT"} globals={globals} />}
       </svg>
    );
 };

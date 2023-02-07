@@ -1,6 +1,6 @@
 import { memo } from "react";
 import ArcaneGraph from "../graph";
-import { IArcaneGraph, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, NodeTypes, SocketTypes } from "../types";
+import { ControlRendererProps, IArcaneGraph, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, NodeTypes, SocketTypes } from "../types";
 import MathHelper from "!/utility/mathhelper";
 
 import { faPaintRoller as nodeIcon } from "@fortawesome/pro-regular-svg-icons";
@@ -24,7 +24,7 @@ interface IFloodFillNode extends INodeDefinition {
 
 const nodeHelper = ArcaneGraph.nodeHooks<IFloodFillNode>();
 
-const Controls = memo(({ nodeId }: { nodeId: string }) => {
+const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [floodColor, setFloodColor] = nodeHelper.useValueState(nodeId, "floodColor");
    const hasFloodColor = nodeHelper.useHasLink(nodeId, "floodColor");
 

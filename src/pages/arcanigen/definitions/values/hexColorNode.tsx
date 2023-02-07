@@ -1,6 +1,6 @@
 import { memo } from "react";
 import ArcaneGraph from "../graph";
-import { IArcaneGraph, INodeDefinition, INodeHelper, NodeTypes, SocketTypes } from "../types";
+import { ControlRendererProps, IArcaneGraph, INodeDefinition, INodeHelper, NodeTypes, SocketTypes } from "../types";
 
 import { faPalette as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 import { faPalette as buttonIcon } from "@fortawesome/pro-light-svg-icons";
@@ -23,7 +23,7 @@ interface IHexColorNode extends INodeDefinition {
 
 const nodeHelper = ArcaneGraph.nodeHooks<IHexColorNode>();
 
-const Controls = memo(({ nodeId }: { nodeId: string }) => {
+const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [value, setValue] = nodeHelper.useValueState(nodeId, "value");
    return (
       <BaseNode<IHexColorNode> nodeId={nodeId} helper={HexColorNodeHelper}>

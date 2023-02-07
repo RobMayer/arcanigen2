@@ -1,6 +1,8 @@
 import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
 import {
+   ControlRendererProps,
+   Globals,
    IArcaneGraph,
    INodeDefinition,
    INodeHelper,
@@ -60,7 +62,7 @@ interface IVertexArrayNode extends INodeDefinition {
 
 const nodeHelper = ArcaneGraph.nodeHooks<IVertexArrayNode>();
 
-const Controls = memo(({ nodeId }: { nodeId: string }) => {
+const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [radius, setRadius] = nodeHelper.useValueState(nodeId, "radius");
    const [pointCount, setPointCount] = nodeHelper.useValueState(nodeId, "pointCount");
    const [scribeMode, setScribeMode] = nodeHelper.useValueState(nodeId, "scribeMode");
@@ -105,20 +107,20 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    );
 });
 
-const Renderer = memo(({ nodeId, depth, sequenceData }: NodeRendererProps) => {
-   const [output, childNodeId] = nodeHelper.useInputNode(nodeId, "input");
-   const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius");
+const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
+   const [output, childNodeId] = nodeHelper.useInputNode(nodeId, "input", globals);
+   const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius", globals);
    const scribeMode = nodeHelper.useValue(nodeId, "scribeMode");
-   const pointCount = Math.min(24, Math.max(3, nodeHelper.useCoalesce(nodeId, "pointCount", "pointCount")));
+   const pointCount = Math.min(24, Math.max(3, nodeHelper.useCoalesce(nodeId, "pointCount", "pointCount", globals)));
    const isRotating = nodeHelper.useValue(nodeId, "isRotating");
    const tR = getTrueRadius(MathHelper.lengthToPx(radius), scribeMode, pointCount);
 
    const positionMode = nodeHelper.useValue(nodeId, "positionMode");
-   const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX");
-   const positionY = nodeHelper.useCoalesce(nodeId, "positionY", "positionY");
-   const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta");
-   const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius");
-   const rotation = nodeHelper.useCoalesce(nodeId, "rotation", "rotation");
+   const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX", globals);
+   const positionY = nodeHelper.useCoalesce(nodeId, "positionY", "positionY", globals);
+   const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
+   const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
+   const rotation = nodeHelper.useCoalesce(nodeId, "rotation", "rotation", globals);
 
    const children = useMemo(() => {
       return lodash.range(pointCount).map((n, i) => {
@@ -127,11 +129,11 @@ const Renderer = memo(({ nodeId, depth, sequenceData }: NodeRendererProps) => {
 
          return (
             <g key={n} style={{ transform: `rotate(${rot}deg) translate(0px, ${tR}px) rotate(${isRotating ? 180 : -rot}deg)` }}>
-               {output && childNodeId && <Each output={output} host={nodeId} sequenceData={sequenceData} nodeId={childNodeId} depth={depth} index={i} />}
+               {output && childNodeId && <Each output={output} host={nodeId} globals={globals} nodeId={childNodeId} depth={depth} index={i} />}
             </g>
          );
       });
-   }, [output, childNodeId, pointCount, tR, isRotating, nodeId, depth, sequenceData]);
+   }, [output, childNodeId, pointCount, tR, isRotating, nodeId, depth, globals]);
 
    return (
       <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation}deg)` }}>
@@ -140,15 +142,18 @@ const Renderer = memo(({ nodeId, depth, sequenceData }: NodeRendererProps) => {
    );
 });
 
-const Each = ({ nodeId, sequenceData, depth, index, host, output: Output }: NodeRendererProps & { index: number; host: string; output: NodeRenderer }) => {
-   const newSequence = useMemo(() => {
+const Each = ({ nodeId, globals, depth, index, host, output: Output }: NodeRendererProps & { index: number; host: string; output: NodeRenderer }) => {
+   const newGlobals = useMemo(() => {
       return {
-         ...sequenceData,
-         [host]: index,
+         ...globals,
+         sequenceData: {
+            ...globals.sequenceData,
+            [host]: index,
+         },
       };
-   }, [sequenceData, host, index]);
+   }, [globals, host, index]);
 
-   return <Output nodeId={nodeId} sequenceData={newSequence} depth={(depth ?? "") + `_${host}.${index}`} />;
+   return <Output nodeId={nodeId} globals={newGlobals} depth={(depth ?? "") + `_${host}.${index}`} />;
 };
 
 const nodeMethods = ArcaneGraph.nodeMethods<IVertexArrayNode>();
@@ -159,7 +164,7 @@ const VertexArrayNodeHelper: INodeHelper<IVertexArrayNode> = {
    nodeIcon,
    flavour: "danger",
    type: NodeTypes.ARRAY_VERTEX,
-   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IVertexArrayNode["outputs"]) => {
+   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IVertexArrayNode["outputs"], globals: Globals) => {
       switch (socket) {
          case "output":
             return Renderer;
@@ -167,7 +172,7 @@ const VertexArrayNodeHelper: INodeHelper<IVertexArrayNode> = {
             return {
                senderId: nodeId,
                min: 0,
-               max: nodeMethods.coalesce(graph, nodeId, "pointCount", "pointCount"),
+               max: nodeMethods.coalesce(graph, nodeId, "pointCount", "pointCount", globals),
             };
       }
    },

@@ -105,8 +105,14 @@ export type INodeInstance<T extends INodeDefinition> = {
    };
 } & T["values"];
 
-export type NodeRendererProps = { nodeId: string; depth: string; sequenceData: { [key: string]: number } };
+export type NodeRendererProps = { nodeId: string; depth: string; globals: Globals };
 export type NodeRenderer = ComponentType<NodeRendererProps>;
+export type ControlRendererProps = { nodeId: string; globals: Globals };
+export type ControlRenderer = ComponentType<ControlRendererProps>;
+
+export type Globals = {
+   sequenceData: { [key: string]: number };
+};
 
 export type Sequence = {
    senderId: string;
@@ -131,8 +137,8 @@ export interface INodeHelper<T extends INodeDefinition> {
    readonly name: string;
    readonly type: NodeTypes;
    initialize: () => T["values"];
-   controls: ComponentType<{ nodeId: string }>;
-   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof T["outputs"]) => T["outputs"][typeof socket];
+   controls: ControlRenderer;
+   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof T["outputs"], globals: Globals) => T["outputs"][typeof socket];
 }
 
 export type IArcaneGraph = {

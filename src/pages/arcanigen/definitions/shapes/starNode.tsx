@@ -1,6 +1,7 @@
 import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
 import {
+   ControlRendererProps,
    IArcaneGraph,
    INodeDefinition,
    INodeHelper,
@@ -71,7 +72,7 @@ interface IStarNode extends INodeDefinition {
 
 const nodeHelper = ArcaneGraph.nodeHooks<IStarNode>();
 
-const Controls = memo(({ nodeId }: { nodeId: string }) => {
+const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [pointCount, setPointCount] = nodeHelper.useValueState(nodeId, "pointCount");
    const [radius, setRadius] = nodeHelper.useValueState(nodeId, "radius");
    const [spread, setSpread] = nodeHelper.useValueState(nodeId, "spread");
@@ -153,25 +154,25 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    );
 });
 
-const Renderer = memo(({ nodeId }: NodeRendererProps) => {
+const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
    const radialMode = nodeHelper.useValue(nodeId, "radialMode");
-   const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius");
-   const spread = nodeHelper.useCoalesce(nodeId, "spread", "spread");
-   const innerRadius = nodeHelper.useCoalesce(nodeId, "innerRadius", "innerRadius");
-   const outerRadius = nodeHelper.useCoalesce(nodeId, "outerRadius", "outerRadius");
-   const pointCount = Math.min(24, Math.max(3, nodeHelper.useCoalesce(nodeId, "pointCount", "pointCount")));
+   const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius", globals);
+   const spread = nodeHelper.useCoalesce(nodeId, "spread", "spread", globals);
+   const innerRadius = nodeHelper.useCoalesce(nodeId, "innerRadius", "innerRadius", globals);
+   const outerRadius = nodeHelper.useCoalesce(nodeId, "outerRadius", "outerRadius", globals);
+   const pointCount = Math.min(24, Math.max(3, nodeHelper.useCoalesce(nodeId, "pointCount", "pointCount", globals)));
 
-   const strokeWidth = nodeHelper.useCoalesce(nodeId, "strokeWidth", "strokeWidth");
+   const strokeWidth = nodeHelper.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
    const strokeJoin = nodeHelper.useValue(nodeId, "strokeJoin");
-   const strokeColor = nodeHelper.useCoalesce(nodeId, "strokeColor", "strokeColor");
+   const strokeColor = nodeHelper.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
    const fillColor = nodeHelper.useValue(nodeId, "fillColor");
 
    const positionMode = nodeHelper.useValue(nodeId, "positionMode");
-   const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX");
-   const positionY = nodeHelper.useCoalesce(nodeId, "positionY", "positionY");
-   const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta");
-   const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius");
-   const rotation = nodeHelper.useCoalesce(nodeId, "rotation", "rotation");
+   const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX", globals);
+   const positionY = nodeHelper.useCoalesce(nodeId, "positionY", "positionY", globals);
+   const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
+   const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
+   const rotation = nodeHelper.useCoalesce(nodeId, "rotation", "rotation", globals);
 
    const points = useMemo(() => {
       const rI = radialMode === "inout" ? MathHelper.lengthToPx(innerRadius) : MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(spread) / 2;

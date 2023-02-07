@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
-import { IArcaneGraph, INodeDefinition, INodeHelper, INodeInstance, LinkTypes, NodeRenderer, NodeTypes, SocketTypes } from "./types";
+import { Globals, IArcaneGraph, INodeDefinition, INodeHelper, INodeInstance, LinkTypes, NodeRenderer, NodeTypes, SocketTypes } from "./types";
 import { v4 as uuid } from "uuid";
 import ObjHelper from "!/utility/objHelper";
 import fp from "lodash/fp";
@@ -225,26 +225,26 @@ const nodeHooks = <T extends INodeDefinition>() => {
       return useSyncExternalStore(store.subToGraph, () => getNodeValue<T, K>(store.getGraph(), nodeId, key));
    };
 
-   const useInput = <K extends keyof T["inputs"]>(nodeId: string, socket: K) => {
+   const useInput = <K extends keyof T["inputs"]>(nodeId: string, socket: K, globals: Globals) => {
       const store = useContext(StoreContext)!;
 
       const graph = useSyncExternalStore(store.subToGraph, () => store.getGraph());
 
       // TODO: FIX MY RETURN - Needs to handle undefined possibility...
       return useMemo(() => {
-         return getNodeInput<T, K>(graph, nodeId, socket);
-      }, [graph, nodeId, socket]) as T["inputs"][K];
+         return getNodeInput<T, K>(graph, nodeId, socket, globals);
+      }, [graph, nodeId, socket, globals]) as T["inputs"][K];
    };
 
-   const useInputNode = <K extends keyof T["inputs"]>(nodeId: string, socket: K): [NodeRenderer, string] | [null, null] => {
+   const useInputNode = <K extends keyof T["inputs"]>(nodeId: string, socket: K, globals: Globals): [NodeRenderer, string] | [null, null] => {
       const store = useContext(StoreContext)!;
 
       const graph = useSyncExternalStore(store.subToGraph, () => store.getGraph());
 
       // TODO: FIX MY RETURN - Needs to handle undefined possibility...
       const value = useMemo(() => {
-         return getNodeInput<T, K>(graph, nodeId, socket);
-      }, [graph, nodeId, socket]) as T["inputs"][K];
+         return getNodeInput<T, K>(graph, nodeId, socket, globals);
+      }, [graph, nodeId, socket, globals]) as T["inputs"][K];
 
       const otherNode = useMemo(() => {
          const linkId = graph.nodes[nodeId]?.in?.[socket as string];
@@ -256,8 +256,8 @@ const nodeHooks = <T extends INodeDefinition>() => {
       return [value, otherNode ?? null];
    };
 
-   const useCoalesce = <K extends keyof T["inputs"], J extends keyof T["values"]>(nodeId: string, socket: K, key: J) => {
-      const input = useInput<K>(nodeId, socket);
+   const useCoalesce = <K extends keyof T["inputs"], J extends keyof T["values"]>(nodeId: string, socket: K, key: J, globals: Globals) => {
+      const input = useInput<K>(nodeId, socket, globals);
       const value = useValue<J>(nodeId, key);
 
       return input ?? value;
@@ -314,16 +314,16 @@ const nodeMethods = <T extends INodeDefinition>() => {
       return getNodeValue<T, K>(graph, nodeId, key);
    };
 
-   const getInput = <K extends keyof T["inputs"]>(graph: IArcaneGraph, nodeId: string, socket: K) => {
-      return getNodeInput<T, K>(graph, nodeId, socket);
+   const getInput = <K extends keyof T["inputs"]>(graph: IArcaneGraph, nodeId: string, socket: K, globals: Globals) => {
+      return getNodeInput<T, K>(graph, nodeId, socket, globals);
    };
 
    const hasInput = <K extends keyof T["inputs"]>(graph: IArcaneGraph, nodeId: string, socket: K) => {
       return !!(graph.nodes?.[nodeId] as INodeInstance<T>)?.in?.[socket];
    };
 
-   const coalesce = <K extends keyof T["inputs"], J extends keyof T["values"]>(graph: IArcaneGraph, nodeId: string, socket: K, key: J) => {
-      return getNodeInput<T, K>(graph, nodeId, socket) ?? getNodeValue<T, J>(graph, nodeId, key);
+   const coalesce = <K extends keyof T["inputs"], J extends keyof T["values"]>(graph: IArcaneGraph, nodeId: string, socket: K, key: J, globals: Globals) => {
+      return getNodeInput<T, K>(graph, nodeId, socket, globals) ?? getNodeValue<T, J>(graph, nodeId, key);
    };
 
    return {
@@ -371,14 +371,14 @@ const getNodeValue = <T extends INodeDefinition, K extends keyof T["values"]>(gr
    return (graph.nodes?.[nodeId] as INodeInstance<T>)?.[key];
 };
 
-const getNodeInput = <T extends INodeDefinition, K extends keyof T["inputs"]>(graph: IArcaneGraph, nodeId: string, socket: K) => {
+const getNodeInput = <T extends INodeDefinition, K extends keyof T["inputs"]>(graph: IArcaneGraph, nodeId: string, socket: K, globals: Globals) => {
    const linkId = (graph.nodes?.[nodeId] as INodeInstance<T>)?.in?.[socket];
    if (linkId) {
       const { fromSocket, fromNode } = graph.links?.[linkId] ?? {};
       if (fromSocket && fromNode) {
          const { type } = graph.nodes?.[fromNode] ?? {};
          if (type) {
-            const result = (getNodeHelper(type) as INodeHelper<any>).getOutput(graph, fromNode, fromSocket) as T["inputs"][K];
+            const result = (getNodeHelper(type) as INodeHelper<any>).getOutput(graph, fromNode, fromSocket, globals) as T["inputs"][K];
             return result;
          }
       }

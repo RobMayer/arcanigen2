@@ -12,6 +12,7 @@ import {
    Sequence,
    SequenceMode,
    SEQUENCE_MODES,
+   ControlRendererProps,
 } from "../types";
 import { v4 as uuid } from "uuid";
 
@@ -44,7 +45,7 @@ interface ISequencerNode extends INodeDefinition {
 
 const nodeHelper = ArcaneGraph.nodeHooks<ISequencerNode>();
 
-const Controls = memo(({ nodeId }: { nodeId: string }) => {
+const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [node, setNode, setGraph] = nodeHelper.useAlterNode(nodeId);
    const [mode, setMode] = nodeHelper.useValueState(nodeId, "mode");
 
@@ -137,8 +138,8 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    );
 });
 
-const Renderer = memo(({ nodeId, depth, sequenceData }: NodeRendererProps) => {
-   const sequence = nodeHelper.useInput(nodeId, "sequence");
+const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
+   const sequence = nodeHelper.useInput(nodeId, "sequence", globals);
    const sockets = nodeHelper.useValue(nodeId, "sockets");
    const mode = nodeHelper.useValue(nodeId, "mode");
 
@@ -172,14 +173,14 @@ const Renderer = memo(({ nodeId, depth, sequenceData }: NodeRendererProps) => {
       return [];
    }, [mode, sequence, sockets]);
 
-   const currentIteration = sequenceData[sequence?.senderId];
-   const [Comp, cId] = nodeHelper.useInputNode(nodeId, theRenderSequence[currentIteration]);
+   const currentIteration = globals.sequenceData[sequence?.senderId];
+   const [Comp, cId] = nodeHelper.useInputNode(nodeId, theRenderSequence[currentIteration], globals);
 
    if (theRenderSequence.length === 0) {
       return <></>;
    }
 
-   return <g>{Comp && cId && <Comp nodeId={cId} sequenceData={sequenceData} depth={`${depth}_${nodeId}`} />}</g>;
+   return <g>{Comp && cId && <Comp nodeId={cId} globals={globals} depth={`${depth}_${nodeId}`} />}</g>;
 });
 
 const SequencerNodeHelper: INodeHelper<ISequencerNode> = {

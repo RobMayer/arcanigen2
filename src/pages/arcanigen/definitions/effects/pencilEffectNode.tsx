@@ -1,6 +1,6 @@
 import { memo } from "react";
 import ArcaneGraph from "../graph";
-import { IArcaneGraph, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, NodeTypes, SocketTypes } from "../types";
+import { ControlRendererProps, IArcaneGraph, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, NodeTypes, SocketTypes } from "../types";
 
 import { faPencilAlt as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 import { faPencilAlt as buttonIcon } from "@fortawesome/pro-light-svg-icons";
@@ -23,7 +23,7 @@ interface IPencilEffectNode extends INodeDefinition {
 
 const nodeHelper = ArcaneGraph.nodeHooks<IPencilEffectNode>();
 
-const Controls = memo(({ nodeId }: { nodeId: string }) => {
+const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [seed, setSeed] = nodeHelper.useValueState(nodeId, "seed");
 
    const hasSeed = nodeHelper.useHasLink(nodeId, "seed");
@@ -47,9 +47,9 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    );
 });
 
-const Renderer = memo(({ nodeId, depth, sequenceData }: NodeRendererProps) => {
-   const seed = nodeHelper.useCoalesce(nodeId, "seed", "seed");
-   const [Content, cId] = nodeHelper.useInputNode(nodeId, "input");
+const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
+   const seed = nodeHelper.useCoalesce(nodeId, "seed", "seed", globals);
+   const [Content, cId] = nodeHelper.useInputNode(nodeId, "input", globals);
 
    return (
       <>
@@ -62,7 +62,7 @@ const Renderer = memo(({ nodeId, depth, sequenceData }: NodeRendererProps) => {
                <feDisplacementMap xChannelSelector="R" yChannelSelector="G" scale="2.5" in="f3" result="f4" />
             </filter>
             <g filter={`url('#effect_${nodeId}_lyr-${depth ?? ""}')`}>
-               {Content && cId && <Content sequenceData={sequenceData} nodeId={cId} depth={(depth ?? "") + `_${nodeId}`} />}
+               {Content && cId && <Content globals={globals} nodeId={cId} depth={(depth ?? "") + `_${nodeId}`} />}
             </g>
          </g>
       </>

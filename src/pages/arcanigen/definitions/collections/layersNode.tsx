@@ -1,5 +1,16 @@
 import { v4 as uuid } from "uuid";
-import { INodeDefinition, NodeRenderer, INodeHelper, NodeTypes, BlendMode, INodeInstance, BLEND_MODES, SocketTypes, NodeRendererProps } from "../types";
+import {
+   INodeDefinition,
+   NodeRenderer,
+   INodeHelper,
+   NodeTypes,
+   BlendMode,
+   INodeInstance,
+   BLEND_MODES,
+   SocketTypes,
+   NodeRendererProps,
+   ControlRendererProps,
+} from "../types";
 import { faClose, faLayerGroup as nodeIcon, faPlus } from "@fortawesome/pro-solid-svg-icons";
 import { faLayerGroup as buttonIcon } from "@fortawesome/pro-light-svg-icons";
 import ArcaneGraph from "../graph";
@@ -28,7 +39,7 @@ interface ILayersNode extends INodeDefinition {
 
 const nodeHelper = ArcaneGraph.nodeHooks<ILayersNode>();
 
-const Controls = memo(({ nodeId }: { nodeId: string }) => {
+const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [node, setNode, setGraph] = nodeHelper.useAlterNode(nodeId);
 
    const addLayer = useCallback(() => {
@@ -140,13 +151,13 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    );
 });
 
-const Renderer = memo(({ nodeId, depth, sequenceData }: NodeRendererProps) => {
+const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
    const sockets = nodeHelper.useValue(nodeId, "sockets") ?? [];
    const modes = nodeHelper.useValue(nodeId, "modes") ?? {};
    return (
       <g>
          {sockets.map((sId, i) => {
-            return <Each key={sId} nodeId={nodeId} socketId={sId} blendMode={modes[sId]} host={nodeId} depth={depth} index={i} sequenceData={sequenceData} />;
+            return <Each key={sId} nodeId={nodeId} socketId={sId} blendMode={modes[sId]} host={nodeId} depth={depth} index={i} globals={globals} />;
          })}
       </g>
    );
@@ -159,14 +170,25 @@ const Each = ({
    depth,
    host,
    index,
-   sequenceData,
+   globals,
 }: NodeRendererProps & {
    socketId: string;
    blendMode: BlendMode;
    host: string;
    index: number;
 }) => {
-   const [Comp, childId] = nodeHelper.useInputNode(nodeId, socketId);
+   const newGlobalsglobals = useMemo(
+      () => ({
+         ...globals,
+         sequenceData: {
+            ...globals.sequenceData,
+            [host]: index,
+         },
+      }),
+      [globals, host, index]
+   );
+
+   const [Comp, childId] = nodeHelper.useInputNode(nodeId, socketId, newGlobalsglobals);
    const styles = useMemo(
       () => ({
          mixBlendMode: blendMode ?? "normal",
@@ -174,14 +196,7 @@ const Each = ({
       [blendMode]
    );
 
-   const newSequenceData = useMemo(() => {
-      return {
-         ...sequenceData,
-         [host]: index,
-      };
-   }, [sequenceData, host, index]);
-
-   return <g style={styles}>{Comp && childId && <Comp nodeId={childId} depth={(depth ?? "") + `_${host}.${index}`} sequenceData={newSequenceData} />}</g>;
+   return <g style={styles}>{Comp && childId && <Comp nodeId={childId} depth={(depth ?? "") + `_${host}.${index}`} globals={newGlobalsglobals} />}</g>;
 };
 
 const LayersNodeHelper: INodeHelper<ILayersNode> = {

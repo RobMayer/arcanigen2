@@ -194,7 +194,11 @@ const Canvas = styled(DragCanvas)`
 const EachNode = ({ type, nodeId }: { type: NodeTypes; nodeId: string }) => {
    const helper = useMemo(() => getNodeHelper(type), [type]);
    const ControlsComponent = useMemo(() => helper.controls, [helper]);
-   return <ControlsComponent nodeId={nodeId} />;
+   return <ControlsComponent nodeId={nodeId} globals={TMP_GLOBALS} />;
+};
+
+const TMP_GLOBALS = {
+   sequenceData: {},
 };
 
 const getLinkType = (a: SocketTypes, b: SocketTypes): LinkTypes => {

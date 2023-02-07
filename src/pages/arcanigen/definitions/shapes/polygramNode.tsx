@@ -1,6 +1,8 @@
 import { memo, useEffect, useMemo } from "react";
 import ArcaneGraph from "../graph";
 import {
+   ControlRendererProps,
+   Globals,
    IArcaneGraph,
    INodeDefinition,
    INodeHelper,
@@ -71,7 +73,7 @@ interface IPolygramNode extends INodeDefinition {
 
 const nodeHelper = ArcaneGraph.nodeHooks<IPolygramNode>();
 
-const Controls = memo(({ nodeId }: { nodeId: string }) => {
+const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [radius, setRadius] = nodeHelper.useValueState(nodeId, "radius");
    const [strokeWidth, setStrokeWidth] = nodeHelper.useValueState(nodeId, "strokeWidth");
    const [strokeColor, setStrokeColor] = nodeHelper.useValueState(nodeId, "strokeColor");
@@ -171,26 +173,26 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    );
 });
 
-const Renderer = memo(({ nodeId }: NodeRendererProps) => {
-   const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius");
-   const pointCount = nodeHelper.useCoalesce(nodeId, "pointCount", "pointCount");
+const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
+   const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius", globals);
+   const pointCount = nodeHelper.useCoalesce(nodeId, "pointCount", "pointCount", globals);
    const scribeMode = nodeHelper.useValue(nodeId, "scribeMode");
 
    const theMax = Math.ceil(pointCount / 2) - 2;
 
-   const skipCount = Math.min(theMax, Math.max(0, nodeHelper.useCoalesce(nodeId, "skipCount", "skipCount")));
+   const skipCount = Math.min(theMax, Math.max(0, nodeHelper.useCoalesce(nodeId, "skipCount", "skipCount", globals)));
 
-   const strokeWidth = nodeHelper.useCoalesce(nodeId, "strokeWidth", "strokeWidth");
+   const strokeWidth = nodeHelper.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
    const strokeJoin = nodeHelper.useValue(nodeId, "strokeJoin");
-   const strokeColor = nodeHelper.useCoalesce(nodeId, "strokeColor", "strokeColor");
+   const strokeColor = nodeHelper.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
    const fillColor = nodeHelper.useValue(nodeId, "fillColor");
 
    const positionMode = nodeHelper.useValue(nodeId, "positionMode");
-   const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX");
-   const positionY = nodeHelper.useCoalesce(nodeId, "positionY", "positionY");
-   const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta");
-   const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius");
-   const rotation = nodeHelper.useCoalesce(nodeId, "rotation", "rotation");
+   const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX", globals);
+   const positionY = nodeHelper.useCoalesce(nodeId, "positionY", "positionY", globals);
+   const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
+   const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
+   const rotation = nodeHelper.useCoalesce(nodeId, "rotation", "rotation", globals);
 
    const points = useMemo(() => {
       const tR = getTrueRadius(MathHelper.lengthToPx(radius), scribeMode, pointCount);
@@ -227,11 +229,11 @@ const PolygramNodeHelper: INodeHelper<IPolygramNode> = {
    nodeIcon,
    flavour: "emphasis",
    type: NodeTypes.SHAPE_POLYGRAM,
-   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IPolygramNode["outputs"]) => {
+   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IPolygramNode["outputs"], globals: Globals) => {
       if (socket === "output") {
          return Renderer;
       }
-      const radius = nodeMethods.coalesce(graph, nodeId, "radius", "radius");
+      const radius = nodeMethods.coalesce(graph, nodeId, "radius", "radius", globals);
       const pointCount = nodeMethods.getValue(graph, nodeId, "pointCount");
       const skipCount = nodeMethods.getValue(graph, nodeId, "skipCount");
       const scribeMode = nodeMethods.getValue(graph, nodeId, "scribeMode");
