@@ -94,7 +94,7 @@ const LengthValueNodeHelper: INodeHelper<ILengthValueNode> = {
    name: "Length",
    buttonIcon,
    nodeIcon,
-   flavour: "help",
+   flavour: "accent",
    type: NodeTypes.VALUE_LENGTH,
    getOutput,
    initialize: () => ({

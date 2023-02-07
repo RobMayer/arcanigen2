@@ -31,6 +31,8 @@ import ColorRGBNodeHelper from "./values/colorRGBNode";
 import ColorHSVNodeHelper from "./values/colorHSVNode";
 import ColorHSLNodeHelper from "./values/colorHSLNode";
 import ColorHWBNodeHelper from "./values/colorHWBNode";
+import AngleValueNodeHelper from "./values/angleValueNode";
+import NumberLerpNodeHelper from "./math/numberLerpNode";
 
 // prettier-ignore
 export const getNodeHelper = (key: NodeTypes) => {
@@ -57,6 +59,7 @@ export const getNodeHelper = (key: NodeTypes) => {
 
       case NodeTypes.VALUE_LENGTH: return LengthValueNodeHelper;
       case NodeTypes.VALUE_RANDOM: return RandomValueNodeHelper;
+      case NodeTypes.VALUE_ANGLE: return AngleValueNodeHelper;
       case NodeTypes.COLOR_HEX: return HexColorNodeHelper;
 
       case NodeTypes.MATH_ADD: return MathAddNodeHelper;
@@ -76,6 +79,8 @@ export const getNodeHelper = (key: NodeTypes) => {
       case NodeTypes.COLOR_HSV: return ColorHSVNodeHelper;
       case NodeTypes.COLOR_HSL: return ColorHSLNodeHelper;
       case NodeTypes.COLOR_HWB: return ColorHWBNodeHelper;
+
+      case NodeTypes.LERP_NUMBER: return NumberLerpNodeHelper;
 
    }
 };

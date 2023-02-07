@@ -12,6 +12,14 @@ type IProps<T extends INodeDefinition, D extends "inputs" | "outputs"> = {
    children?: ReactNode;
 };
 
+type IPropsBoth<T extends INodeDefinition> = {
+   nodeId: string;
+   socketIn: keyof T["inputs"];
+   socketOut: keyof T["outputs"];
+   type: SocketTypes;
+   children?: ReactNode;
+};
+
 export const SocketIn = <T extends INodeDefinition>({ children, socketId, nodeId, type }: IProps<T, "inputs">) => {
    return (
       <Wrapper className={"mode-in"}>
@@ -30,10 +38,23 @@ export const SocketOut = <T extends INodeDefinition>({ children, socketId, nodeI
    );
 };
 
+export const SocketBoth = <T extends INodeDefinition>({ children, socketIn, socketOut, nodeId, type }: IPropsBoth<T>) => {
+   return (
+      <Wrapper className={"mode-both"}>
+         <Orb nodeId={nodeId} type={type} socketId={socketIn as string} mode={"in"} />
+         <Label className={"mode-both"}>{children}</Label>
+         <Orb nodeId={nodeId} type={type} socketId={socketOut as string} mode={"out"} />
+      </Wrapper>
+   );
+};
+
 const Wrapper = styled.div`
    display: grid;
    align-items: center;
    justify-items: stretch;
+   &.node-both {
+      grid-template-columns: 0.625em 1fr 0.625em;
+   }
    &.mode-in {
       grid-template-columns: 0.625em 1fr;
    }
@@ -43,7 +64,8 @@ const Wrapper = styled.div`
 `;
 
 const Label = styled.div`
-   &.mode-in {
+   &.mode-in,
+   &.mode-both {
       text-align: start;
    }
    &.mode-out {
@@ -176,7 +198,7 @@ const getSocketFlavour = (type: SocketTypes): Flavour => {
    switch (type) {
       case SocketTypes.LENGTH:
       case SocketTypes.COLOR:
-         return "help";
+         return "accent";
       case SocketTypes.SEQUENCE:
          return "emphasis";
       case SocketTypes.SHAPE:

@@ -123,6 +123,10 @@ export const distance = (x1: number, y1: number, x2: number, y2: number) => {
    return Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
 };
 
+export const clamp = (n: number, a: number, b: number) => {
+   return Math.max(a, Math.min(b, n));
+};
+
 const MathHelper = {
    deg2rad,
    mod,
@@ -137,6 +141,7 @@ const MathHelper = {
    shortestArc,
    shortestQuadrent,
    distance,
+   clamp,
    WHITE,
    BLACK,
 };

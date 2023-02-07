@@ -43,9 +43,16 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    const hasBIn = nodeHelper.useHasLink(nodeId, "bIn");
    const hasAIn = nodeHelper.useHasLink(nodeId, "aIn");
 
+   const actualR = nodeHelper.useCoalesce(nodeId, "rIn", "r");
+   const actualG = nodeHelper.useCoalesce(nodeId, "gIn", "g");
+   const actualB = nodeHelper.useCoalesce(nodeId, "bIn", "b");
+   const actualA = nodeHelper.useCoalesce(nodeId, "aIn", "a");
+
    const res = useMemo(() => {
-      return MathHelper.colorToHex(rgb2Color(r, g, b, a));
-   }, [r, g, b, a]);
+      return MathHelper.colorToHex(
+         rgb2Color(MathHelper.clamp(actualR, 0, 255), MathHelper.clamp(actualG, 0, 255), MathHelper.clamp(actualB, 0, 255), MathHelper.clamp(actualA, 0, 100))
+      );
+   }, [actualR, actualG, actualB, actualA]);
 
    return (
       <BaseNode<IColorRGBNode> nodeId={nodeId} helper={ColorRGBNodeHelper}>
@@ -91,7 +98,7 @@ const ColorRGBNodeHelper: INodeHelper<IColorRGBNode> = {
    name: "Color (rgb)",
    buttonIcon,
    nodeIcon,
-   flavour: "help",
+   flavour: "accent",
    type: NodeTypes.COLOR_RGB,
    getOutput,
    initialize: () => ({

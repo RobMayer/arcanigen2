@@ -44,9 +44,16 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    const hasVIn = nodeHelper.useHasLink(nodeId, "vIn");
    const hasAIn = nodeHelper.useHasLink(nodeId, "aIn");
 
+   const actualH = nodeHelper.useCoalesce(nodeId, "hIn", "h");
+   const actualS = nodeHelper.useCoalesce(nodeId, "sIn", "s");
+   const actualV = nodeHelper.useCoalesce(nodeId, "vIn", "v");
+   const actualA = nodeHelper.useCoalesce(nodeId, "aIn", "a");
+
    const res = useMemo(() => {
-      return MathHelper.colorToHex(hsv2Color(h, s, v, a));
-   }, [h, s, v, a]);
+      return MathHelper.colorToHex(
+         hsv2Color(MathHelper.mod(actualH, 360), MathHelper.clamp(actualS, 0, 100), MathHelper.clamp(actualV, 0, 100), MathHelper.clamp(actualA, 0, 100))
+      );
+   }, [actualH, actualS, actualV, actualA]);
 
    return (
       <BaseNode<IColorHSVNode> nodeId={nodeId} helper={ColorHSVNodeHelper}>
@@ -54,7 +61,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
             <Swatch value={res} />
          </SocketOut>
          <hr />
-         <SocketIn<IColorHSVNode> nodeId={nodeId} socketId={"hIn"} type={SocketTypes.FLOAT}>
+         <SocketIn<IColorHSVNode> nodeId={nodeId} socketId={"hIn"} type={SocketTypes.ANGLE}>
             <BaseNode.Input label={"Hue"}>
                <AngleInput value={h} onValidValue={setH} disabled={hasHIn} />
             </BaseNode.Input>
@@ -81,7 +88,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
 const nodeMethods = ArcaneGraph.nodeMethods<IColorHSVNode>();
 
 const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof IColorHSVNode["outputs"]) => {
-   const h = nodeMethods.coalesce(graph, nodeId, "hIn", "h");
+   const h = MathHelper.mod(nodeMethods.coalesce(graph, nodeId, "hIn", "h"), 360);
    const s = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "sIn", "s")));
    const v = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "vIn", "v")));
    const a = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "aIn", "a")));
@@ -92,7 +99,7 @@ const ColorHSVNodeHelper: INodeHelper<IColorHSVNode> = {
    name: "Color (hsv)",
    buttonIcon,
    nodeIcon,
-   flavour: "help",
+   flavour: "accent",
    type: NodeTypes.COLOR_HSV,
    getOutput,
    initialize: () => ({

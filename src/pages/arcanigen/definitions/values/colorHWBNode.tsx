@@ -44,9 +44,16 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    const hasBIn = nodeHelper.useHasLink(nodeId, "bIn");
    const hasAIn = nodeHelper.useHasLink(nodeId, "aIn");
 
+   const actualH = nodeHelper.useCoalesce(nodeId, "hIn", "h");
+   const actualW = nodeHelper.useCoalesce(nodeId, "wIn", "w");
+   const actualB = nodeHelper.useCoalesce(nodeId, "bIn", "b");
+   const actualA = nodeHelper.useCoalesce(nodeId, "aIn", "a");
+
    const res = useMemo(() => {
-      return MathHelper.colorToHex(hwb2Color(h, w, b, a));
-   }, [h, w, b, a]);
+      return MathHelper.colorToHex(
+         hwb2Color(MathHelper.mod(actualH, 360), MathHelper.clamp(actualW, 0, 100), MathHelper.clamp(actualB, 0, 100), MathHelper.clamp(actualA, 0, 100))
+      );
+   }, [actualH, actualW, actualB, actualA]);
 
    return (
       <BaseNode<IColorHWBNode> nodeId={nodeId} helper={ColorHWBNodeHelper}>
@@ -54,7 +61,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
             <Swatch value={res} />
          </SocketOut>
          <hr />
-         <SocketIn<IColorHWBNode> nodeId={nodeId} socketId={"hIn"} type={SocketTypes.FLOAT}>
+         <SocketIn<IColorHWBNode> nodeId={nodeId} socketId={"hIn"} type={SocketTypes.ANGLE}>
             <BaseNode.Input label={"Hue"}>
                <AngleInput value={h} onValidValue={setH} disabled={hasHIn} />
             </BaseNode.Input>
@@ -81,7 +88,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
 const nodeMethods = ArcaneGraph.nodeMethods<IColorHWBNode>();
 
 const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof IColorHWBNode["outputs"]) => {
-   const h = nodeMethods.coalesce(graph, nodeId, "hIn", "h");
+   const h = MathHelper.mod(nodeMethods.coalesce(graph, nodeId, "hIn", "h"), 360);
    const w = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "wIn", "w")));
    const b = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "bIn", "b")));
    const a = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "aIn", "a")));
@@ -92,7 +99,7 @@ const ColorHWBNodeHelper: INodeHelper<IColorHWBNode> = {
    name: "Color (hwb)",
    buttonIcon,
    nodeIcon,
-   flavour: "help",
+   flavour: "accent",
    type: NodeTypes.COLOR_HWB,
    getOutput,
    initialize: () => ({

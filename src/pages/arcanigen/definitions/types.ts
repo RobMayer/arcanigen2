@@ -22,15 +22,6 @@ export enum NodeTypes {
    ARRAY_VERTEX = "arrayVertex",
    ARRAY_SPIRAL = "arraySpiral",
 
-   COLOR_HEX = "colorHex",
-   COLOR_RGB = "colorRGB",
-   COLOR_HSV = "colorHSV",
-   COLOR_HSL = "colorHSL",
-   COLOR_HWB = "colorHWB",
-
-   VALUE_LENGTH = "valueLength",
-   VALUE_RANDOM = "valueRandom",
-
    EFFECT_BRUSH = "effectBrush",
    EFFECT_PENCIL = "effectPencil",
    EFFECT_PEN = "effectPen",
@@ -43,6 +34,18 @@ export enum NodeTypes {
    MATH_ABS = "mathAbs",
 
    CONVERT_LENGTH = "convertToLength",
+
+   COLOR_HEX = "colorHex",
+   COLOR_RGB = "colorRGB",
+   COLOR_HSV = "colorHSV",
+   COLOR_HSL = "colorHSL",
+   COLOR_HWB = "colorHWB",
+
+   VALUE_LENGTH = "valueLength",
+   VALUE_RANDOM = "valueRandom",
+   VALUE_ANGLE = "valueAngle",
+
+   LERP_NUMBER = "lerpNumber",
 }
 
 export enum SocketTypes {

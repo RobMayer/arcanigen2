@@ -53,7 +53,7 @@ const RandomValueNodeHelper: INodeHelper<IRandomValueNode> = {
    name: "Random",
    buttonIcon,
    nodeIcon,
-   flavour: "help",
+   flavour: "accent",
    type: NodeTypes.VALUE_RANDOM,
    getOutput,
    initialize: () => ({
