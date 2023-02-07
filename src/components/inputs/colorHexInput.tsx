@@ -1,25 +1,94 @@
-import { hexToColor, colorToHex } from "!/utility/mathhelper";
+import { colorToHex, hexToColor } from "!/utility/mathhelper";
 import { Color } from "!/utility/types/units";
-import { HTMLAttributes, useMemo } from "react";
+import { ChangeEvent, HTMLAttributes, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
-import AbstractInputs, { AbstractInputProps } from "./abstract";
 
-const HexColorInput = styled((props: AbstractInputProps<Color, HTMLInputElement> & HTMLAttributes<HTMLDivElement>) => {
-   const { value, handlers, className, disabled, revertInvalid, ...rest } = AbstractInputs.useAbstractProps<
-      Color,
-      AbstractInputProps<Color, HTMLInputElement> & HTMLAttributes<HTMLDivElement>
-   >(props);
-   const inputProps = AbstractInputs.useAbstractHandlers<Color, HTMLInputElement>(value, handlers, hexToColor, colorToHex);
+type IProps = {
+   value: Color;
+   onValue?: (v: Color) => void;
+   onCommit?: (v: Color) => void;
+   disabled?: boolean;
+};
+
+const HexColorInput = styled(({ className, value, disabled, onValue, onCommit, ...props }: IProps & HTMLAttributes<HTMLDivElement>) => {
+   const [stringCache, setStringCache] = useState<string>(colorToHex(value));
+
+   const heldRef = useRef<Color>(value);
+
+   useEffect(() => {
+      const h = heldRef.current;
+      if (h?.r !== value?.r || h?.g !== value?.g || h?.b !== value?.b || h?.a !== value?.a) {
+         heldRef.current = value;
+         setStringCache(colorToHex(value));
+      }
+   }, [value]);
+
+   const handleChange = useCallback(
+      (e: ChangeEvent<HTMLInputElement>) => {
+         setStringCache(e.currentTarget.value);
+         if (e.currentTarget.validity.valid) {
+            const res = hexToColor(e.currentTarget.value);
+            heldRef.current = res;
+            onValue && onValue(res);
+         }
+      },
+      [onValue]
+   );
+
+   const handleCommit = useCallback(
+      (e: ChangeEvent<HTMLInputElement>) => {
+         if (e.currentTarget.validity.valid) {
+            const res = hexToColor(e.currentTarget.value);
+            heldRef.current = res;
+            onCommit && onCommit(res);
+         }
+         setStringCache(colorToHex(heldRef.current));
+      },
+      [onCommit]
+   );
+
+   const inputRef = useRef<HTMLInputElement>(null);
+
+   useEffect(() => {
+      const n = inputRef.current;
+      if (n && handleCommit) {
+         const cb = (e: Event) => {
+            let hasStopped = false;
+            const se: ChangeEvent<HTMLInputElement> = {
+               ...e,
+               nativeEvent: e,
+               persist: () => {},
+               target: e.target as HTMLInputElement,
+               currentTarget: e.target as HTMLInputElement,
+               bubbles: true,
+               cancelable: true,
+               isDefaultPrevented: () => e.defaultPrevented,
+               isPropagationStopped: () => hasStopped,
+               stopPropagation: () => {
+                  e.stopPropagation();
+                  hasStopped = true;
+               },
+            };
+            handleCommit(se);
+         };
+         n.addEventListener("change", cb);
+         return () => {
+            n.removeEventListener("change", cb);
+         };
+      }
+   }, [handleCommit]);
 
    return (
-      <div {...rest} className={`${className ?? ""} ${disabled ? "state-disabled" : ""}`}>
-         <Swatch value={inputProps.value} />
-         <AbstractInputs.Text
+      <div {...props} className={`${className ?? ""} ${disabled ? "state-disabled" : ""}`}>
+         <Swatch value={value} />
+         <input
+            type="text"
+            ref={inputRef}
             className={"input"}
             pattern={"^(#+([a-fA-F0-9]{3,4}|[a-fA-F0-9]{6,8})|transparent)$"}
-            {...inputProps}
             disabled={disabled}
-            revertInvalid={revertInvalid}
+            value={stringCache}
+            onChange={handleChange}
          />
       </div>
    );
@@ -109,10 +178,10 @@ const HexColorInput = styled((props: AbstractInputProps<Color, HTMLInputElement>
 
 export default HexColorInput;
 
-const Swatch = styled(({ value, className }: { value?: string; className?: string }) => {
+const Swatch = styled(({ value, className }: { value: Color; className?: string }) => {
    const style = useMemo(
       () => ({
-         color: value,
+         backgroundColor: colorToHex(value) ?? "none",
       }),
       [value]
    );
@@ -121,5 +190,4 @@ const Swatch = styled(({ value, className }: { value?: string; className?: strin
    outline: 1px solid var(--effect-border-highlight);
    width: 1.25em;
    height: 1.25em;
-   background: currentColor;
 `;

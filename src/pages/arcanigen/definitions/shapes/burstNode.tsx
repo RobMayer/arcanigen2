@@ -29,6 +29,7 @@ import lodash from "lodash";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
 import { TransformPrefabs } from "../../nodeView/prefabs";
+import AngleInput from "!/components/inputs/AngleInput";
 
 interface IBurstNode extends INodeDefinition {
    inputs: {
@@ -152,17 +153,17 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          </BaseNode.Input>
          <SocketIn<IBurstNode> nodeId={nodeId} socketId={"thetaSteps"} type={SocketTypes.ANGLE}>
             <BaseNode.Input label={"Incremental θ"}>
-               <NumberInput value={thetaSteps} onValidValue={setThetaSteps} disabled={hasThetaSteps || thetaMode === "startstop"} />
+               <AngleInput value={thetaSteps} onValidValue={setThetaSteps} disabled={hasThetaSteps || thetaMode === "startstop"} wrap />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IBurstNode> nodeId={nodeId} socketId={"thetaStart"} type={SocketTypes.ANGLE}>
             <BaseNode.Input label={"Start θ"}>
-               <NumberInput value={thetaStart} onValidValue={setThetaStart} disabled={hasThetaStart || thetaMode === "incremental"} />
+               <AngleInput value={thetaStart} onValidValue={setThetaStart} disabled={hasThetaStart || thetaMode === "incremental"} wrap />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IBurstNode> nodeId={nodeId} socketId={"thetaEnd"} type={SocketTypes.ANGLE}>
             <BaseNode.Input label={"End θ"}>
-               <NumberInput value={thetaEnd} onValidValue={setThetaEnd} disabled={hasThetaEnd || thetaMode === "incremental"} />
+               <AngleInput value={thetaEnd} onValidValue={setThetaEnd} disabled={hasThetaEnd || thetaMode === "incremental"} wrap />
             </BaseNode.Input>
          </SocketIn>
          <Checkbox checked={thetaInclusive} onToggle={setThetaInclusive} disabled={thetaMode === "incremental"}>
@@ -180,7 +181,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
             </BaseNode.Input>
             <SocketIn<IBurstNode> nodeId={nodeId} socketId={"strokeColor"} type={SocketTypes.COLOR}>
                <BaseNode.Input label={"Stroke Color"}>
-                  <HexColorInput value={strokeColor} onValidCommit={setStrokeColor} disabled={hasStrokeColor} />
+                  <HexColorInput value={strokeColor} onValue={setStrokeColor} disabled={hasStrokeColor} />
                </BaseNode.Input>
             </SocketIn>
          </BaseNode.Foldout>

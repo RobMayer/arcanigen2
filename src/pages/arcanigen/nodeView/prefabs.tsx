@@ -1,5 +1,5 @@
+import AngleInput from "!/components/inputs/AngleInput";
 import LengthInput from "!/components/inputs/LengthInput";
-import NumberInput from "!/components/inputs/NumberInput";
 import ToggleList from "!/components/selectors/ToggleList";
 import ArcaneGraph from "../definitions/graph";
 import { INodeDefinition, POSITION_MODES, SocketTypes } from "../definitions/types";
@@ -35,19 +35,19 @@ const TransformFull = <T extends INodeDefinition>({ nodeId, nodeHelper }: { node
                <LengthInput value={positionY} onCommit={setPositionY} disabled={hasPositionY || positionMode === "polar"} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<T> nodeId={nodeId} socketId={"positionTheta"} type={SocketTypes.ANGLE}>
-            <BaseNode.Input label={"θ Angle"}>
-               <NumberInput value={positionTheta} onValidCommit={setPositionTheta} disabled={hasPositionTheta || positionMode === "cartesian"} />
-            </BaseNode.Input>
-         </SocketIn>
          <SocketIn<T> nodeId={nodeId} socketId={"positionRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
                <LengthInput value={positionRadius} onCommit={setPositionRadius} disabled={hasPositionRadius || positionMode === "cartesian"} />
             </BaseNode.Input>
          </SocketIn>
+         <SocketIn<T> nodeId={nodeId} socketId={"positionTheta"} type={SocketTypes.ANGLE}>
+            <BaseNode.Input label={"θ Angle"}>
+               <AngleInput value={positionTheta} onValidValue={setPositionTheta} disabled={hasPositionTheta || positionMode === "cartesian"} />
+            </BaseNode.Input>
+         </SocketIn>
          <SocketIn<T> nodeId={nodeId} socketId={"rotation"} type={SocketTypes.ANGLE}>
             <BaseNode.Input label={"Rotation"}>
-               <NumberInput value={rotation} onValidCommit={setRotation} disabled={hasRotation} />
+               <AngleInput value={rotation} onValidValue={setRotation} disabled={hasRotation} />
             </BaseNode.Input>
          </SocketIn>
       </BaseNode.Foldout>
@@ -81,14 +81,14 @@ const TransformPos = <T extends INodeDefinition>({ nodeId, nodeHelper }: { nodeI
                <LengthInput value={positionY} onCommit={setPositionY} disabled={hasPositionY || positionMode === "polar"} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<T> nodeId={nodeId} socketId={"positionTheta"} type={SocketTypes.ANGLE}>
-            <BaseNode.Input label={"θ Angle"}>
-               <NumberInput value={positionTheta} onValidCommit={setPositionTheta} disabled={hasPositionTheta || positionMode === "cartesian"} />
-            </BaseNode.Input>
-         </SocketIn>
          <SocketIn<T> nodeId={nodeId} socketId={"positionRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
                <LengthInput value={positionRadius} onCommit={setPositionRadius} disabled={hasPositionRadius || positionMode === "cartesian"} />
+            </BaseNode.Input>
+         </SocketIn>
+         <SocketIn<T> nodeId={nodeId} socketId={"positionTheta"} type={SocketTypes.ANGLE}>
+            <BaseNode.Input label={"θ Angle"}>
+               <AngleInput value={positionTheta} onValidValue={setPositionTheta} disabled={hasPositionTheta || positionMode === "cartesian"} />
             </BaseNode.Input>
          </SocketIn>
       </BaseNode.Foldout>

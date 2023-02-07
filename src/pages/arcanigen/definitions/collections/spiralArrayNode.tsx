@@ -29,6 +29,7 @@ import Checkbox from "!/components/buttons/Checkbox";
 import NumberInput from "!/components/inputs/NumberInput";
 import ToggleList from "!/components/selectors/ToggleList";
 import { TransformPrefabs } from "../../nodeView/prefabs";
+import AngleInput from "!/components/inputs/AngleInput";
 
 interface ISpiralArrayNode extends INodeDefinition {
    inputs: {
@@ -147,17 +148,17 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          </BaseNode.Input>
          <SocketIn<ISpiralArrayNode> nodeId={nodeId} socketId={"thetaSteps"} type={SocketTypes.ANGLE}>
             <BaseNode.Input label={"Incremental θ"}>
-               <NumberInput value={thetaSteps} onValidValue={setThetaSteps} disabled={hasThetaSteps || thetaMode === "startstop"} />
+               <AngleInput value={thetaSteps} onValidValue={setThetaSteps} disabled={hasThetaSteps || thetaMode === "startstop"} wrap />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<ISpiralArrayNode> nodeId={nodeId} socketId={"thetaStart"} type={SocketTypes.ANGLE}>
             <BaseNode.Input label={"Start θ"}>
-               <NumberInput value={thetaStart} onValidValue={setThetaStart} disabled={hasThetaStart || thetaMode === "incremental"} />
+               <AngleInput value={thetaStart} onValidValue={setThetaStart} disabled={hasThetaStart || thetaMode === "incremental"} wrap />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<ISpiralArrayNode> nodeId={nodeId} socketId={"thetaEnd"} type={SocketTypes.ANGLE}>
             <BaseNode.Input label={"End θ"}>
-               <NumberInput value={thetaEnd} onValidValue={setThetaEnd} disabled={hasThetaEnd || thetaMode === "incremental"} />
+               <AngleInput value={thetaEnd} onValidValue={setThetaEnd} disabled={hasThetaEnd || thetaMode === "incremental"} wrap />
             </BaseNode.Input>
          </SocketIn>
          <Checkbox checked={thetaInclusive} onToggle={setThetaInclusive} disabled={thetaMode === "incremental"}>

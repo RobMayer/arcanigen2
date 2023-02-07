@@ -29,7 +29,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
       <BaseNode<IHexColorNode> nodeId={nodeId} helper={HexColorNodeHelper}>
          <SocketOut<IHexColorNode> nodeId={nodeId} socketId={"full"} type={SocketTypes.COLOR}>
             <BaseNode.Input label={"Value"}>
-               <HexColorInput value={value} onValidCommit={setValue} />
+               <HexColorInput value={value} onValue={setValue} />
             </BaseNode.Input>
          </SocketOut>
          <hr />
@@ -62,7 +62,7 @@ const HexColorNodeHelper: INodeHelper<IHexColorNode> = {
    buttonIcon,
    nodeIcon,
    flavour: "help",
-   type: NodeTypes.VALUE_COLOR_HEX,
+   type: NodeTypes.COLOR_HEX,
    getOutput,
    initialize: () => ({
       value: { r: 0, g: 0, b: 0, a: 1 },

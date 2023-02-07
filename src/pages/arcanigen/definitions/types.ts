@@ -22,7 +22,12 @@ export enum NodeTypes {
    ARRAY_VERTEX = "arrayVertex",
    ARRAY_SPIRAL = "arraySpiral",
 
-   VALUE_COLOR_HEX = "valueColorHex",
+   COLOR_HEX = "colorHex",
+   COLOR_RGB = "colorRGB",
+   COLOR_HSV = "colorHSV",
+   COLOR_HSL = "colorHSL",
+   COLOR_HWB = "colorHWB",
+
    VALUE_LENGTH = "valueLength",
    VALUE_RANDOM = "valueRandom",
 

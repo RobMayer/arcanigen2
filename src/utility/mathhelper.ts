@@ -12,6 +12,10 @@ export const delerp = (d: number, start: number, end: number) => {
    return end - start === 0 ? 0 : (d - start) / (end - start);
 };
 
+export const mod = (a: number, n: number) => {
+   return ((a % n) + n) % n;
+};
+
 export const lengthToPx = (length: Length): number => {
    switch (length.unit) {
       case "px":
@@ -103,8 +107,25 @@ const getPosition = (mode: "cartesian" | "polar", x: Length, y: Length, theta: n
    return `translate(${lengthToPx(x)}px, ${lengthToPx(y) * -1}px)`;
 };
 
+export const shortestArc = (start: number, stop: number) => {
+   const modDiff = mod(stop - start, 360);
+   let dist = 180 - Math.abs(Math.abs(modDiff) - 180);
+   return (modDiff + 360) % 360 < 180 ? dist : dist * -1;
+};
+
+export const shortestQuadrent = (start: number, stop: number) => {
+   const modDiff = mod(stop - start, 4);
+   let dist = 2 - Math.abs(Math.abs(modDiff) - 2);
+   return (modDiff + 4) % 4 < 2 ? dist : dist * -1;
+};
+
+export const distance = (x1: number, y1: number, x2: number, y2: number) => {
+   return Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+};
+
 const MathHelper = {
    deg2rad,
+   mod,
    lerp,
    delerp,
    lengthToPx,
@@ -113,6 +134,9 @@ const MathHelper = {
    hexToColor,
    convertLength,
    getPosition,
+   shortestArc,
+   shortestQuadrent,
+   distance,
    WHITE,
    BLACK,
 };

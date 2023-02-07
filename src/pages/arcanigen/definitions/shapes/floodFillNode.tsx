@@ -36,7 +36,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          <hr />
          <SocketIn<IFloodFillNode> nodeId={nodeId} socketId={"floodColor"} type={SocketTypes.COLOR}>
             <BaseNode.Input label={"Floor Color"}>
-               <HexColorInput value={floodColor} onValidCommit={setFloodColor} disabled={hasFloodColor} />
+               <HexColorInput value={floodColor} onValue={setFloodColor} disabled={hasFloodColor} />
             </BaseNode.Input>
          </SocketIn>
       </BaseNode>

@@ -1,6 +1,7 @@
 {
    "Arcane Node": {
       "prefix": ["!Node"],
+      "scope": "typescriptreact",
       "body": [
          "import { memo } from \"react\";",
          "import ArcaneGraph from \"../graph\";",
@@ -56,6 +57,7 @@
 
    "Arcane Shape Node": {
       "prefix": ["!NodeShape"],
+      "scope": "typescriptreact",
       "body": [
          "import { memo } from \"react\";",
          "import ArcaneGraph from \"../graph\";",
@@ -120,21 +122,25 @@
 
    "Arcane Node Hook - useCoalesce": {
       "prefix": ["!coalesce"],
+      "scope": "typescriptreact",
       "body": ["const $1 = nodeHelper.useCoalesce(nodeId, \"$1\", \"$1\");"]
    },
 
    "Arcane Node Hook - useValueState": {
       "prefix": ["!valueState"],
+      "scope": "typescriptreact",
       "body": ["const [$1, set${1/(.*)/${1:/capitalize}/}] = nodeHelper.useValueState(nodeId, \"$1\");"]
    },
 
    "Arcane Node Hook - useValue": {
       "prefix": ["!value"],
+      "scope": "typescriptreact",
       "body": ["const $1 = nodeHelper.useValue(nodeId, \"$1\");"]
    },
 
    "Arcane Node Hook - useHasLink": {
       "prefix": ["!hasLink"],
+      "scope": "typescriptreact",
       "body": ["const has${1/(.*)/${1:/capitalize}/} = nodeHelper.useHasLink(nodeId, \"$1\");"]
    }
 }

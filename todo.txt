@@ -1,0 +1,20 @@
+[ ] Value nodes
+    [ ] Angle
+    [ ] Number
+        [ ] Integer
+        [ ] Float
+        [ ] Interval (0.0 -> 1.0; slider)
+    [x] Length
+    [ ] Color
+        [x] Hex
+        [ ] HSV
+        [ ] HSL
+        [ ] HSB
+        [ ] CMY
+        [ ] CMYK
+        [ ] LAB?
+[ ] Interpolators - using sequences
+    [ ] Number
+    [ ] Angle
+    [ ] Length
+    [ ] Color

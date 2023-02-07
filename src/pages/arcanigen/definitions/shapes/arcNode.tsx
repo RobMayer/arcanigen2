@@ -22,11 +22,11 @@ import { Length, Color } from "!/utility/types/units";
 import Checkbox from "!/components/buttons/Checkbox";
 import HexColorInput from "!/components/inputs/colorHexInput";
 import LengthInput from "!/components/inputs/LengthInput";
-import NumberInput from "!/components/inputs/NumberInput";
 import ToggleList from "!/components/selectors/ToggleList";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
 import { TransformPrefabs } from "../../nodeView/prefabs";
+import AngleInput from "!/components/inputs/AngleInput";
 
 interface IArcNode extends INodeDefinition {
    inputs: {
@@ -102,12 +102,12 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          </SocketIn>
          <SocketIn<IArcNode> nodeId={nodeId} socketId={"thetaStart"} type={SocketTypes.ANGLE}>
             <BaseNode.Input label={"Start θ"}>
-               <NumberInput value={thetaStart} onValidValue={setThetaStart} disabled={hasThetaStart} />
+               <AngleInput value={thetaStart} onValidValue={setThetaStart} disabled={hasThetaStart} wrap />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IArcNode> nodeId={nodeId} socketId={"thetaEnd"} type={SocketTypes.ANGLE}>
             <BaseNode.Input label={"End θ"}>
-               <NumberInput value={thetaEnd} onValidValue={setThetaEnd} disabled={hasThetaEnd} />
+               <AngleInput value={thetaEnd} onValidValue={setThetaEnd} disabled={hasThetaEnd} wrap />
             </BaseNode.Input>
          </SocketIn>
          <Checkbox checked={pieSlice} onToggle={setPieSlice}>
@@ -128,12 +128,12 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
             </BaseNode.Input>
             <SocketIn<IArcNode> nodeId={nodeId} socketId={"strokeColor"} type={SocketTypes.COLOR}>
                <BaseNode.Input label={"Stroke Color"}>
-                  <HexColorInput value={strokeColor} onValidCommit={setStrokeColor} disabled={hasStrokeColor} />
+                  <HexColorInput value={strokeColor} onValue={setStrokeColor} disabled={hasStrokeColor} />
                </BaseNode.Input>
             </SocketIn>
             <SocketIn<IArcNode> nodeId={nodeId} socketId={"fillColor"} type={SocketTypes.COLOR}>
                <BaseNode.Input label={"Fill Color"}>
-                  <HexColorInput value={fillColor} onValidCommit={setFillColor} disabled={hasFillColor} />
+                  <HexColorInput value={fillColor} onValue={setFillColor} disabled={hasFillColor} />
                </BaseNode.Input>
             </SocketIn>
          </BaseNode.Foldout>

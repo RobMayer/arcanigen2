@@ -27,6 +27,10 @@ import LengthValueNodeHelper from "./values/lengthValueNode";
 import RandomValueNodeHelper from "./values/randomValueNode";
 import ResultNodeHelper from "./collections/resultNode";
 import SequencerNodeHelper from "./collections/sequenceNode";
+import ColorRGBNodeHelper from "./values/colorRGBNode";
+import ColorHSVNodeHelper from "./values/colorHSVNode";
+import ColorHSLNodeHelper from "./values/colorHSLNode";
+import ColorHWBNodeHelper from "./values/colorHWBNode";
 
 // prettier-ignore
 export const getNodeHelper = (key: NodeTypes) => {
@@ -53,7 +57,7 @@ export const getNodeHelper = (key: NodeTypes) => {
 
       case NodeTypes.VALUE_LENGTH: return LengthValueNodeHelper;
       case NodeTypes.VALUE_RANDOM: return RandomValueNodeHelper;
-      case NodeTypes.VALUE_COLOR_HEX: return HexColorNodeHelper;
+      case NodeTypes.COLOR_HEX: return HexColorNodeHelper;
 
       case NodeTypes.MATH_ADD: return MathAddNodeHelper;
       case NodeTypes.MATH_SUB: return MathSubNodeHelper;
@@ -67,6 +71,11 @@ export const getNodeHelper = (key: NodeTypes) => {
       case NodeTypes.EFFECT_PEN: return PenEffectNodeHelper;
 
       case NodeTypes.CONVERT_LENGTH: return ToLengthNodeHelper;
+
+      case NodeTypes.COLOR_RGB: return ColorRGBNodeHelper;
+      case NodeTypes.COLOR_HSV: return ColorHSVNodeHelper;
+      case NodeTypes.COLOR_HSL: return ColorHSLNodeHelper;
+      case NodeTypes.COLOR_HWB: return ColorHWBNodeHelper;
 
    }
 };

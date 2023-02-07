@@ -163,7 +163,7 @@ const LabelInner = styled.div`
 
 const Main = memo(styled.div`
    display: grid;
-   min-width: 10em;
+   min-width: 14em;
 
    grid-template-columns: 1fr;
 

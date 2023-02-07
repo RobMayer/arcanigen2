@@ -73,12 +73,12 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
             </SocketIn>
             <SocketIn<ICircleNode> nodeId={nodeId} socketId={"strokeColor"} type={SocketTypes.COLOR}>
                <BaseNode.Input label={"Stroke Color"}>
-                  <HexColorInput value={strokeColor} onValidCommit={setStrokeColor} disabled={hasStrokeColor} />
+                  <HexColorInput value={strokeColor} onValue={setStrokeColor} disabled={hasStrokeColor} />
                </BaseNode.Input>
             </SocketIn>
             <SocketIn<ICircleNode> nodeId={nodeId} socketId={"fillColor"} type={SocketTypes.COLOR}>
                <BaseNode.Input label={"Fill Color"}>
-                  <HexColorInput value={fillColor} onValidCommit={setFillColor} disabled={hasFillColor} />
+                  <HexColorInput value={fillColor} onValue={setFillColor} disabled={hasFillColor} />
                </BaseNode.Input>
             </SocketIn>
          </BaseNode.Foldout>
