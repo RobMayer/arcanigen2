@@ -30,9 +30,13 @@ import SequencerNodeHelper from "./collections/sequenceNode";
 import ColorRGBNodeHelper from "./values/colorRGBNode";
 import ColorHSVNodeHelper from "./values/colorHSVNode";
 import ColorHSLNodeHelper from "./values/colorHSLNode";
-import ColorHWBNodeHelper from "./values/colorHWBNode";
+import ColorHWKNodeHelper from "./values/colorHWKNode";
 import AngleValueNodeHelper from "./values/angleValueNode";
 import NumberLerpNodeHelper from "./math/numberLerpNode";
+import ColorLerpNodeHelper from "./math/colorLerpNode";
+import ColorHCYNodeHelper from "./values/colorHCYNode";
+import ColorCMYKNodeHelper from "./values/colorCMYKNode";
+import ColorHSINodeHelper from "./values/colorHSINode";
 
 // prettier-ignore
 export const getNodeHelper = (key: NodeTypes) => {
@@ -78,9 +82,13 @@ export const getNodeHelper = (key: NodeTypes) => {
       case NodeTypes.COLOR_RGB: return ColorRGBNodeHelper;
       case NodeTypes.COLOR_HSV: return ColorHSVNodeHelper;
       case NodeTypes.COLOR_HSL: return ColorHSLNodeHelper;
-      case NodeTypes.COLOR_HWB: return ColorHWBNodeHelper;
+      case NodeTypes.COLOR_HWK: return ColorHWKNodeHelper;
+      case NodeTypes.COLOR_HCY: return ColorHCYNodeHelper;
+      case NodeTypes.COLOR_HSI: return ColorHSINodeHelper;
+      case NodeTypes.COLOR_CMYK: return ColorCMYKNodeHelper;
 
       case NodeTypes.LERP_NUMBER: return NumberLerpNodeHelper;
+      case NodeTypes.LERP_COLOR: return ColorLerpNodeHelper;
 
    }
 };

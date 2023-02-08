@@ -1,4 +1,5 @@
 import { Flavour } from "!/components";
+import { ColorFields } from "!/utility/colorconvert";
 import { IconProp } from "@fortawesome/fontawesome-svg-core";
 import { ComponentType } from "react";
 
@@ -39,13 +40,17 @@ export enum NodeTypes {
    COLOR_RGB = "colorRGB",
    COLOR_HSV = "colorHSV",
    COLOR_HSL = "colorHSL",
-   COLOR_HWB = "colorHWB",
+   COLOR_HWK = "colorHWK",
+   COLOR_HCY = "colorHCY",
+   COLOR_HSI = "colorHSI",
+   COLOR_CMYK = "colorCMYK",
 
    VALUE_LENGTH = "valueLength",
    VALUE_RANDOM = "valueRandom",
    VALUE_ANGLE = "valueAngle",
 
    LERP_NUMBER = "lerpNumber",
+   LERP_COLOR = "lerpColor",
 }
 
 export enum SocketTypes {
@@ -223,3 +228,26 @@ export const POSITION_MODES = {
 };
 
 export type PositionMode = keyof typeof POSITION_MODES;
+
+export const COLOR_SPACES: { [keys in keyof ColorFields]: string } = {
+   RGB: "Red, Green, Blue",
+   CMYK: "Cyan, Magenta, Yellow, Black",
+   HSL: "Hue, Saturation, Lightness",
+   HSV: "Hue, Saturation, Value",
+   HWK: "Hue, White, Black",
+   HSI: "Hue, Saturation, Intensity",
+   HCY: "Hue, Chroma, Luminance",
+};
+
+export type ColorSpace = keyof ColorFields;
+
+export const ANGLE_LERP_MODES = {
+   closestCW: "Closest (favors CW)",
+   closestCCW: "Closest (favors CCW)",
+   farthestCW: "Farthest (favors CW)",
+   farthestCCW: "Farthest (favors CCW)",
+   clockwise: "Clockwise",
+   counter: "Counter-Clockwise",
+};
+
+export type AngleLerpMode = keyof typeof ANGLE_LERP_MODES;

@@ -1,3 +1,5 @@
+import { AngleLerpMode } from "!/pages/arcanigen/definitions/types";
+import ColorConvert, { ColorFields } from "./colorconvert";
 import { Length, Color } from "./types/units";
 
 export const deg2rad = (deg: number) => deg * (Math.PI / 180);
@@ -28,6 +30,25 @@ export const lengthToPx = (length: Length): number => {
          return (length.value * 96) / 25.4;
       case "cm":
          return (length.value * 96) / 2.54;
+   }
+};
+
+export const angleLerp = (t: number, a: number, b: number, mode: AngleLerpMode) => {
+   const cw = mod(lerp(t, a, b + (a > b ? 1 : 0)), 1);
+   const ccw = mod(lerp(t, a + (a < b ? 1 : 0), b), 1);
+   switch (mode) {
+      case "closestCW":
+         return Math.abs(b - a) >= 0.5 ? ccw : cw;
+      case "closestCCW":
+         return Math.abs(b - a) > 0.5 ? ccw : cw;
+      case "farthestCCW":
+         return Math.abs(b - a) >= 0.5 ? cw : ccw;
+      case "farthestCW":
+         return Math.abs(b - a) > 0.5 ? cw : ccw;
+      case "clockwise":
+         return cw;
+      case "counter":
+         return ccw;
    }
 };
 
@@ -127,6 +148,33 @@ export const clamp = (n: number, a: number, b: number) => {
    return Math.max(a, Math.min(b, n));
 };
 
+export const colorLerp = <T extends keyof ColorFields>(
+   step: number,
+   from: Color,
+   to: Color,
+   colorSpace: T = "RGB" as T,
+   hueMode: AngleLerpMode = "closestCW"
+) => {
+   const a = ColorConvert[`color2${colorSpace}`](from) as ColorFields[T];
+   const b = ColorConvert[`color2${colorSpace}`](to) as ColorFields[T];
+
+   const channels = ColorConvert.CHANNELS[colorSpace] as (keyof ColorFields[T])[];
+
+   const color = channels.reduce((acc, channel: keyof ColorFields[T]) => {
+      if (channel === "h") {
+         const v = angleLerp(step, (a[channel] as number) / 360, (b[channel] as number) / 360, hueMode);
+         acc[channel] = v * 360;
+         return acc;
+      } else {
+         const v = lerp(step, a[channel] as number, b[channel] as number);
+         acc[channel] = v;
+         return acc;
+      }
+   }, {} as { [key in keyof ColorFields[T]]: number });
+
+   return (ColorConvert[`${colorSpace}2color`] as (c: typeof color) => Color)(color);
+};
+
 const MathHelper = {
    deg2rad,
    mod,
@@ -142,6 +190,8 @@ const MathHelper = {
    shortestQuadrent,
    distance,
    clamp,
+   angleLerp,
+   colorLerp,
    WHITE,
    BLACK,
 };

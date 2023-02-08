@@ -1,130 +1,401 @@
-import MathHelper from "./mathhelper";
 import { Color } from "./types/units";
 
-const h2rgb = function hue2rgb(p: number, q: number, t: number) {
-   if (t < 0) t += 1;
-   if (t > 1) t -= 1;
-   if (t < 1 / 6) return p + (q - p) * 6 * t;
-   if (t < 1 / 2) return q;
-   if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-   return p;
+const SRGB = {
+   r: 0.2126,
+   g: 0.7152,
+   b: 0.0722,
 };
 
-// hue, chroma, greyness
-export const rgb2Color = (r: number, g: number, b: number, a: number): Color => {
-   return { r: r / 255, g: g / 255, b: b / 255, a: a / 100 };
+const CHANNELS = {
+   RGB: ["r", "g", "b", "a"],
+   CMYK: ["c", "m", "y", "k", "a"],
+   HSL: ["h", "s", "l", "a"],
+   HSV: ["h", "s", "v", "a"],
+   HWK: ["h", "w", "k", "a"],
+   HSI: ["h", "s", "i", "a"],
+   HCY: ["h", "c", "y", "a"],
 };
 
-//hue, saturation, lightness
-export const hsl2Color = (h: number, s: number, l: number, a: number): Color => {
-   h /= 360;
-   s /= 100;
-   l /= 100;
-   a /= 100;
+// prettier-ignore
+export type ColorFields = {
+   RGB:  { r: number; g: number; b: number; a: number };
+   CMYK: { c: number; m: number; y: number; k: number; a: number };
+   HSV:  { h: number; s: number; v: number; a: number };
+   HSL:  { h: number; s: number; l: number; a: number };
+   HWK:  { h: number; w: number; k: number; a: number };
+   HSI:  { h: number; s: number; i: number; a: number };
+   HCY:  { h: number; c: number; y: number; a: number };
+};
 
-   if (s === 0) {
-      return { r: l, g: l, b: l, a };
+export const mod = (a: number, n: number) => {
+   return ((a % n) + n) % n;
+};
+
+export const wrap = (value: number, min: number, max: number) => {
+   const end = Math.max(min, max);
+   const start = Math.min(min, max);
+   const range = end - start;
+   return mod(value - start, range) + start;
+};
+
+const getHue = (r: number, g: number, b: number) => {
+   const min = Math.min(r, g, b);
+   const max = Math.max(r, g, b);
+   if (max !== min) {
+      if (max === r) {
+         return wrap((g - b) / (max - min), 0, 6) / 6.0;
+      }
+      if (max === g) {
+         return wrap((b - r) / (max - min) + 2, 0, 6) / 6.0;
+      }
+      if (max === b) {
+         return wrap((r - g) / (max - min) + 4, 0, 6) / 6.0;
+      }
    }
-   const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-   const p = 2 * l - q;
+   return 0;
+};
 
+export const RGB2color = ({ r, g, b, a }: ColorFields["RGB"]): Color => {
+   r /= 255;
+   g /= 255;
+   b /= 255;
+   a /= 100;
+   return { r, g, b, a };
+};
+
+export const color2RGB = (color: Color): ColorFields["RGB"] => {
+   if (!color) {
+      return { r: 0, g: 0, b: 0, a: 0 };
+   }
+   const { r, g, b, a } = color;
    return {
-      r: h2rgb(p, q, h + 1 / 3),
-      g: h2rgb(p, q, h),
-      b: h2rgb(p, q, h - 1 / 3),
-      a,
+      r: (r * 255) & 255,
+      g: (g * 255) & 255,
+      b: (b * 255) & 255,
+      a: a * 100,
    };
 };
 
-export const hsv2Color = (h: number, s: number, v: number, a: number): Color => {
-   h /= 360;
-   s /= 100;
-   v /= 100;
-   a /= 100;
-   const hi = Math.floor(h * 6);
-
-   const f = h - Math.floor(h);
-   const p = v * (1 - s);
-   const q = v * (1 - s * f);
-   const t = v * (1 - s * (1 - f));
-
-   switch (hi) {
-      case 0:
-         return { r: v, g: t, b: p, a };
-      case 1:
-         return { r: q, g: v, b: p, a };
-      case 2:
-         return { r: p, g: v, b: t, a };
-      case 3:
-         return { r: p, g: q, b: v, a };
-      case 4:
-         return { r: t, g: p, b: v, a };
-      case 5:
-         return { r: v, g: p, b: q, a };
-   }
-};
-
-//cyan, magenta, yellow, key
-export const cmyk2Color = (c: number, m: number, y: number, k: number, a: number): Color => {
+export const CMYK2color = ({ c, m, y, k, a }: ColorFields["CMYK"]): Color => {
    c /= 100;
    m /= 100;
    y /= 100;
    k /= 100;
    a /= 100;
-
    return {
-      r: 1 - Math.min(1, c * (1 - k) + k),
-      g: 1 - Math.min(1, m * (1 - k) + k),
-      b: 1 - Math.min(1, y * (1 - k) + k),
+      r: (1 - c) * (1 - k),
+      g: (1 - m) * (1 - k),
+      b: (1 - y) * (1 - k),
       a,
    };
 };
 
-//cyan, magenta, yellow
-export const cmy2Color = (c: number, m: number, y: number, a: number): Color => {
+export const color2CMYK = (color: Color): ColorFields["CMYK"] => {
+   if (!color) {
+      return { c: 0, m: 0, y: 0, k: 0, a: 0 };
+   }
+   const { r, g, b, a } = color;
+   const max = Math.max(r, g, b);
+   return {
+      c: max === 0 ? 0 : ((max - r) / max) * 100,
+      m: max === 0 ? 0 : ((max - g) / max) * 100,
+      y: max === 0 ? 0 : ((max - b) / max) * 100,
+      k: (1 - max) * 100,
+      a: a * 100,
+   };
+};
+
+export const color2HSL = (color: Color): ColorFields["HSL"] => {
+   if (!color) {
+      return { h: 0, s: 0, l: 0, a: 0 };
+   }
+   const { r, g, b, a } = color;
+
+   const min = Math.min(r, g, b);
+   const max = Math.max(r, g, b);
+   const h = getHue(r, g, b);
+   const s = max === min ? 0 : (max - min) / (1 - Math.abs(min + max - 1));
+   const l = (max + min) / 2;
+
+   return { h: h * 360, s: s * 100, l: l * 100, a: a * 100 };
+};
+
+export const HSL2color = ({ h, s, l, a }: ColorFields["HSL"]): Color => {
+   h /= 360;
+   s /= 100;
+   l /= 100;
+   a /= 100;
+
+   const tC = (1 - Math.abs(2 * l - 1)) * s;
+   const tX = tC / 2 + l;
+   const tY = tC * (1 - Math.abs(((h * 6) % 2) - 1)) + (l - tC / 2);
+   const tZ = l - tC / 2;
+   let res = { r: 0, g: 0, b: 0 };
+
+   // prettier-ignore
+   switch (Math.floor(h * 6) % 6) {
+      case 0: res = { r: tX, g: tY, b: tZ }; break;
+      case 1: res = { r: tY, g: tX, b: tZ }; break;
+      case 2: res = { r: tZ, g: tX, b: tY }; break;
+      case 3: res = { r: tZ, g: tY, b: tX }; break;
+      case 4: res = { r: tY, g: tZ, b: tX }; break;
+      case 5: res = { r: tX, g: tZ, b: tY }; break;
+   }
+   return {
+      ...res,
+      a,
+   };
+};
+
+export const color2HSV = (color: Color): ColorFields["HSV"] => {
+   if (!color) {
+      return { h: 0, s: 0, v: 0, a: 0 };
+   }
+   const { r, g, b, a } = color;
+
+   const min = Math.min(r, g, b);
+   const max = Math.max(r, g, b);
+   const h = getHue(r, g, b);
+   const s = max === 0 ? 0 : (max - min) / max;
+   const v = max;
+   return { h: h * 360, s: s * 100, v: v * 100, a: a * 100 };
+};
+
+export const HSV2color = ({ h, s, v, a }: ColorFields["HSV"]): Color => {
+   h /= 360;
+   s /= 100;
+   v /= 100;
+   a /= 100;
+
+   const tC = v * s;
+   const tX = tC * (1 - Math.abs(((h * 6) % 2) - 1));
+
+   let res = { r: 0, b: 0, g: 0 };
+
+   // prettier-ignore
+   switch (Math.floor(h * 6) % 6) {
+      case 0: res = { r : tC, g : tX, b :  0}; break;
+      case 1: res = { r : tX, g : tC, b :  0}; break;
+      case 2: res = { r :  0, g : tC, b : tX}; break;
+      case 3: res = { r :  0, g : tX, b : tC}; break;
+      case 4: res = { r : tX, g :  0, b : tC}; break;
+      case 5: res = { r : tC, g :  0, b : tX}; break;
+  }
+
+   return {
+      r: res.r + (v - tC),
+      g: res.g + (v - tC),
+      b: res.b + (v - tC),
+      a,
+   };
+};
+
+export const color2HWK = (color: Color): ColorFields["HWK"] => {
+   if (!color) {
+      return { h: 0, w: 0, k: 0, a: 0 };
+   }
+   const { r, g, b, a } = color;
+   const h = getHue(r, g, b);
+   const w = Math.min(r, g, b);
+   const k = 1 - Math.max(r, g, b);
+
+   return { h: h * 360, w: w * 100, k: k * 100, a: a * 100 };
+};
+
+export const HWK2color = ({ h, w, k, a }: ColorFields["HWK"]): Color => {
+   h /= 360;
+   w /= 100;
+   k /= 100;
+   a /= 100;
+
+   const tZ = w + k;
+   if (k === 1) {
+      return { r: 0, g: 0, b: 0, a };
+   }
+   const tS = 1 - (tZ > 1 ? w / tZ : w) / (1 - (tZ > 1 ? k / tZ : k));
+   const tV = 1 - (tZ > 1 ? k / tZ : k);
+   const tC = tV * tS;
+   const tX = tC * (1 - Math.abs(((h * 6) % 2) - 1));
+   let res = { r: 0, b: 0, g: 0 };
+
+   // prettier-ignore
+   switch (Math.floor(h * 6) % 6) {
+      case 0: res = { r : tC, g : tX, b :  0 }; break;
+      case 1: res = { r : tX, g : tC, b :  0 }; break;
+      case 2: res = { r :  0, g : tC, b : tX }; break;
+      case 3: res = { r :  0, g : tX, b : tC }; break;
+      case 4: res = { r : tX, g :  0, b : tC }; break;
+      case 5: res = { r : tC, g :  0, b : tX }; break;
+  }
+   return {
+      r: res.r + (tV - tC),
+      g: res.g + (tV - tC),
+      b: res.b + (tV - tC),
+      a,
+   };
+};
+
+export const color2HSI = (color: Color): ColorFields["HSI"] => {
+   if (!color) {
+      return { h: 0, s: 0, i: 0, a: 0 };
+   }
+   const { r, g, b, a } = color;
+   const h = getHue(r, g, b);
+   const i = (r + g + b) / 3.0;
+   const min = Math.min(r, g, b);
+   const s = i === 0 ? 0 : 1 - min / i;
+
+   return { h: h * 360, s: s * 100, i: i * 100, a: a * 100 };
+};
+
+export const HSI2color = ({ h, s, i, a }: ColorFields["HSI"]): Color => {
+   h /= 360;
+   s /= 100;
+   i /= 100;
+   a /= 100;
+
+   const tZ = 1 - Math.abs(((h * 6) % 2) - 1);
+   const tC = (3 * i * s) / (1 + tZ);
+   const tX = tC * tZ;
+   let res = { r: 0, b: 0, g: 0 };
+
+   // prettier-ignore
+   switch (Math.floor(h * 6) % 6) {
+      case 0: res = { r : tC, g : tX, b :  0 }; break;
+      case 1: res = { r : tX, g : tC, b :  0 }; break;
+      case 2: res = { r :  0, g : tC, b : tX }; break;
+      case 3: res = { r :  0, g : tX, b : tC }; break;
+      case 4: res = { r : tX, g :  0, b : tC }; break;
+      case 5: res = { r : tC, g :  0, b : tX }; break;
+  }
+   return {
+      r: Math.max(0, Math.min(1, res.r + i * (1 - s))),
+      g: Math.max(0, Math.min(1, res.g + i * (1 - s))),
+      b: Math.max(0, Math.min(1, res.b + i * (1 - s))),
+      a,
+   };
+};
+
+export const color2HCY = (color: Color): ColorFields["HCY"] => {
+   if (!color) {
+      return { h: 0, c: 0, y: 0, a: 0 };
+   }
+   const { r, g, b, a } = color;
+   const h = getHue(r, g, b);
+   const c = Math.max(r, g, b) - Math.min(r, g, b);
+   const y = r * SRGB.r + g * SRGB.g + b * SRGB.b;
+   return { h: h * 360, c: c * 100, y: y * 100, a: a * 100 };
+};
+
+export const HCY2color = ({ h, c, y, a }: ColorFields["HCY"]): Color => {
+   h /= 360;
    c /= 100;
-   m /= 100;
    y /= 100;
    a /= 100;
 
+   const tX = c * (1 - Math.abs(((h * 6) % 2) - 1));
+
+   let res = { r: 0, b: 0, g: 0 };
+
+   // prettier-ignore
+   switch (Math.floor(h * 6) % 6) {
+      case 0: res = { r :  c, g : tX, b :  0 }; break;
+      case 1: res = { r : tX, g :  c, b :  0 }; break;
+      case 2: res = { r :  0, g :  c, b : tX }; break;
+      case 3: res = { r :  0, g : tX, b :  c }; break;
+      case 4: res = { r : tX, g :  0, b :  c }; break;
+      case 5: res = { r :  c, g :  0, b : tX }; break;
+  }
+   const tM = y - (SRGB.r * res.r + SRGB.g * res.g + SRGB.b * res.b);
    return {
-      r: 1 - c,
-      g: 1 - m,
-      b: 1 - y,
+      r: Math.max(0, Math.min(1, res.r + tM)),
+      g: Math.max(0, Math.min(1, res.g + tM)),
+      b: Math.max(0, Math.min(1, res.b + tM)),
       a,
    };
 };
 
-// hue, whiteness, blackness
-export const hwb2Color = (h: number, w: number, b: number, a: number): Color => {
-   h /= 360;
-   w /= 100;
-   b /= 100;
-   a /= 100;
-
-   const rt = w + b;
-   if (rt > 1) {
-      w /= rt;
-      b /= rt;
+export const colorComponents = (color: Color) => {
+   if (!color) {
+      return {
+         red: 0,
+         green: 0,
+         blue: 0,
+         cyan: 0,
+         magenta: 0,
+         yellow: 0,
+         hue: 0,
+         white: 0,
+         black: 0,
+         saturationV: 0,
+         saturationI: 0,
+         saturationL: 0,
+         lightness: 0,
+         value: 0,
+         intensity: 0,
+         chroma: 0,
+         luminance: 0,
+         alpha: 0,
+      };
    }
+   const min = Math.min(color.r, color.g, color.b);
+   const max = Math.max(color.r, color.g, color.b);
 
-   const hi = Math.floor(h * 6);
-   const v = 1 - b;
-   const f = (6 * h - hi) % 1 === 0 ? 6 * h - hi : 1 - (6 * h - hi);
-   const n = w + f * (v - w);
+   const hue = getHue(color.r, color.g, color.b);
+   const white = min;
+   const black = 1 - max;
+   const intensity = (color.r + color.g + color.b) / 3.0;
+   const saturationV = max === min ? 0 : (max - min) / max;
+   const saturationI = intensity === 0 ? 0 : 1 - min / intensity;
+   const saturationL = max === min ? 0 : (max - min) / (1 - Math.abs(min + max - 1));
+   const lightness = (max + min) / 2;
+   const value = max;
+   const chroma = max - min;
+   const luminance = color.r * SRGB.r + color.g * SRGB.g + color.b * SRGB.b;
 
-   switch (hi) {
-      case 0:
-         return { r: v, g: n, b: w, a };
-      case 1:
-         return { r: n, g: v, b: w, a };
-      case 2:
-         return { r: w, g: v, b: n, a };
-      case 3:
-         return { r: w, g: n, b: v, a };
-      case 4:
-         return { r: n, g: w, b: v, a };
-      case 5:
-         return { r: v, g: w, b: n, a };
-   }
+   const cyan = max === 0 ? 0 : (max - color.r) / max;
+   const magenta = max === 0 ? 0 : (max - color.g) / max;
+   const yellow = max === 0 ? 0 : (max - color.b) / max;
+
+   return {
+      red: (color.r * 255) & 255,
+      green: (color.g * 255) & 255,
+      blue: (color.b * 255) & 255,
+      cyan: cyan * 100,
+      magenta: magenta * 100,
+      yellow: yellow * 100,
+      hue: hue * 360,
+      white: white * 100,
+      black: black * 100,
+      saturationV: saturationV * 100,
+      saturationI: saturationI * 100,
+      saturationL: saturationL * 100,
+      lightness: lightness * 100,
+      value: value * 100,
+      intensity: intensity * 100,
+      chroma: chroma * 100,
+      luminance: luminance * 100,
+      alpha: color.a * 100,
+   };
 };
+
+const ColorConvert = {
+   CHANNELS,
+   colorComponents,
+   RGB2color,
+   color2RGB,
+   CMYK2color,
+   color2CMYK,
+   HSL2color,
+   color2HSL,
+   HSV2color,
+   color2HSV,
+   HWK2color,
+   color2HWK,
+   HSI2color,
+   color2HSI,
+   HCY2color,
+   color2HCY,
+};
+
+export default ColorConvert;

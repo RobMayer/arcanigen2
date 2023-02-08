@@ -4,20 +4,20 @@ import { ControlRendererProps, Globals, IArcaneGraph, INodeDefinition, INodeHelp
 
 import { faPalette as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 import { faPalette as buttonIcon } from "@fortawesome/pro-light-svg-icons";
-import { HSL2color } from "!/utility/colorconvert";
+import { HSI2color } from "!/utility/colorconvert";
 import { Color } from "!/utility/types/units";
 import BaseNode from "../../nodeView/node";
 import { SocketIn, SocketOut } from "../../nodeView/socket";
 import SliderInput from "!/components/inputs/SliderInput";
-import MathHelper from "!/utility/mathhelper";
 import styled from "styled-components";
+import MathHelper from "!/utility/mathhelper";
 import AngleInput from "!/components/inputs/AngleInput";
 
-interface IColorHSLNode extends INodeDefinition {
+interface IColorHSINode extends INodeDefinition {
    inputs: {
       hIn: number;
       sIn: number;
-      lIn: number;
+      iIn: number;
       aIn: number;
    };
    outputs: {
@@ -26,62 +26,62 @@ interface IColorHSLNode extends INodeDefinition {
    values: {
       h: number;
       s: number;
-      l: number;
+      i: number;
       a: number;
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<IColorHSLNode>();
+const nodeHelper = ArcaneGraph.nodeHooks<IColorHSINode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [h, setH] = nodeHelper.useValueState(nodeId, "h");
    const [s, setS] = nodeHelper.useValueState(nodeId, "s");
-   const [l, setL] = nodeHelper.useValueState(nodeId, "l");
+   const [i, setI] = nodeHelper.useValueState(nodeId, "i");
    const [a, setA] = nodeHelper.useValueState(nodeId, "a");
 
    const hasHIn = nodeHelper.useHasLink(nodeId, "hIn");
    const hasSIn = nodeHelper.useHasLink(nodeId, "sIn");
-   const hasLIn = nodeHelper.useHasLink(nodeId, "lIn");
+   const hasIIn = nodeHelper.useHasLink(nodeId, "iIn");
    const hasAIn = nodeHelper.useHasLink(nodeId, "aIn");
 
    const actualH = nodeHelper.useCoalesce(nodeId, "hIn", "h", globals);
    const actualS = nodeHelper.useCoalesce(nodeId, "sIn", "s", globals);
-   const actualL = nodeHelper.useCoalesce(nodeId, "lIn", "l", globals);
+   const actualI = nodeHelper.useCoalesce(nodeId, "iIn", "i", globals);
    const actualA = nodeHelper.useCoalesce(nodeId, "aIn", "a", globals);
 
    const res = useMemo(() => {
       return MathHelper.colorToHex(
-         HSL2color({
+         HSI2color({
             h: MathHelper.mod(actualH, 360),
             s: MathHelper.clamp(actualS, 0, 100),
-            l: MathHelper.clamp(actualL, 0, 100),
+            i: MathHelper.clamp(actualI, 0, 100),
             a: MathHelper.clamp(actualA, 0, 100),
          })
       );
-   }, [actualH, actualS, actualL, actualA]);
+   }, [actualH, actualS, actualI, actualA]);
 
    return (
-      <BaseNode<IColorHSLNode> nodeId={nodeId} helper={ColorHSLNodeHelper}>
-         <SocketOut<IColorHSLNode> nodeId={nodeId} socketId={"value"} type={SocketTypes.COLOR}>
+      <BaseNode<IColorHSINode> nodeId={nodeId} helper={ColorHSINodeHelper}>
+         <SocketOut<IColorHSINode> nodeId={nodeId} socketId={"value"} type={SocketTypes.COLOR}>
             <Swatch value={res} />
          </SocketOut>
          <hr />
-         <SocketIn<IColorHSLNode> nodeId={nodeId} socketId={"hIn"} type={SocketTypes.ANGLE}>
+         <SocketIn<IColorHSINode> nodeId={nodeId} socketId={"hIn"} type={SocketTypes.ANGLE}>
             <BaseNode.Input label={"Hue"}>
                <AngleInput value={h} onValidValue={setH} disabled={hasHIn} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IColorHSLNode> nodeId={nodeId} socketId={"sIn"} type={SocketTypes.FLOAT}>
+         <SocketIn<IColorHSINode> nodeId={nodeId} socketId={"sIn"} type={SocketTypes.FLOAT}>
             <BaseNode.Input label={"Saturation"}>
                <SliderInput min={0} max={100} value={s} onValidValue={setS} disabled={hasSIn} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IColorHSLNode> nodeId={nodeId} socketId={"lIn"} type={SocketTypes.FLOAT}>
-            <BaseNode.Input label={"Lightness"}>
-               <SliderInput min={0} max={100} value={l} onValidValue={setL} disabled={hasLIn} />
+         <SocketIn<IColorHSINode> nodeId={nodeId} socketId={"iIn"} type={SocketTypes.FLOAT}>
+            <BaseNode.Input label={"Intensity"}>
+               <SliderInput min={0} max={100} value={i} onValidValue={setI} disabled={hasIIn} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IColorHSLNode> nodeId={nodeId} socketId={"aIn"} type={SocketTypes.FLOAT}>
+         <SocketIn<IColorHSINode> nodeId={nodeId} socketId={"aIn"} type={SocketTypes.FLOAT}>
             <BaseNode.Input label={"Alpha"}>
                <SliderInput min={0} max={100} value={a} onValidValue={setA} disabled={hasAIn} />
             </BaseNode.Input>
@@ -90,33 +90,33 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    );
 });
 
-const nodeMethods = ArcaneGraph.nodeMethods<IColorHSLNode>();
+const nodeMethods = ArcaneGraph.nodeMethods<IColorHSINode>();
 
-const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof IColorHSLNode["outputs"], globals: Globals) => {
+const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof IColorHSINode["outputs"], globals: Globals) => {
    const h = MathHelper.mod(nodeMethods.coalesce(graph, nodeId, "hIn", "h", globals), 360);
    const s = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "sIn", "s", globals)));
-   const l = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "lIn", "l", globals)));
+   const i = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "iIn", "i", globals)));
    const a = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "aIn", "a", globals)));
-   return HSL2color({ h, s, l, a });
+   return HSI2color({ h, s, i, a });
 };
 
-const ColorHSLNodeHelper: INodeHelper<IColorHSLNode> = {
-   name: "Color (hsl)",
+const ColorHSINodeHelper: INodeHelper<IColorHSINode> = {
+   name: "Color (hsi)",
    buttonIcon,
    nodeIcon,
    flavour: "accent",
-   type: NodeTypes.COLOR_HSL,
+   type: NodeTypes.COLOR_HSV,
    getOutput,
    initialize: () => ({
       h: 0,
       s: 100,
-      l: 100,
+      i: 100,
       a: 100,
    }),
    controls: Controls,
 };
 
-export default ColorHSLNodeHelper;
+export default ColorHSINodeHelper;
 
 const Swatch = styled(({ value, ...props }: { value: string } & HTMLAttributes<HTMLDivElement>) => {
    const style = useMemo(() => {

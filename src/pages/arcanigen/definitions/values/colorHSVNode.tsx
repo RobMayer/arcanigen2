@@ -4,7 +4,7 @@ import { ControlRendererProps, Globals, IArcaneGraph, INodeDefinition, INodeHelp
 
 import { faPalette as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 import { faPalette as buttonIcon } from "@fortawesome/pro-light-svg-icons";
-import { hsv2Color } from "!/utility/colorconvert";
+import { HSV2color } from "!/utility/colorconvert";
 import { Color } from "!/utility/types/units";
 import BaseNode from "../../nodeView/node";
 import { SocketIn, SocketOut } from "../../nodeView/socket";
@@ -51,7 +51,12 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
 
    const res = useMemo(() => {
       return MathHelper.colorToHex(
-         hsv2Color(MathHelper.mod(actualH, 360), MathHelper.clamp(actualS, 0, 100), MathHelper.clamp(actualV, 0, 100), MathHelper.clamp(actualA, 0, 100))
+         HSV2color({
+            h: MathHelper.mod(actualH, 360),
+            s: MathHelper.clamp(actualS, 0, 100),
+            v: MathHelper.clamp(actualV, 0, 100),
+            a: MathHelper.clamp(actualA, 0, 100),
+         })
       );
    }, [actualH, actualS, actualV, actualA]);
 
@@ -92,7 +97,7 @@ const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof IColorHSVN
    const s = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "sIn", "s", globals)));
    const v = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "vIn", "v", globals)));
    const a = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "aIn", "a", globals)));
-   return hsv2Color(h, s, v, a);
+   return HSV2color({ h, s, v, a });
 };
 
 const ColorHSVNodeHelper: INodeHelper<IColorHSVNode> = {

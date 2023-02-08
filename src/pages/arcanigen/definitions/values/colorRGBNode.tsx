@@ -4,7 +4,7 @@ import { ControlRendererProps, Globals, IArcaneGraph, INodeDefinition, INodeHelp
 
 import { faPalette as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 import { faPalette as buttonIcon } from "@fortawesome/pro-light-svg-icons";
-import { rgb2Color } from "!/utility/colorconvert";
+import { RGB2color } from "!/utility/colorconvert";
 import { Color } from "!/utility/types/units";
 import BaseNode from "../../nodeView/node";
 import { SocketIn, SocketOut } from "../../nodeView/socket";
@@ -50,7 +50,12 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
 
    const res = useMemo(() => {
       return MathHelper.colorToHex(
-         rgb2Color(MathHelper.clamp(actualR, 0, 255), MathHelper.clamp(actualG, 0, 255), MathHelper.clamp(actualB, 0, 255), MathHelper.clamp(actualA, 0, 100))
+         RGB2color({
+            r: MathHelper.clamp(actualR, 0, 255),
+            g: MathHelper.clamp(actualG, 0, 255),
+            b: MathHelper.clamp(actualB, 0, 255),
+            a: MathHelper.clamp(actualA, 0, 100),
+         })
       );
    }, [actualR, actualG, actualB, actualA]);
 
@@ -91,7 +96,7 @@ const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof IColorRGBN
    const g = Math.max(0, Math.min(255, nodeMethods.coalesce(graph, nodeId, "gIn", "g", globals)));
    const b = Math.max(0, Math.min(255, nodeMethods.coalesce(graph, nodeId, "bIn", "b", globals)));
    const a = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "aIn", "a", globals)));
-   return rgb2Color(r, g, b, a);
+   return RGB2color({ r, g, b, a });
 };
 
 const ColorRGBNodeHelper: INodeHelper<IColorRGBNode> = {
