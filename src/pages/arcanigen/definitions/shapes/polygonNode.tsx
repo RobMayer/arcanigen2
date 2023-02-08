@@ -2,6 +2,7 @@ import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
 import {
    ControlRendererProps,
+   Curve,
    Globals,
    IArcaneGraph,
    INodeDefinition,
@@ -35,6 +36,8 @@ interface IPolygonNode extends INodeDefinition {
    inputs: {
       pointCount: number;
       radius: Length;
+      thetaCurve: Curve;
+
       strokeWidth: Length;
       strokeColor: Color;
       fillColor: Color;
@@ -104,6 +107,9 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          <BaseNode.Input label={"Scribe Mode"}>
             <Dropdown value={scribeMode} onValue={setScribeMode} options={SCRIBE_MODES} />
          </BaseNode.Input>
+         <SocketIn<IPolygonNode> nodeId={nodeId} socketId={"thetaCurve"} type={SocketTypes.CURVE}>
+            θ Distribution
+         </SocketIn>
          <hr />
          <BaseNode.Foldout label={"Appearance"} inputs={"strokeWidth strokeColor fillColor"} nodeId={nodeId} outputs={""}>
             <SocketIn<IPolygonNode> nodeId={nodeId} socketId={"strokeWidth"} type={SocketTypes.LENGTH}>
@@ -157,17 +163,21 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
    const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
    const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
    const rotation = nodeHelper.useCoalesce(nodeId, "rotation", "rotation", globals);
+   const thetaCurve = nodeHelper.useInput(nodeId, "thetaCurve", globals);
 
    const points = useMemo(() => {
       const tR = getTrueRadius(MathHelper.lengthToPx(radius), scribeMode, pointCount);
       return lodash
          .range(pointCount)
          .map((i) => {
-            const coeff = MathHelper.lerp(MathHelper.delerp(i, 0, pointCount), 0, 360);
+            const coeff = MathHelper.lerp(MathHelper.delerp(i, 0, pointCount), 0, 360, {
+               curveFn: thetaCurve?.curveFn ?? "linear",
+               easing: thetaCurve?.easing ?? "in",
+            });
             return `${tR * Math.cos(MathHelper.deg2rad(coeff - 90))},${tR * Math.sin(MathHelper.deg2rad(coeff - 90))}`;
          })
          .join(" ");
-   }, [pointCount, radius, scribeMode]);
+   }, [pointCount, radius, scribeMode, thetaCurve?.curveFn, thetaCurve?.easing]);
 
    return (
       <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation}deg)` }}>

@@ -73,7 +73,7 @@ const PencilEffectNodeHelper: INodeHelper<IPencilEffectNode> = {
    name: "Pencil",
    buttonIcon,
    nodeIcon,
-   flavour: "info",
+   flavour: "danger",
    type: NodeTypes.EFFECT_PENCIL,
    getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IPencilEffectNode["outputs"]) => Renderer,
    initialize: () => ({

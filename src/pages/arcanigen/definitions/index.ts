@@ -5,7 +5,7 @@ import VertexArrayNodeHelper from "./collections/vertexArrayNode";
 import BrushEffectNodeHelper from "./effects/brushEffectNode";
 import PencilEffectNodeHelper from "./effects/pencilEffectNode";
 import PenEffectNodeHelper from "./effects/penEffectNode";
-import ToLengthNodeHelper from "./math/convertToLength";
+import ConvertNodeHelper from "./math/convertNode";
 import MathAbsNodeHelper from "./math/mathAbsNode";
 import MathAddNodeHelper from "./math/mathAddNode";
 import MathDivNodeHelper from "./math/mathDivNode";
@@ -37,6 +37,8 @@ import ColorLerpNodeHelper from "./math/colorLerpNode";
 import ColorHCYNodeHelper from "./values/colorHCYNode";
 import ColorCMYKNodeHelper from "./values/colorCMYKNode";
 import ColorHSINodeHelper from "./values/colorHSINode";
+import CurveNodeHelper from "./values/curveNode";
+import SpiralNodeHelper from "./shapes/spiralNode";
 
 // prettier-ignore
 export const getNodeHelper = (key: NodeTypes) => {
@@ -57,6 +59,7 @@ export const getNodeHelper = (key: NodeTypes) => {
       case NodeTypes.SHAPE_STAR: return StarNodeHelper;
       case NodeTypes.SHAPE_BURST: return BurstNodeHelper;
       case NodeTypes.SHAPE_ARC: return ArcNodeHelper;
+      case NodeTypes.SHAPE_SPIRAL: return SpiralNodeHelper;
 
       case NodeTypes.SHAPE_FLOODFILL: return FloodFillNodeHelper;
       case NodeTypes.SHAPE_GLYPH: return GlyphNodeHelper;
@@ -64,7 +67,8 @@ export const getNodeHelper = (key: NodeTypes) => {
       case NodeTypes.VALUE_LENGTH: return LengthValueNodeHelper;
       case NodeTypes.VALUE_RANDOM: return RandomValueNodeHelper;
       case NodeTypes.VALUE_ANGLE: return AngleValueNodeHelper;
-      case NodeTypes.COLOR_HEX: return HexColorNodeHelper;
+
+      case NodeTypes.VALUE_COLOR: return HexColorNodeHelper;
 
       case NodeTypes.MATH_ADD: return MathAddNodeHelper;
       case NodeTypes.MATH_SUB: return MathSubNodeHelper;
@@ -77,7 +81,7 @@ export const getNodeHelper = (key: NodeTypes) => {
       case NodeTypes.EFFECT_PENCIL: return PencilEffectNodeHelper;
       case NodeTypes.EFFECT_PEN: return PenEffectNodeHelper;
 
-      case NodeTypes.CONVERT_LENGTH: return ToLengthNodeHelper;
+      case NodeTypes.CONVERT_VALUE: return ConvertNodeHelper;
 
       case NodeTypes.COLOR_RGB: return ColorRGBNodeHelper;
       case NodeTypes.COLOR_HSV: return ColorHSVNodeHelper;
@@ -89,6 +93,7 @@ export const getNodeHelper = (key: NodeTypes) => {
 
       case NodeTypes.LERP_NUMBER: return NumberLerpNodeHelper;
       case NodeTypes.LERP_COLOR: return ColorLerpNodeHelper;
+      case NodeTypes.VALUE_CURVE: return CurveNodeHelper;
 
    }
 };

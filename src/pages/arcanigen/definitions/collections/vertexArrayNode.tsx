@@ -2,6 +2,7 @@ import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
 import {
    ControlRendererProps,
+   Curve,
    Globals,
    IArcaneGraph,
    INodeDefinition,
@@ -34,6 +35,7 @@ interface IVertexArrayNode extends INodeDefinition {
       input: NodeRenderer;
       radius: Length;
       pointCount: number;
+      thetaCurve: Curve;
 
       positionX: Length;
       positionY: Length;
@@ -94,6 +96,9 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          <BaseNode.Input label={"Scribe Mode"}>
             <Dropdown value={scribeMode} onValue={setScribeMode} options={SCRIBE_MODES} />
          </BaseNode.Input>
+         <SocketIn<IVertexArrayNode> nodeId={nodeId} socketId={"thetaCurve"} type={SocketTypes.CURVE}>
+            θ Distribution
+         </SocketIn>
          <Checkbox checked={isRotating} onToggle={setIsRotating}>
             Rotate Iterations
          </Checkbox>
@@ -121,11 +126,12 @@ const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
    const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
    const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
    const rotation = nodeHelper.useCoalesce(nodeId, "rotation", "rotation", globals);
+   const thetaCurve = nodeHelper.useInput(nodeId, "thetaCurve", globals);
 
    const children = useMemo(() => {
       return lodash.range(pointCount).map((n, i) => {
          const coeff = MathHelper.delerp(n, 0, pointCount);
-         const rot = MathHelper.lerp(coeff, 0, 360) - 180;
+         const rot = MathHelper.lerp(coeff, 0, 360, { curveFn: thetaCurve?.curveFn ?? "linear", easing: thetaCurve?.easing ?? "in" }) - 180;
 
          return (
             <g key={n} style={{ transform: `rotate(${rot}deg) translate(0px, ${tR}px) rotate(${isRotating ? 180 : -rot}deg)` }}>
@@ -133,7 +139,7 @@ const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
             </g>
          );
       });
-   }, [output, childNodeId, pointCount, tR, isRotating, nodeId, depth, globals]);
+   }, [output, childNodeId, pointCount, tR, isRotating, nodeId, depth, globals, thetaCurve?.curveFn, thetaCurve?.easing]);
 
    return (
       <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation}deg)` }}>

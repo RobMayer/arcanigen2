@@ -1,6 +1,6 @@
 import { memo } from "react";
 import ArcaneGraph from "../graph";
-import { ControlRendererProps, Globals, IArcaneGraph, INodeDefinition, INodeHelper, NodeTypes, Sequence, SocketTypes } from "../types";
+import { ControlRendererProps, Curve, Globals, IArcaneGraph, INodeDefinition, INodeHelper, NodeTypes, Sequence, SocketTypes } from "../types";
 import MathHelper from "!/utility/mathhelper";
 
 import { faExclamationCircle, faGaugeMed as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
@@ -19,6 +19,7 @@ interface INumberLerpNode extends INodeDefinition {
       end: number;
       interval: number;
       sequence: Sequence;
+      distribution: Curve;
    };
    outputs: {
       value: number;
@@ -72,6 +73,9 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             </BaseNode.Input>
          </SocketIn>
          <hr />
+         <SocketIn<INumberLerpNode> socketId={"distribution"} nodeId={nodeId} type={SocketTypes.CURVE}>
+            Value Distribution
+         </SocketIn>
          <SocketIn<INumberLerpNode> socketId={"start"} nodeId={nodeId} type={SocketTypes.NUMBER}>
             <BaseNode.Input label={"Start"}>
                <NumberInput value={start} onValidValue={setStart} disabled={hasSequence} max={end} />
@@ -101,11 +105,12 @@ const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof INumberLer
    const to = nodeMethods.coalesce(graph, nodeId, "to", "to", globals);
    const start = nodeMethods.coalesce(graph, nodeId, "start", "start", globals);
    const end = nodeMethods.coalesce(graph, nodeId, "end", "end", globals);
+   const distribution = nodeMethods.getInput(graph, nodeId, "distribution", globals);
 
    if (sequence) {
       const iter = globals.sequenceData[sequence.senderId] ?? sequence.min;
       const t = MathHelper.delerp(iter, sequence.min, sequence.max);
-      return MathHelper.lerp(t, from, to);
+      return MathHelper.lerp(t, from, to, distribution);
    }
 
    const t = MathHelper.delerp(interval, start, end);

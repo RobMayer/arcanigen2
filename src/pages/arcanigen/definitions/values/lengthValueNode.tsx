@@ -15,12 +15,7 @@ interface ILengthValueNode extends INodeDefinition {
    outputs: {
       value: Length;
       unitless: number;
-      absolute: number;
-      pxOut: Length;
-      ptOut: Length;
-      mmOut: Length;
-      cmOut: Length;
-      inOut: Length;
+      numeric: number;
    };
    values: {
       value: Length;
@@ -39,27 +34,12 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                <LengthInput value={value} onValidValue={setValue} />
             </BaseNode.Input>
          </SocketOut>
-         <BaseNode.Foldout nodeId={nodeId} inputs={""} outputs={"unitless pxOut ptOut mmOut inOut cmOut"} label={"Additional Outputs"}>
-            <SocketOut<ILengthValueNode> nodeId={nodeId} socketId={"absolute"} type={SocketTypes.NUMBER}>
-               Absolute Value
+         <BaseNode.Foldout nodeId={nodeId} inputs={""} outputs={"unitless numeric"} label={"Additional Outputs"}>
+            <SocketOut<ILengthValueNode> nodeId={nodeId} socketId={"numeric"} type={SocketTypes.FLOAT}>
+               Numeric Value
             </SocketOut>
-            <SocketOut<ILengthValueNode> nodeId={nodeId} socketId={"unitless"} type={SocketTypes.NUMBER}>
+            <SocketOut<ILengthValueNode> nodeId={nodeId} socketId={"unitless"} type={SocketTypes.FLOAT}>
                Unitless Value
-            </SocketOut>
-            <SocketOut<ILengthValueNode> nodeId={nodeId} socketId={"pxOut"} type={SocketTypes.LENGTH}>
-               as px
-            </SocketOut>
-            <SocketOut<ILengthValueNode> nodeId={nodeId} socketId={"ptOut"} type={SocketTypes.LENGTH}>
-               as pt
-            </SocketOut>
-            <SocketOut<ILengthValueNode> nodeId={nodeId} socketId={"mmOut"} type={SocketTypes.LENGTH}>
-               as mm
-            </SocketOut>
-            <SocketOut<ILengthValueNode> nodeId={nodeId} socketId={"cmOut"} type={SocketTypes.LENGTH}>
-               as cm
-            </SocketOut>
-            <SocketOut<ILengthValueNode> nodeId={nodeId} socketId={"inOut"} type={SocketTypes.LENGTH}>
-               as in
             </SocketOut>
          </BaseNode.Foldout>
       </BaseNode>
@@ -75,18 +55,8 @@ const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof ILengthVal
          return v;
       case "unitless":
          return v.value;
-      case "absolute":
+      case "numeric":
          return MathHelper.lengthToPx(v);
-      case "pxOut":
-         return MathHelper.convertLength(v, "px");
-      case "ptOut":
-         return MathHelper.convertLength(v, "pt");
-      case "mmOut":
-         return MathHelper.convertLength(v, "mm");
-      case "cmOut":
-         return MathHelper.convertLength(v, "cm");
-      case "inOut":
-         return MathHelper.convertLength(v, "in");
    }
 };
 
@@ -94,7 +64,7 @@ const LengthValueNodeHelper: INodeHelper<ILengthValueNode> = {
    name: "Length",
    buttonIcon,
    nodeIcon,
-   flavour: "accent",
+   flavour: "help",
    type: NodeTypes.VALUE_LENGTH,
    getOutput,
    initialize: () => ({

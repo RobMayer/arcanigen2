@@ -138,8 +138,8 @@ const HexColorNodeHelper: INodeHelper<IHexColorNode> = {
    name: "Color",
    buttonIcon,
    nodeIcon,
-   flavour: "accent",
-   type: NodeTypes.COLOR_HEX,
+   flavour: "help",
+   type: NodeTypes.VALUE_COLOR,
    getOutput,
    initialize: () => ({
       value: { r: 0, g: 0, b: 0, a: 1 },

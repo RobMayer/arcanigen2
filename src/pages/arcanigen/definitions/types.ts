@@ -13,6 +13,7 @@ export enum NodeTypes {
    SHAPE_STAR = "shapeStar",
    SHAPE_BURST = "shapeBurst",
    SHAPE_ARC = "shapeArc",
+   SHAPE_SPIRAL = "shapeSpiral",
    SHAPE_FLOODFILL = "shapeFloodFill",
    SHAPE_GLYPH = "shapeGlyph",
 
@@ -22,6 +23,14 @@ export enum NodeTypes {
 
    ARRAY_VERTEX = "arrayVertex",
    ARRAY_SPIRAL = "arraySpiral",
+
+   VALUE_COLOR = "valueColor",
+   VALUE_LENGTH = "valueLength",
+   VALUE_ANGLE = "valueAngle",
+   CONVERT_VALUE = "convertValue",
+   LERP_NUMBER = "lerpNumber",
+   LERP_COLOR = "lerpColor",
+   VALUE_CURVE = "valueCurve",
 
    EFFECT_BRUSH = "effectBrush",
    EFFECT_PENCIL = "effectPencil",
@@ -33,10 +42,8 @@ export enum NodeTypes {
    MATH_DIV = "mathDiv",
    MATH_MOD = "mathMod",
    MATH_ABS = "mathAbs",
+   VALUE_RANDOM = "valueRandom",
 
-   CONVERT_LENGTH = "convertToLength",
-
-   COLOR_HEX = "colorHex",
    COLOR_RGB = "colorRGB",
    COLOR_HSV = "colorHSV",
    COLOR_HSL = "colorHSL",
@@ -44,13 +51,6 @@ export enum NodeTypes {
    COLOR_HCY = "colorHCY",
    COLOR_HSI = "colorHSI",
    COLOR_CMYK = "colorCMYK",
-
-   VALUE_LENGTH = "valueLength",
-   VALUE_RANDOM = "valueRandom",
-   VALUE_ANGLE = "valueAngle",
-
-   LERP_NUMBER = "lerpNumber",
-   LERP_COLOR = "lerpColor",
 }
 
 export enum SocketTypes {
@@ -63,10 +63,10 @@ export enum SocketTypes {
    LENGTH = 32,
    COLOR = 64,
    SEQUENCE = 128,
-   POSITION = 256,
+   CURVE = 256,
 
    ANY = 1 | 2 | 4 | 8 | 16 | 32 | 64 | 128 | 256,
-   NUMBER = 2 | 4 | 8 | 16,
+   NUMBER = 2 | 4 | 8,
 }
 
 export enum LinkTypes {
@@ -131,6 +131,11 @@ export type Position = {
    y: number;
    a: number;
    r: number;
+};
+
+export type Curve = {
+   curveFn: CurveFunction;
+   easing: EasingMode;
 };
 
 export type OutSocketsOf<T extends INodeDefinition> = keyof T["outputs"];
@@ -251,3 +256,38 @@ export const ANGLE_LERP_MODES = {
 };
 
 export type AngleLerpMode = keyof typeof ANGLE_LERP_MODES;
+
+export const CURVE_FUNCTIONS = {
+   linear: "Linear",
+   semiquadratic: "Semi-Quadratic ( n^1.5 )",
+   quadratic: "Quadratic ( n^2 )",
+   cubic: "Cubic ( n^3 )",
+   exponential: "Exponential ( 2^n )",
+   sinusoidal: "Sinusoidal ( sin(t) )",
+   rootic: "Rootic ( sqrt(t) )",
+   circular: "Circular ( 1-sqrt(1-t^2) )",
+};
+
+export type CurveFunction = keyof typeof CURVE_FUNCTIONS;
+
+export const EASING_MODES = {
+   in: "In",
+   out: "Out",
+   inout: "In/Out",
+   outin: "Out/In",
+};
+
+export type EasingMode = keyof typeof EASING_MODES;
+
+export const ROUNDING_MODES = {
+   nearestUp: "Nearest (1/2 Up)",
+   nearestDown: "Nearest (1/2 Down)",
+   ceiling: "Ceiling",
+   floor: "Floor",
+   nearestTowards: "Nearest (1/2 Towards 0)",
+   nearestAway: "Nearest (1/2 Away from 0)",
+   towards: "Towards Zero",
+   away: "Away from Zero",
+};
+
+export type RoundingMode = keyof typeof ROUNDING_MODES;

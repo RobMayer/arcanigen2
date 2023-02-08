@@ -2,6 +2,7 @@ import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
 import {
    ControlRendererProps,
+   Curve,
    Globals,
    IArcaneGraph,
    INodeDefinition,
@@ -43,6 +44,8 @@ interface ISpiralArrayNode extends INodeDefinition {
       thetaStart: number;
       thetaEnd: number;
       thetaSteps: number;
+      thetaCurve: Curve;
+      radialCurve: Curve;
 
       positionX: Length;
       positionY: Length;
@@ -143,6 +146,9 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                <LengthInput value={spread} onValidValue={setSpread} disabled={hasSpread || radialMode === "inout"} />
             </BaseNode.Input>
          </SocketIn>
+         <SocketIn<ISpiralArrayNode> nodeId={nodeId} socketId={"radialCurve"} type={SocketTypes.CURVE}>
+            Radial Distribution
+         </SocketIn>
          <hr />
          <BaseNode.Input label={"Theta Mode"}>
             <ToggleList value={thetaMode} onValue={setThetaMode} options={THETA_MODES} />
@@ -165,6 +171,9 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          <Checkbox checked={thetaInclusive} onToggle={setThetaInclusive} disabled={thetaMode === "incremental"}>
             Inclusive End θ
          </Checkbox>
+         <SocketIn<ISpiralArrayNode> nodeId={nodeId} socketId={"thetaCurve"} type={SocketTypes.CURVE}>
+            θ Distribution
+         </SocketIn>
          <Checkbox checked={isRotating} onToggle={setIsRotating}>
             Rotate Iterations
          </Checkbox>
@@ -203,16 +212,22 @@ const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
    const thetaSteps = nodeHelper.useCoalesce(nodeId, "thetaSteps", "thetaSteps", globals);
    const thetaInclusive = nodeHelper.useValue(nodeId, "thetaInclusive");
 
+   const thetaCurve = nodeHelper.useInput(nodeId, "thetaCurve", globals);
+   const radialCurve = nodeHelper.useInput(nodeId, "radialCurve", globals);
+
    const rI = radialMode === "inout" ? MathHelper.lengthToPx(innerRadius) : MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(spread) / 2;
    const rO = radialMode === "inout" ? MathHelper.lengthToPx(outerRadius) : MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(spread) / 2;
 
    const children = useMemo(() => {
       return lodash.range(pointCount).map((n, i) => {
          const coeff = MathHelper.delerp(n, 0, thetaInclusive ? pointCount - 1 : pointCount);
-         const rot = thetaMode === "startstop" ? MathHelper.lerp(coeff, 1 * thetaStart, 1 * thetaEnd) : thetaSteps * n;
+         const rot =
+            thetaMode === "startstop"
+               ? MathHelper.lerp(coeff, 1 * thetaStart, 1 * thetaEnd, { curveFn: thetaCurve?.curveFn ?? "linear", easing: thetaCurve?.easing ?? "in" })
+               : thetaSteps * n;
 
          // const rot = MathHelper.lerp(coeff, 0, 360) - 180;
-         const rad = MathHelper.lerp(coeff, rI, rO);
+         const rad = MathHelper.lerp(coeff, rI, rO, { curveFn: radialCurve?.curveFn ?? "linear", easing: radialCurve?.easing ?? "in" });
 
          return (
             <g key={n} style={{ transform: `rotate(${rot + 180}deg) translate(0px, ${rad}px) rotate(${isRotating ? 180 : -rot - 180}deg)` }}>
@@ -220,7 +235,26 @@ const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
             </g>
          );
       });
-   }, [pointCount, thetaMode, thetaStart, thetaEnd, thetaSteps, rI, rO, isRotating, output, childNodeId, thetaInclusive, nodeId, depth, globals]);
+   }, [
+      pointCount,
+      thetaMode,
+      thetaStart,
+      thetaEnd,
+      thetaSteps,
+      rI,
+      rO,
+      isRotating,
+      output,
+      childNodeId,
+      thetaInclusive,
+      nodeId,
+      depth,
+      globals,
+      radialCurve?.curveFn,
+      radialCurve?.easing,
+      thetaCurve?.curveFn,
+      thetaCurve?.easing,
+   ]);
 
    return (
       <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation}deg)` }}>

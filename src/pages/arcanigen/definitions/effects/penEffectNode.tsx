@@ -108,7 +108,7 @@ const PenEffectNodeHelper: INodeHelper<IPenEffectNode> = {
    name: "Pen Stroke",
    buttonIcon,
    nodeIcon,
-   flavour: "info",
+   flavour: "danger",
    type: NodeTypes.EFFECT_PEN,
    getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IPenEffectNode["outputs"]) => Renderer,
    initialize: () => ({

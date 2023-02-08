@@ -2,6 +2,7 @@ import { memo, useEffect, useMemo } from "react";
 import ArcaneGraph from "../graph";
 import {
    ControlRendererProps,
+   Curve,
    Globals,
    IArcaneGraph,
    INodeDefinition,
@@ -36,6 +37,7 @@ interface IPolygramNode extends INodeDefinition {
       pointCount: number;
       skipCount: number;
       radius: Length;
+      thetaCurve: Curve;
       strokeWidth: Length;
       strokeColor: Color;
       fillColor: Color;
@@ -135,6 +137,9 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          <BaseNode.Input label={"Scribe Mode"}>
             <Dropdown value={scribeMode} onValue={setScribeMode} options={SCRIBE_MODES} />
          </BaseNode.Input>
+         <SocketIn<IPolygramNode> nodeId={nodeId} socketId={"thetaCurve"} type={SocketTypes.CURVE}>
+            θ Distribution
+         </SocketIn>
 
          <hr />
          <BaseNode.Foldout label={"Appearance"} inputs={"strokeWidth strokeColor fillColor"} nodeId={nodeId} outputs={""}>
@@ -193,10 +198,15 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
    const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
    const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
    const rotation = nodeHelper.useCoalesce(nodeId, "rotation", "rotation", globals);
+   const thetaCurve = nodeHelper.useInput(nodeId, "thetaCurve", globals);
 
    const points = useMemo(() => {
       const tR = getTrueRadius(MathHelper.lengthToPx(radius), scribeMode, pointCount);
-      const angles = lodash.range(0, pointCount).map((i) => MathHelper.lerp(MathHelper.delerp(i, 0, pointCount), 0, 360));
+      const angles = lodash
+         .range(0, pointCount)
+         .map((i) =>
+            MathHelper.lerp(MathHelper.delerp(i, 0, pointCount), 0, 360, { curveFn: thetaCurve?.curveFn ?? "linear", easing: thetaCurve?.easing ?? "in" })
+         );
 
       return lodash
          .range(0, pointCount)
@@ -205,7 +215,7 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
             return `${tR * Math.cos(MathHelper.deg2rad(i - 90))},${tR * Math.sin(MathHelper.deg2rad(i - 90))}`;
          })
          .join(" ");
-   }, [radius, scribeMode, pointCount, skipCount]);
+   }, [radius, scribeMode, pointCount, skipCount, thetaCurve?.curveFn, thetaCurve?.easing]);
 
    return (
       <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation}deg)` }}>

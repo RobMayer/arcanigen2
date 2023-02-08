@@ -1,7 +1,8 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
 import {
    ControlRendererProps,
+   Curve,
    INodeDefinition,
    INodeHelper,
    NodeRenderer,
@@ -44,6 +45,7 @@ interface IBurstNode extends INodeDefinition {
       thetaStart: number;
       thetaEnd: number;
       thetaSteps: number;
+      thetaCurve: Curve;
 
       positionX: Length;
       positionY: Length;
@@ -170,6 +172,9 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          <Checkbox checked={thetaInclusive} onToggle={setThetaInclusive} disabled={thetaMode === "incremental"}>
             Inclusive End θ
          </Checkbox>
+         <SocketIn<IBurstNode> nodeId={nodeId} socketId={"thetaCurve"} type={SocketTypes.CURVE}>
+            θ Distribution
+         </SocketIn>
          <hr />
          <BaseNode.Foldout label={"Appearance"} nodeId={nodeId} inputs={"strokeWidth strokeColor fillColor"} outputs={""}>
             <SocketIn<IBurstNode> nodeId={nodeId} socketId={"strokeWidth"} type={SocketTypes.LENGTH}>
@@ -215,20 +220,28 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
    const strokeWidth = nodeHelper.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
    const strokeColor = nodeHelper.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
    const strokeCap = nodeHelper.useValue(nodeId, "strokeCap");
+   const thetaCurve = nodeHelper.useInput(nodeId, "thetaCurve", globals);
 
    const rI = radialMode === "inout" ? MathHelper.lengthToPx(innerRadius) : MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(spread) / 2;
    const rO = radialMode === "inout" ? MathHelper.lengthToPx(outerRadius) : MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(spread) / 2;
 
+   const points = useMemo(() => {
+      return lodash.range(spurCount).map((n) => {
+         const coeff = MathHelper.delerp(n, 0, thetaInclusive ? spurCount - 1 : spurCount);
+         const angle =
+            thetaMode === "startstop"
+               ? MathHelper.lerp(coeff, 1 * thetaStart, 1 * thetaEnd, { curveFn: thetaCurve?.curveFn ?? "linear", easing: thetaCurve?.easing ?? "in" })
+               : thetaSteps * n;
+         const c = Math.cos(MathHelper.deg2rad(angle - 90));
+         const s = Math.sin(MathHelper.deg2rad(angle - 90));
+         return <line key={n} x1={rI * c} y1={rI * s} x2={rO * c} y2={rO * s} />;
+      });
+   }, [rI, rO, spurCount, thetaCurve?.curveFn, thetaCurve?.easing, thetaEnd, thetaInclusive, thetaMode, thetaStart, thetaSteps]);
+
    return (
       <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation}deg)` }}>
          <g stroke={MathHelper.colorToHex(strokeColor, "#000f")} strokeWidth={Math.max(0, MathHelper.lengthToPx(strokeWidth))} strokeLinecap={strokeCap}>
-            {lodash.range(spurCount).map((n) => {
-               const coeff = MathHelper.delerp(n, 0, thetaInclusive ? spurCount - 1 : spurCount);
-               const angle = thetaMode === "startstop" ? MathHelper.lerp(coeff, 1 * thetaStart, 1 * thetaEnd) : thetaSteps * n;
-               const c = Math.cos(MathHelper.deg2rad(angle - 90));
-               const s = Math.sin(MathHelper.deg2rad(angle - 90));
-               return <line key={n} x1={rI * c} y1={rI * s} x2={rO * c} y2={rO * s} />;
-            })}
+            {points}
          </g>
       </g>
    );

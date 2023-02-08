@@ -2,7 +2,6 @@ import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
 import {
    ControlRendererProps,
-   Curve,
    IArcaneGraph,
    INodeDefinition,
    INodeHelper,
@@ -13,31 +12,32 @@ import {
    RadialMode,
    RADIAL_MODES,
    SocketTypes,
-   StrokeJoinMode,
-   STROKEJOIN_MODES,
+   StrokeCapMode,
+   STROKECAP_MODES,
 } from "../types";
 import MathHelper from "!/utility/mathhelper";
 
-import { faStar as nodeIcon } from "@fortawesome/pro-regular-svg-icons";
-import { faStar as buttonIcon } from "@fortawesome/pro-light-svg-icons";
+import { Length, Color } from "!/utility/types/units";
 import HexColorInput from "!/components/inputs/colorHexInput";
 import LengthInput from "!/components/inputs/LengthInput";
-import SliderInput from "!/components/inputs/SliderInput";
 import ToggleList from "!/components/selectors/ToggleList";
-import { Length, Color } from "!/utility/types/units";
-import lodash from "lodash";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
 import { TransformPrefabs } from "../../nodeView/prefabs";
+import AngleInput from "!/components/inputs/AngleInput";
+import lodash from "lodash";
+import faSpiral from "!/components/icons/faSpiral";
+import faSpiralLight from "!/components/icons/faSpiralLight";
 
-interface IStarNode extends INodeDefinition {
+interface ISpiralNode extends INodeDefinition {
    inputs: {
-      pointCount: number;
       radius: Length;
       spread: Length;
       innerRadius: Length;
       outerRadius: Length;
-      thetaCurve: Curve;
+      thetaStart: number;
+      thetaEnd: number;
+
       strokeWidth: Length;
       strokeColor: Color;
       fillColor: Color;
@@ -57,11 +57,13 @@ interface IStarNode extends INodeDefinition {
       spread: Length;
       innerRadius: Length;
       outerRadius: Length;
-      pointCount: number;
-      strokeWidth: Length;
-      strokeJoin: StrokeJoinMode;
+      thetaStart: number;
+      thetaEnd: number;
+
       strokeColor: Color;
+      strokeWidth: Length;
       fillColor: Color;
+      strokeCap: StrokeCapMode;
 
       positionX: Length;
       positionY: Length;
@@ -72,89 +74,98 @@ interface IStarNode extends INodeDefinition {
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<IStarNode>();
+const nodeHelper = ArcaneGraph.nodeHooks<ISpiralNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [pointCount, setPointCount] = nodeHelper.useValueState(nodeId, "pointCount");
    const [radius, setRadius] = nodeHelper.useValueState(nodeId, "radius");
    const [spread, setSpread] = nodeHelper.useValueState(nodeId, "spread");
    const [radialMode, setRadialMode] = nodeHelper.useValueState(nodeId, "radialMode");
    const [innerRadius, setInnerRadius] = nodeHelper.useValueState(nodeId, "innerRadius");
    const [outerRadius, setOuterRadius] = nodeHelper.useValueState(nodeId, "outerRadius");
+
+   const [thetaStart, setThetaStart] = nodeHelper.useValueState(nodeId, "thetaStart");
+   const [thetaEnd, setThetaEnd] = nodeHelper.useValueState(nodeId, "thetaEnd");
+
    const [strokeWidth, setStrokeWidth] = nodeHelper.useValueState(nodeId, "strokeWidth");
    const [strokeColor, setStrokeColor] = nodeHelper.useValueState(nodeId, "strokeColor");
-   const [fillColor, setFillColor] = nodeHelper.useValueState(nodeId, "fillColor");
-   const [strokeJoin, setStrokeJoin] = nodeHelper.useValueState(nodeId, "strokeJoin");
+   const [strokeCap, setStrokeCap] = nodeHelper.useValueState(nodeId, "strokeCap");
 
-   const hasPointCount = nodeHelper.useHasLink(nodeId, "pointCount");
+   const [fillColor, setFillColor] = nodeHelper.useValueState(nodeId, "fillColor");
+
+   const hasThetaStart = nodeHelper.useHasLink(nodeId, "thetaStart");
+   const hasThetaEnd = nodeHelper.useHasLink(nodeId, "thetaEnd");
+
    const hasInnerRadius = nodeHelper.useHasLink(nodeId, "innerRadius");
    const hasOuterRadius = nodeHelper.useHasLink(nodeId, "outerRadius");
    const hasRadius = nodeHelper.useHasLink(nodeId, "radius");
    const hasSpread = nodeHelper.useHasLink(nodeId, "spread");
+
    const hasStrokeWidth = nodeHelper.useHasLink(nodeId, "strokeWidth");
-   const hasStrokeColor = nodeHelper.useHasLink(nodeId, "strokeColor");
    const hasFillColor = nodeHelper.useHasLink(nodeId, "fillColor");
+   const hasStrokeColor = nodeHelper.useHasLink(nodeId, "strokeColor");
 
    return (
-      <BaseNode<IStarNode> nodeId={nodeId} helper={StarNodeHelper}>
-         <SocketOut<IStarNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
+      <BaseNode<ISpiralNode> nodeId={nodeId} helper={SpiralNodeHelper}>
+         <SocketOut<ISpiralNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
          <hr />
-         <SocketIn<IStarNode> nodeId={nodeId} socketId={"pointCount"} type={SocketTypes.INTEGER}>
-            <BaseNode.Input label={"Points"}>
-               <SliderInput revertInvalid value={pointCount} onValidValue={setPointCount} min={3} max={24} step={1} disabled={hasPointCount} />
-            </BaseNode.Input>
-         </SocketIn>
          <BaseNode.Input label={"Radial Mode"}>
             <ToggleList value={radialMode} onValue={setRadialMode} options={RADIAL_MODES} />
          </BaseNode.Input>
-         <SocketIn<IStarNode> nodeId={nodeId} socketId={"innerRadius"} type={SocketTypes.LENGTH}>
+         <SocketIn<ISpiralNode> nodeId={nodeId} socketId={"innerRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Inner Radius"}>
                <LengthInput value={innerRadius} onValidValue={setInnerRadius} disabled={hasInnerRadius || radialMode === "spread"} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IStarNode> nodeId={nodeId} socketId={"outerRadius"} type={SocketTypes.LENGTH}>
+         <SocketIn<ISpiralNode> nodeId={nodeId} socketId={"outerRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Outer Radius"}>
                <LengthInput value={outerRadius} onValidValue={setOuterRadius} disabled={hasOuterRadius || radialMode === "spread"} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IStarNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
+         <SocketIn<ISpiralNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
                <LengthInput value={radius} onValidValue={setRadius} disabled={hasRadius || radialMode === "inout"} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IStarNode> nodeId={nodeId} socketId={"spread"} type={SocketTypes.LENGTH}>
+         <SocketIn<ISpiralNode> nodeId={nodeId} socketId={"spread"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Spread"}>
                <LengthInput value={spread} onValidValue={setSpread} disabled={hasSpread || radialMode === "inout"} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IStarNode> nodeId={nodeId} socketId={"thetaCurve"} type={SocketTypes.CURVE}>
-            θ Distribution
+         <hr />
+         <SocketIn<ISpiralNode> nodeId={nodeId} socketId={"thetaStart"} type={SocketTypes.ANGLE}>
+            <BaseNode.Input label={"Start θ"}>
+               <AngleInput value={thetaStart} onValidValue={setThetaStart} disabled={hasThetaStart} wrap />
+            </BaseNode.Input>
          </SocketIn>
-
+         <SocketIn<ISpiralNode> nodeId={nodeId} socketId={"thetaEnd"} type={SocketTypes.ANGLE}>
+            <BaseNode.Input label={"End θ"}>
+               <AngleInput value={thetaEnd} onValidValue={setThetaEnd} disabled={hasThetaEnd} wrap />
+            </BaseNode.Input>
+         </SocketIn>
          <hr />
          <BaseNode.Foldout label={"Appearance"} nodeId={nodeId} inputs={"strokeWidth strokeColor fillColor"} outputs={""}>
-            <SocketIn<IStarNode> nodeId={nodeId} socketId={"strokeWidth"} type={SocketTypes.LENGTH}>
+            <SocketIn<ISpiralNode> nodeId={nodeId} socketId={"strokeWidth"} type={SocketTypes.LENGTH}>
                <BaseNode.Input label={"Stroke Width"}>
                   <LengthInput value={strokeWidth} onValidValue={setStrokeWidth} disabled={hasStrokeWidth} min={0} />
                </BaseNode.Input>
             </SocketIn>
-            <BaseNode.Input label={"Stroke Join"}>
-               <ToggleList value={strokeJoin} onValue={setStrokeJoin} options={STROKEJOIN_MODES} />
+            <BaseNode.Input label={"Stroke Cap"}>
+               <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODES} />
             </BaseNode.Input>
-            <SocketIn<IStarNode> nodeId={nodeId} socketId={"strokeColor"} type={SocketTypes.COLOR}>
+            <SocketIn<ISpiralNode> nodeId={nodeId} socketId={"strokeColor"} type={SocketTypes.COLOR}>
                <BaseNode.Input label={"Stroke Color"}>
                   <HexColorInput value={strokeColor} onValue={setStrokeColor} disabled={hasStrokeColor} />
                </BaseNode.Input>
             </SocketIn>
-            <SocketIn<IStarNode> nodeId={nodeId} socketId={"fillColor"} type={SocketTypes.COLOR}>
+            <SocketIn<ISpiralNode> nodeId={nodeId} socketId={"fillColor"} type={SocketTypes.COLOR}>
                <BaseNode.Input label={"Fill Color"}>
                   <HexColorInput value={fillColor} onValue={setFillColor} disabled={hasFillColor} />
                </BaseNode.Input>
             </SocketIn>
          </BaseNode.Foldout>
-         <TransformPrefabs.Full<IStarNode> nodeId={nodeId} nodeHelper={nodeHelper} />
+         <TransformPrefabs.Full<ISpiralNode> nodeId={nodeId} nodeHelper={nodeHelper} />
       </BaseNode>
    );
 });
@@ -165,12 +176,13 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
    const spread = nodeHelper.useCoalesce(nodeId, "spread", "spread", globals);
    const innerRadius = nodeHelper.useCoalesce(nodeId, "innerRadius", "innerRadius", globals);
    const outerRadius = nodeHelper.useCoalesce(nodeId, "outerRadius", "outerRadius", globals);
-   const pointCount = Math.min(24, Math.max(3, nodeHelper.useCoalesce(nodeId, "pointCount", "pointCount", globals)));
 
+   const thetaStart = nodeHelper.useCoalesce(nodeId, "thetaStart", "thetaStart", globals);
+   const thetaEnd = nodeHelper.useCoalesce(nodeId, "thetaEnd", "thetaEnd", globals);
    const strokeWidth = nodeHelper.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
-   const strokeJoin = nodeHelper.useValue(nodeId, "strokeJoin");
    const strokeColor = nodeHelper.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
-   const fillColor = nodeHelper.useValue(nodeId, "fillColor");
+   const fillColor = nodeHelper.useCoalesce(nodeId, "fillColor", "fillColor", globals);
+   const strokeCap = nodeHelper.useValue(nodeId, "strokeCap");
 
    const positionMode = nodeHelper.useValue(nodeId, "positionMode");
    const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX", globals);
@@ -178,57 +190,62 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
    const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
    const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
    const rotation = nodeHelper.useCoalesce(nodeId, "rotation", "rotation", globals);
-   const thetaCurve = nodeHelper.useInput(nodeId, "thetaCurve", globals);
 
-   const points = useMemo(() => {
-      const rI = radialMode === "inout" ? MathHelper.lengthToPx(innerRadius) : MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(spread) / 2;
-      const rO = radialMode === "inout" ? MathHelper.lengthToPx(outerRadius) : MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(spread) / 2;
+   const rI = radialMode === "inout" ? MathHelper.lengthToPx(innerRadius) : MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(spread) / 2;
+   const rO = radialMode === "inout" ? MathHelper.lengthToPx(outerRadius) : MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(spread) / 2;
 
+   const pathD = useMemo(() => {
+      const c = 2 + Math.floor(Math.abs(thetaEnd - thetaStart) / 10);
       return lodash
-         .range(pointCount * 2)
-         .map((i) => {
-            const coeff = MathHelper.lerp(MathHelper.delerp(i, 0, pointCount * 2), 0, 360, {
-               curveFn: thetaCurve?.curveFn ?? "linear",
-               easing: thetaCurve?.easing ?? "in",
-            });
-            const rad = i % 2 === 0 ? rO : rI;
-            return `${rad * Math.cos(MathHelper.deg2rad(coeff - 90))},${rad * Math.sin(MathHelper.deg2rad(coeff - 90))}`;
+         .range(c)
+         .map((n) => {
+            const coeff = MathHelper.delerp(n, 0, c - 1);
+            const rad = MathHelper.lerp(coeff, rI, rO);
+            const ang = MathHelper.lerp(coeff, thetaStart, thetaEnd);
+
+            const x = rad * Math.cos(((ang - 90) * Math.PI) / 180);
+            const y = rad * Math.sin(((ang - 90) * Math.PI) / 180);
+
+            return [x, y];
          })
-         .join(" ");
-   }, [innerRadius, outerRadius, pointCount, radialMode, radius, spread, thetaCurve?.curveFn, thetaCurve?.easing]);
+         .reduce((acc, each, i, ary) => {
+            return i === 0 ? `M ${each[0]},${each[1]}` : `${acc} ${bezierCommand(each, i, ary)}`;
+         }, "");
+   }, [rI, rO, thetaEnd, thetaStart]);
 
    return (
       <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation}deg)` }}>
          <g
-            stroke={MathHelper.colorToHex(strokeColor, "#000f")}
-            fill={MathHelper.colorToHex(fillColor, "transparent")}
+            stroke={MathHelper.colorToHex(strokeColor)}
+            fill={MathHelper.colorToHex(fillColor)}
             strokeWidth={Math.max(0, MathHelper.lengthToPx(strokeWidth))}
-            strokeLinejoin={strokeJoin}
+            strokeLinecap={strokeCap}
          >
-            <polygon points={points} />
+            <path d={pathD} />
          </g>
       </g>
    );
 });
 
-const StarNodeHelper: INodeHelper<IStarNode> = {
-   name: "Star",
-   buttonIcon,
-   nodeIcon,
+const SpiralNodeHelper: INodeHelper<ISpiralNode> = {
+   name: "Spiral",
+   buttonIcon: faSpiralLight,
+   nodeIcon: faSpiral,
    flavour: "emphasis",
-   type: NodeTypes.SHAPE_STAR,
-   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IStarNode["outputs"]) => Renderer,
+   type: NodeTypes.SHAPE_SPIRAL,
+   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof ISpiralNode["outputs"]) => Renderer,
    initialize: () => ({
       radius: { value: 150, unit: "px" },
+      innerRadius: { value: 120, unit: "px" },
+      outerRadius: { value: 180, unit: "px" },
       spread: { value: 20, unit: "px" },
       radialMode: "inout",
-      pointCount: 5,
-      innerRadius: { value: 140, unit: "px" },
-      outerRadius: { value: 160, unit: "px" },
       strokeWidth: { value: 1, unit: "px" },
-      strokeJoin: "miter",
+      strokeCap: "butt",
       strokeColor: { r: 0, g: 0, b: 0, a: 1 },
       fillColor: null as Color,
+      thetaStart: 0,
+      thetaEnd: 90,
 
       positionX: { value: 0, unit: "px" },
       positionY: { value: 0, unit: "px" },
@@ -240,4 +257,40 @@ const StarNodeHelper: INodeHelper<IStarNode> = {
    controls: Controls,
 };
 
-export default StarNodeHelper;
+export default SpiralNodeHelper;
+
+const line = (pointA: number[], pointB: number[]) => {
+   const lengthX = pointB[0] - pointA[0];
+   const lengthY = pointB[1] - pointA[1];
+   return {
+      length: Math.sqrt(Math.pow(lengthX, 2) + Math.pow(lengthY, 2)),
+      angle: Math.atan2(lengthY, lengthX),
+   };
+};
+
+const controlPoint = (current: number[], previous: number[], next: number[], reverse: boolean = false) => {
+   // When 'current' is the first or last point of the array
+   // 'previous' or 'next' don't exist.
+   // Replace with 'current'
+   const p = previous || current;
+   const n = next || current;
+   // The smoothing ratio
+   const smoothing = 0.2;
+   // Properties of the opposed-line
+   const o = line(p, n);
+   // If is end-control-point, add PI to the angle to go backward
+   const angle = o.angle + (reverse ? Math.PI : 0);
+   const length = o.length * smoothing;
+   // The control point position is relative to the current point
+   const x = current[0] + Math.cos(angle) * length;
+   const y = current[1] + Math.sin(angle) * length;
+   return [x, y];
+};
+
+const bezierCommand = (point: number[], i: number, a: number[][]) => {
+   // start control point
+   const [cpsX, cpsY] = controlPoint(a[i - 1], a[i - 2], point);
+   // end control point
+   const [cpeX, cpeY] = controlPoint(point, a[i - 1], a[i + 1], true);
+   return `C ${cpsX},${cpsY} ${cpeX},${cpeY} ${point[0]},${point[1]}`;
+};

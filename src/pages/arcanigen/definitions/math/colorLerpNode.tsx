@@ -6,6 +6,7 @@ import {
    ColorSpace,
    COLOR_SPACES,
    ControlRendererProps,
+   Curve,
    Globals,
    IArcaneGraph,
    INodeDefinition,
@@ -35,6 +36,7 @@ interface IColorLerpNode extends INodeDefinition {
       end: number;
       interval: number;
       sequence: Sequence;
+      distribution: Curve;
    };
    outputs: {
       value: Color;
@@ -102,6 +104,9 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             <Dropdown value={hueMode} onValue={setHueMode} options={ANGLE_LERP_MODES} disabled={!HAS_HUE.includes(colorSpace)} />
          </BaseNode.Input>
          <hr />
+         <SocketIn<IColorLerpNode> socketId={"distribution"} nodeId={nodeId} type={SocketTypes.CURVE}>
+            Value Distribution
+         </SocketIn>
          <SocketIn<IColorLerpNode> socketId={"start"} nodeId={nodeId} type={SocketTypes.NUMBER}>
             <BaseNode.Input label={"Start"}>
                <NumberInput value={start} onValidValue={setStart} disabled={hasSequence} max={end} />
@@ -134,15 +139,16 @@ const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof IColorLerp
 
    const colorSpace = nodeMethods.getValue(graph, nodeId, "colorSpace");
    const hueMode = nodeMethods.getValue(graph, nodeId, "hueMode");
+   const distribution = nodeMethods.getInput(graph, nodeId, "distribution", globals);
 
    if (sequence) {
       const iter = globals.sequenceData[sequence.senderId] ?? sequence.min;
       const t = MathHelper.delerp(iter, sequence.min, sequence.max);
-      return MathHelper.colorLerp(t, from, to, colorSpace, hueMode);
+      return MathHelper.colorLerp(t, from, to, colorSpace, hueMode, distribution);
    }
 
    const t = MathHelper.delerp(interval, start, end);
-   return MathHelper.colorLerp(t, from, to, colorSpace, hueMode);
+   return MathHelper.colorLerp(t, from, to, colorSpace, hueMode, distribution);
 
    //TODO: How do I get sequence data from here?!?
 };

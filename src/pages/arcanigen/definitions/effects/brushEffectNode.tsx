@@ -116,7 +116,7 @@ const BrushEffectNodeHelper: INodeHelper<IBrushEffectNode> = {
    name: "Brush Stroke",
    buttonIcon,
    nodeIcon,
-   flavour: "info",
+   flavour: "danger",
    type: NodeTypes.EFFECT_BRUSH,
    getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IBrushEffectNode["outputs"]) => Renderer,
    initialize: () => ({

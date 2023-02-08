@@ -1,13 +1,41 @@
-import { AngleLerpMode } from "!/pages/arcanigen/definitions/types";
+import { AngleLerpMode, Curve, CurveFunction, EasingMode, RoundingMode } from "!/pages/arcanigen/definitions/types";
 import ColorConvert, { ColorFields } from "./colorconvert";
 import { Length, Color } from "./types/units";
 
 export const deg2rad = (deg: number) => deg * (Math.PI / 180);
 
-export const lerp = (t: number, a: number, b: number) => {
-   // if (!(curve in CURVES)) { curve = "linear"; }
-   // t = CURVES[curve](t);
-   return a + t * (b - a);
+const DEFAULT_CURVE: Curve = {
+   curveFn: "linear",
+   easing: "in",
+};
+
+const CURVE_HANDLERS: { [keys in CurveFunction]: (t: number) => number } = {
+   linear: (t: number) => t,
+   semiquadratic: (t: number) => Math.pow(t, 1.5),
+   quadratic: (t: number) => Math.pow(t, 2),
+   cubic: (t: number) => Math.pow(t, 3),
+   exponential: (t: number) => Math.pow(2, t) - 1,
+   sinusoidal: (t: number) => Math.sin(t * (Math.PI / 2)),
+   rootic: (t: number) => Math.sqrt(t),
+   circular: (t: number) => 1 - Math.sqrt(1 - Math.pow(t, 2)),
+};
+
+const handleCurve = (e: EasingMode, func: (t: number) => number) => {
+   switch (e) {
+      case "in":
+         return (a: number) => func(a);
+      case "out":
+         return (a: number) => 1 - func(1 - a);
+      case "inout":
+         return (a: number) => (a < 0.5 ? func(a * 2) / 2 : a > 0.5 ? 1 - func(a * -2 + 2) / 2 : 0.5);
+      case "outin":
+         return (a: number) => (a < 0.5 ? 0.5 - func(1 - a * 2) / 2 : a > 0.5 ? 0.5 + func(a * 2 - 1) / 2 : 0.5);
+   }
+};
+
+export const lerp = (t: number, a: number, b: number, { curveFn, easing }: Curve = DEFAULT_CURVE) => {
+   const nT = handleCurve(easing, CURVE_HANDLERS[curveFn])(t);
+   return a + nT * (b - a);
 };
 
 export const delerp = (d: number, start: number, end: number) => {
@@ -33,9 +61,9 @@ export const lengthToPx = (length: Length): number => {
    }
 };
 
-export const angleLerp = (t: number, a: number, b: number, mode: AngleLerpMode) => {
-   const cw = mod(lerp(t, a, b + (a > b ? 1 : 0)), 1);
-   const ccw = mod(lerp(t, a + (a < b ? 1 : 0), b), 1);
+export const angleLerp = (t: number, a: number, b: number, mode: AngleLerpMode, curve: Curve = DEFAULT_CURVE) => {
+   const cw = mod(lerp(t, a, b + (a > b ? 1 : 0), curve), 1);
+   const ccw = mod(lerp(t, a + (a < b ? 1 : 0), b, curve), 1);
    switch (mode) {
       case "closestCW":
          return Math.abs(b - a) >= 0.5 ? ccw : cw;
@@ -153,7 +181,8 @@ export const colorLerp = <T extends keyof ColorFields>(
    from: Color,
    to: Color,
    colorSpace: T = "RGB" as T,
-   hueMode: AngleLerpMode = "closestCW"
+   hueMode: AngleLerpMode = "closestCW",
+   distribution: Curve = DEFAULT_CURVE
 ) => {
    const a = ColorConvert[`color2${colorSpace}`](from) as ColorFields[T];
    const b = ColorConvert[`color2${colorSpace}`](to) as ColorFields[T];
@@ -162,17 +191,38 @@ export const colorLerp = <T extends keyof ColorFields>(
 
    const color = channels.reduce((acc, channel: keyof ColorFields[T]) => {
       if (channel === "h") {
-         const v = angleLerp(step, (a[channel] as number) / 360, (b[channel] as number) / 360, hueMode);
+         const v = angleLerp(step, (a[channel] as number) / 360, (b[channel] as number) / 360, hueMode, distribution);
          acc[channel] = v * 360;
          return acc;
       } else {
-         const v = lerp(step, a[channel] as number, b[channel] as number);
+         const v = lerp(step, a[channel] as number, b[channel] as number, distribution);
          acc[channel] = v;
          return acc;
       }
    }, {} as { [key in keyof ColorFields[T]]: number });
 
    return (ColorConvert[`${colorSpace}2color`] as (c: typeof color) => Color)(color);
+};
+
+export const round = (t: number, method: RoundingMode) => {
+   switch (method) {
+      case "nearestUp":
+         return Math.round(t);
+      case "nearestDown":
+         return mod(t, 1) === 0.5 ? Math.floor(t) : Math.round(t);
+      case "ceiling":
+         return Math.ceil(t);
+      case "floor":
+         return Math.floor(t);
+      case "nearestTowards":
+         return mod(t, 1) === 0.5 ? (t > 0 ? Math.floor(t) : Math.ceil(t)) : Math.round(t);
+      case "nearestAway":
+         return mod(t, 1) === 0.5 ? (t > 0 ? Math.ceil(t) : Math.floor(t)) : Math.round(t);
+      case "towards":
+         return t > 0 ? Math.floor(t) : Math.ceil(t);
+      case "away":
+         return t > 0 ? Math.ceil(t) : Math.floor(t);
+   }
 };
 
 const MathHelper = {
@@ -192,6 +242,7 @@ const MathHelper = {
    clamp,
    angleLerp,
    colorLerp,
+   round,
    WHITE,
    BLACK,
 };

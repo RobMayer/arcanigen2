@@ -154,7 +154,7 @@ const Orb = styled(({ nodeId, socketId, type, className, mode, ...rest }: IOrbPr
        flavour-${flavour}
     `}
          ref={ref}
-         title={`node: ${nodeId} socket: ${socketId}`}
+         title={SocketTypes[type]}
          data-trh-graph-sockethost={nodeId}
          data-trh-graph-socket={socketId}
       />
@@ -198,7 +198,10 @@ const getSocketFlavour = (type: SocketTypes): Flavour => {
    switch (type) {
       case SocketTypes.LENGTH:
       case SocketTypes.COLOR:
-         return "accent";
+      case SocketTypes.ANGLE:
+         return "help";
+      case SocketTypes.CURVE:
+         return "info";
       case SocketTypes.SEQUENCE:
          return "emphasis";
       case SocketTypes.SHAPE:
