@@ -42,6 +42,9 @@ interface IStarNode extends INodeDefinition {
       strokeColor: Color;
       fillColor: Color;
 
+      innerSmooth: number;
+      outerSmooth: number;
+
       positionX: Length;
       positionY: Length;
       positionRadius: Length;
@@ -62,6 +65,9 @@ interface IStarNode extends INodeDefinition {
       strokeJoin: StrokeJoinMode;
       strokeColor: Color;
       fillColor: Color;
+
+      innerSmooth: number;
+      outerSmooth: number;
 
       positionX: Length;
       positionY: Length;
@@ -86,6 +92,9 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [fillColor, setFillColor] = nodeHelper.useValueState(nodeId, "fillColor");
    const [strokeJoin, setStrokeJoin] = nodeHelper.useValueState(nodeId, "strokeJoin");
 
+   const [innerSmooth, setInnerSmooth] = nodeHelper.useValueState(nodeId, "innerSmooth");
+   const [outerSmooth, setOuterSmooth] = nodeHelper.useValueState(nodeId, "outerSmooth");
+
    const hasPointCount = nodeHelper.useHasLink(nodeId, "pointCount");
    const hasInnerRadius = nodeHelper.useHasLink(nodeId, "innerRadius");
    const hasOuterRadius = nodeHelper.useHasLink(nodeId, "outerRadius");
@@ -94,6 +103,9 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const hasStrokeWidth = nodeHelper.useHasLink(nodeId, "strokeWidth");
    const hasStrokeColor = nodeHelper.useHasLink(nodeId, "strokeColor");
    const hasFillColor = nodeHelper.useHasLink(nodeId, "fillColor");
+
+   const hasInnerSmooth = nodeHelper.useHasLink(nodeId, "innerSmooth");
+   const hasOuterSmooth = nodeHelper.useHasLink(nodeId, "outerSmooth");
 
    return (
       <BaseNode<IStarNode> nodeId={nodeId} helper={StarNodeHelper}>
@@ -127,6 +139,16 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          <SocketIn<IStarNode> nodeId={nodeId} socketId={"spread"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Spread"}>
                <LengthInput value={spread} onValidValue={setSpread} disabled={hasSpread || radialMode === "inout"} />
+            </BaseNode.Input>
+         </SocketIn>
+         <SocketIn<IStarNode> nodeId={nodeId} socketId={"innerSmooth"} type={SocketTypes.PERCENT}>
+            <BaseNode.Input label={"Smoothing"}>
+               <SliderInput value={innerSmooth} min={0} max={1} onValidValue={setInnerSmooth} disabled={hasInnerSmooth} />
+            </BaseNode.Input>
+         </SocketIn>
+         <SocketIn<IStarNode> nodeId={nodeId} socketId={"outerSmooth"} type={SocketTypes.PERCENT}>
+            <BaseNode.Input label={"Cusping"}>
+               <SliderInput value={outerSmooth} min={0} max={1} onValidValue={setOuterSmooth} disabled={hasOuterSmooth} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IStarNode> nodeId={nodeId} socketId={"thetaCurve"} type={SocketTypes.CURVE}>
@@ -180,22 +202,70 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
    const rotation = nodeHelper.useCoalesce(nodeId, "rotation", "rotation", globals);
    const thetaCurve = nodeHelper.useInput(nodeId, "thetaCurve", globals);
 
+   const innerSmooth = nodeHelper.useCoalesce(nodeId, "innerSmooth", "innerSmooth", globals);
+   const outerSmooth = nodeHelper.useCoalesce(nodeId, "outerSmooth", "outerSmooth", globals);
+
    const points = useMemo(() => {
       const rI = radialMode === "inout" ? MathHelper.lengthToPx(innerRadius) : MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(spread) / 2;
       const rO = radialMode === "inout" ? MathHelper.lengthToPx(outerRadius) : MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(spread) / 2;
 
+      //const th = 360 / (pointCount * 2);
+
       return lodash
-         .range(pointCount * 2)
-         .map((i) => {
-            const coeff = MathHelper.lerp(MathHelper.delerp(i, 0, pointCount * 2), 0, 360, {
+         .range(pointCount)
+         .map((n, i, ary) => {
+            const ang = MathHelper.lerp(MathHelper.delerp(i, 0, pointCount), 0, 360, {
                curveFn: thetaCurve?.curveFn ?? "linear",
                easing: thetaCurve?.easing ?? "in",
             });
-            const rad = i % 2 === 0 ? rO : rI;
-            return `${rad * Math.cos(MathHelper.deg2rad(coeff - 90))},${rad * Math.sin(MathHelper.deg2rad(coeff - 90))}`;
+
+            const nextAng = MathHelper.lerp(MathHelper.delerp(i + 1, 0, pointCount), 0, 360, {
+               curveFn: thetaCurve?.curveFn ?? "linear",
+               easing: thetaCurve?.easing ?? "in",
+            });
+
+            const th = Math.abs(nextAng - ang) / 2;
+            // const rad = i % 2 === 0 ? rO : rI;
+            // return `${rad * Math.cos(MathHelper.deg2rad(coeff - 90))},${rad * Math.sin(MathHelper.deg2rad(coeff - 90))}`;
+
+            // const ang = (360 / pointCount) * n;
+            // const nextAng = (360 / pointCount) * (n + 1);
+
+            const sTan = rO * Math.tan(MathHelper.deg2rad(th));
+            const eTan = rI * Math.tan(MathHelper.deg2rad(th));
+            const outerTanR = Math.sqrt(sTan * sTan + rO * rO);
+            const innerTanR = Math.sqrt(eTan * eTan + rI * rI);
+
+            const endX = rO * Math.cos(MathHelper.deg2rad(nextAng - 90));
+            const endY = rO * Math.sin(MathHelper.deg2rad(nextAng - 90));
+
+            const midX = rI * Math.cos(MathHelper.deg2rad((ang + nextAng) / 2 - 90));
+            const midY = rI * Math.sin(MathHelper.deg2rad((ang + nextAng) / 2 - 90));
+
+            const startX = rO * Math.cos(MathHelper.deg2rad(ang - 90));
+            const startY = rO * Math.sin(MathHelper.deg2rad(ang - 90));
+
+            // const rTO = rO * Math.tan(MathHelper.deg2rad(th));
+            // const rTI = rI * Math.cos(MathHelper.deg2rad(ang + th));
+            const startTangentX = MathHelper.lerp(outerSmooth, startX, outerTanR * Math.cos(MathHelper.deg2rad(ang + th - 90)));
+            const startTangentY = MathHelper.lerp(outerSmooth, startY, outerTanR * Math.sin(MathHelper.deg2rad(ang + th - 90)));
+
+            const midInX = MathHelper.lerp(innerSmooth, midX, innerTanR * Math.cos(MathHelper.deg2rad(ang - 90)));
+            const midInY = MathHelper.lerp(innerSmooth, midY, innerTanR * Math.sin(MathHelper.deg2rad(ang - 90)));
+            const midOutX = MathHelper.lerp(innerSmooth, midX, innerTanR * Math.cos(MathHelper.deg2rad(nextAng - 90)));
+            const midOutY = MathHelper.lerp(innerSmooth, midY, innerTanR * Math.sin(MathHelper.deg2rad(nextAng - 90)));
+
+            const endTangentX = MathHelper.lerp(outerSmooth, endX, outerTanR * Math.cos(MathHelper.deg2rad(nextAng - th - 90)));
+            const endTangentY = MathHelper.lerp(outerSmooth, endY, outerTanR * Math.sin(MathHelper.deg2rad(nextAng - th - 90)));
+
+            return `${
+               i === 0 ? `M ${startX}, ${startY}` : ""
+            } C ${startTangentX},${startTangentY} ${midInX},${midInY} ${midX},${midY} C ${midOutX},${midOutY} ${endTangentX},${endTangentY} ${endX},${endY} ${
+               i === ary.length - 1 ? "Z" : ""
+            }`;
          })
          .join(" ");
-   }, [innerRadius, outerRadius, pointCount, radialMode, radius, spread, thetaCurve?.curveFn, thetaCurve?.easing]);
+   }, [innerRadius, innerSmooth, outerRadius, outerSmooth, pointCount, radialMode, radius, spread, thetaCurve?.curveFn, thetaCurve?.easing]);
 
    return (
       <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation}deg)` }}>
@@ -205,7 +275,7 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
             strokeWidth={Math.max(0, MathHelper.lengthToPx(strokeWidth))}
             strokeLinejoin={strokeJoin}
          >
-            <polygon points={points} />
+            <path d={points} />
          </g>
       </g>
    );
@@ -229,6 +299,8 @@ const StarNodeHelper: INodeHelper<IStarNode> = {
       strokeJoin: "miter",
       strokeColor: { r: 0, g: 0, b: 0, a: 1 },
       fillColor: null as Color,
+      innerSmooth: 0,
+      outerSmooth: 0,
 
       positionX: { value: 0, unit: "px" },
       positionY: { value: 0, unit: "px" },
