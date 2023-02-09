@@ -153,7 +153,10 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
    return (
       <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)}` }}>
          <g stroke={MathHelper.colorToHTML(strokeColor)} fill={MathHelper.colorToHTML(fillColor)} strokeWidth={Math.max(0, MathHelper.lengthToPx(strokeWidth))}>
-            <path d={`M ${rO},0 A 1,1 0 0,0 ${-rO},0 A 1,1 0 0,0 ${rO},0 M ${rI},0 A 1,1 0 0,1 ${-rI},0 A 1,1 0 0,1 ${rI},0`} />
+            <path
+               d={`M ${rO},0 A 1,1 0 0,0 ${-rO},0 A 1,1 0 0,0 ${rO},0 M ${rI},0 A 1,1 0 0,1 ${-rI},0 A 1,1 0 0,1 ${rI},0`}
+               vectorEffect={"non-scaling-stroke"}
+            />
          </g>
       </g>
    );

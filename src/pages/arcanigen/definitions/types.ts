@@ -34,6 +34,8 @@ export enum NodeTypes {
    LERP_ANGLE = "lerpAngle",
    VALUE_CURVE = "valueCurve",
 
+   COL_TRANSFORM = "collectionTransform",
+
    EFFECT_BRUSH = "effectBrush",
    EFFECT_PENCIL = "effectPencil",
    EFFECT_PEN = "effectPen",

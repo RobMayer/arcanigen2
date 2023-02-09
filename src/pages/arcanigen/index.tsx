@@ -6,24 +6,23 @@ import styled from "styled-components";
 import { HTMLAttributes } from "react";
 import NodeView from "./nodeView";
 import OutputView from "./outputView";
-import ArcaneGraph, { ArcaneGraphProvider } from "./definitions/graph";
+import ArcaneGraph from "./definitions/graph";
 import ActionButton from "!/components/buttons/ActionButton";
 import Icon from "!/components/icons";
 import { faBug } from "@fortawesome/pro-solid-svg-icons";
 import { saveAs } from "file-saver";
 import { IArcaneGraph } from "./definitions/types";
+import Modal, { useModal } from "!/components/popups/Modal";
 // import OutputView from "./outputView";
 // import { StateProvider } from "./state";
 
 const ArcanigenPage = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) => {
    return (
-      <ArcaneGraphProvider>
-         <Page {...props}>
-            <ArcaneGraphMenu />
-            <NodeView />
-            <OutputView />
-         </Page>
-      </ArcaneGraphProvider>
+      <Page {...props}>
+         <ArcaneGraphMenu />
+         <NodeView />
+         <OutputView />
+      </Page>
    );
 })`
    display: grid;
@@ -68,68 +67,87 @@ const handleUpload = (element: HTMLInputElement, file: File, dispatch: (value: U
 const ArcaneGraphMenu = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) => {
    const { debug, save, load, reset } = ArcaneGraph.useGraph();
 
+   const modalControls = useModal();
+
    return (
-      <div {...props}>
-         <ActionButton
-            onClick={() => {
-               const theBlob = new Blob([JSON.stringify(save())], { type: "application/json;charset=utf-8" });
-               saveAs(theBlob, "arcanigen.trh");
-            }}
-         >
-            Save
-         </ActionButton>
-         <ActionButton onClick={NOOP}>
-            Load
-            <input
-               type="file"
-               onChange={(e) => {
-                  const thing = e.target.files?.[0];
-                  if (thing) {
-                     handleUpload(e.target, thing, load);
+      <>
+         <Modal controls={modalControls} label={"Double-checking"}>
+            Are you sure you wish to reset?
+            <ModalOptions>
+               <ActionButton
+                  onClick={() => {
+                     reset();
+                     modalControls.close();
+                  }}
+                  flavour={"danger"}
+               >
+                  Proceed
+               </ActionButton>
+               <ActionButton onClick={modalControls.close}>Nevermind</ActionButton>
+            </ModalOptions>
+         </Modal>
+         <div {...props}>
+            <ActionButton
+               onClick={() => {
+                  const theBlob = new Blob([JSON.stringify(save())], { type: "application/json;charset=utf-8" });
+                  saveAs(theBlob, "arcanigen.trh");
+               }}
+            >
+               Save
+            </ActionButton>
+            <ActionButton onClick={NOOP}>
+               Load
+               <input
+                  type="file"
+                  onChange={(e) => {
+                     const thing = e.target.files?.[0];
+                     if (thing) {
+                        handleUpload(e.target, thing, load);
+                     }
+                  }}
+                  accept=".trh"
+               />
+            </ActionButton>
+            <ActionButton
+               onClick={() => {
+                  const content = document.getElementById("EXPORT_ME")?.innerHTML;
+                  if (content) {
+                     const theBlob = new Blob([content], { type: "image/svg+xml;charset=utf-8" });
+                     saveAs(theBlob, "arcanigen.svg");
                   }
                }}
-               accept=".trh"
-            />
-         </ActionButton>
-         <ActionButton
-            onClick={() => {
-               const content = document.getElementById("EXPORT_ME")?.innerHTML;
-               if (content) {
-                  const theBlob = new Blob([content], { type: "image/svg+xml;charset=utf-8" });
-                  saveAs(theBlob, "arcanigen.svg");
-               }
-            }}
-         >
-            Export SVG
-         </ActionButton>
-         <ActionButton
-            onClick={() => {
-               const canvas = document.getElementById("EXPORT_ME");
-               if (canvas) {
-                  const cW = canvas.offsetWidth;
-                  const cH = canvas.offsetHeight;
-                  const content = canvas.innerHTML;
-                  if (content) {
-                     rasterize(content, cW, cH)
-                        .then((res: Blob) => {
-                           saveAs(res, "arcanigen.png");
-                        })
-                        .catch((e) => {
-                           console.error(e);
-                        });
+            >
+               Export SVG
+            </ActionButton>
+            <ActionButton
+               onClick={() => {
+                  const canvas = document.getElementById("EXPORT_ME");
+                  if (canvas) {
+                     const cW = canvas.offsetWidth;
+                     const cH = canvas.offsetHeight;
+                     const content = canvas.innerHTML;
+                     if (content) {
+                        rasterize(content, cW, cH)
+                           .then((res: Blob) => {
+                              saveAs(res, "arcanigen.png");
+                           })
+                           .catch((e) => {
+                              console.error(e);
+                           });
+                     }
                   }
-               }
-            }}
-         >
-            Export PNG
-         </ActionButton>
-         <ActionButton flavour={"danger"} onClick={reset}>
-            Reset
-         </ActionButton>
-         <ActionButton flavour={"info"} onClick={debug} title={"outputs the current state into the console"}>
-            <Icon icon={faBug} />
-         </ActionButton>
-      </div>
+               }}
+            >
+               Export PNG
+            </ActionButton>
+            <ActionButton flavour={"danger"} onClick={modalControls.open}>
+               Reset
+            </ActionButton>
+            {/* <ActionButton flavour={"info"} onClick={debug} title={"outputs the current state into the console"}>
+               <Icon icon={faBug} />
+            </ActionButton> */}
+         </div>
+      </>
    );
 })`
    display: flex;
@@ -159,3 +177,9 @@ const rasterize = (svgString: string, width: number, height: number) => {
       image.src = URL.createObjectURL(svg);
    });
 };
+
+const ModalOptions = styled.div`
+   display: grid;
+   grid-template-columns: 1fr 1fr;
+   border-top: 1px solid var(--effect-border-highlight);
+`;

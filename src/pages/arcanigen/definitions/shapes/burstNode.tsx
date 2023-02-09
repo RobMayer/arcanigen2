@@ -252,7 +252,7 @@ const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
                : thetaSteps * n;
          const c = Math.cos(MathHelper.deg2rad(angle - 90));
          const s = Math.sin(MathHelper.deg2rad(angle - 90));
-         return <line key={n} x1={rI * c} y1={rI * s} x2={rO * c} y2={rO * s} />;
+         return <line key={n} x1={rI * c} y1={rI * s} x2={rO * c} y2={rO * s} vectorEffect={"non-scaling-stroke"} />;
       });
    }, [rI, rO, spurCount, thetaCurve?.curveFn, thetaCurve?.easing, thetaEnd, thetaInclusive, thetaMode, thetaStart, thetaSteps]);
 

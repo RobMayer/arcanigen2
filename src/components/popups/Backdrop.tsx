@@ -132,7 +132,7 @@ const Backdrop = ({
 
    useEffect(() => {
       const listener = (e: KeyboardEvent) => {
-         if (!e.defaultPrevented && e.key === "ESCAPE") {
+         if (!e.defaultPrevented && e.key === "Escape") {
             action();
             e.preventDefault();
          }

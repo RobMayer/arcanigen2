@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import styled from "styled-components";
 import MainMenu from "./menu";
 import Pages from "./pages";
+import Globals from "./utility/globals";
 
 const App = () => {
    return (
@@ -20,7 +21,9 @@ const App = () => {
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
    <React.StrictMode>
-      <App />
+      <Globals>
+         <App />
+      </Globals>
    </React.StrictMode>
 );
 

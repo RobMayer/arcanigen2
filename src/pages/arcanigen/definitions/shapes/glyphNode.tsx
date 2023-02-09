@@ -164,6 +164,7 @@ const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
                height={Math.max(0, MathHelper.lengthToPx(radius) * 2)}
                x={MathHelper.lengthToPx(radius) * -1}
                y={MathHelper.lengthToPx(radius) * -1}
+               vectorEffect={"non-scaling-stroke"}
             />
          </g>
       </g>

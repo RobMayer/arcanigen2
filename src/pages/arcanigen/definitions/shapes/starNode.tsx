@@ -275,7 +275,7 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
             strokeWidth={Math.max(0, MathHelper.lengthToPx(strokeWidth))}
             strokeLinejoin={strokeJoin}
          >
-            <path d={points} />
+            <path d={points} vectorEffect={"non-scaling-stroke"} />
          </g>
       </g>
    );

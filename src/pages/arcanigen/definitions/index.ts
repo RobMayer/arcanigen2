@@ -44,6 +44,7 @@ import MathRndNodeHelper from "./math/mathRoundNode";
 import SplitColorNodeHelper from "./values/splitColorNode";
 import LerpAngleNodeHelper from "./math/lerpAngleNode";
 import LerpLengthNodeHelper from "./math/lerpLengthNode";
+import TransformNodeHelper from "./collections/transformNode";
 
 // prettier-ignore
 export const getNodeHelper = (key: NodeTypes) => {
@@ -53,6 +54,7 @@ export const getNodeHelper = (key: NodeTypes) => {
       case NodeTypes.COL_LAYERS: return LayersNodeHelper;
       case NodeTypes.COL_MASK: return MaskNodeHelper;
       case NodeTypes.COL_SEQUENCE: return SequencerNodeHelper;
+      case NodeTypes.COL_TRANSFORM: return TransformNodeHelper;
 
       case NodeTypes.ARRAY_VERTEX: return VertexArrayNodeHelper;
       case NodeTypes.ARRAY_SPIRAL: return SpiralArrayNodeHelper;

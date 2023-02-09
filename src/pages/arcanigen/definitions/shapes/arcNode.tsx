@@ -243,7 +243,7 @@ const Renderer = memo(({ nodeId, globals, depth }: NodeRendererProps) => {
             markerStart={MarkStart && msId ? `url('#markstart_${nodeId}_lyr-${depth ?? ""}')` : undefined}
             markerEnd={MarkEnd && meId ? `url('#markend_${nodeId}_lyr-${depth ?? ""}')` : undefined}
          >
-            <path d={pathD} />
+            <path d={pathD} vectorEffect={"non-scaling-stroke"} />
          </g>
       </g>
    );

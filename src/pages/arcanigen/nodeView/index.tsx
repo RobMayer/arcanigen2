@@ -12,7 +12,7 @@ import ArcaneGraph, { areSocketsCompatible } from "../definitions/graph";
 import { NodeMoveEvent, LinkEvent, ConnectionEvent, NodeTypes, LinkTypes, SocketTypes } from "../definitions/types";
 import ConnectionCanvas from "./connections";
 import useDroppable from "!/utility/hooks/useDroppable";
-import useStoredState from "!/utility/hooks/useStoredState";
+import useUIState from "!/utility/hooks/useUIState";
 
 type NodeGraphEvents = {
    [key: `node[${string}].move`]: NodeMoveEvent;
@@ -135,7 +135,7 @@ const NodeView = () => {
       [addNode]
    );
 
-   const [isDrawerOpen, setIsDrawerOpen] = useStoredState("uistate.nodeview.drawer", true);
+   const [isDrawerOpen, setIsDrawerOpen] = useUIState("uistate.nodeview.drawer", true);
 
    return (
       <Wrapper>

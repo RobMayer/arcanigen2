@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
+import { createContext, ReactNode, useCallback, useContext, useMemo, useRef, useSyncExternalStore } from "react";
 import { Globals, IArcaneGraph, INodeDefinition, INodeHelper, INodeInstance, LinkTypes, NodeRenderer, NodeTypes, SocketTypes } from "./types";
 import { v4 as uuid } from "uuid";
 import ObjHelper from "!/utility/objHelper";
@@ -200,22 +200,6 @@ const StoreContext = createContext<ReturnType<typeof useStoreData> | null>(null)
 
 export const ArcaneGraphProvider = ({ children }: { children: ReactNode }) => {
    const s = useStoreData();
-
-   const { load, save } = useLocalStorage("arcanigen");
-
-   useEffect(() => {
-      s.graphMethods.load(
-         load() ?? {
-            nodes: initState.nodes,
-            links: initState.links,
-            positions: initPos,
-         }
-      );
-      return () => {
-         save(s.graphMethods.save());
-      };
-   }, [s, load, save]);
-
    return <StoreContext.Provider value={s}>{children}</StoreContext.Provider>;
 };
 

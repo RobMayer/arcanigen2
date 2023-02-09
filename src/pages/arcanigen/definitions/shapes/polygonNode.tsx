@@ -187,7 +187,7 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
             strokeWidth={Math.max(0, MathHelper.lengthToPx(strokeWidth))}
             strokeLinejoin={strokeJoin}
          >
-            <polygon points={points} />
+            <polygon points={points} vectorEffect={"non-scaling-stroke"} />
          </g>
       </g>
    );
