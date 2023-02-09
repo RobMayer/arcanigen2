@@ -271,7 +271,7 @@ const OutputContent = styled.div`
    background: var(--layer-dn);
    border: 1px solid var(--effect-border-highlight);
    user-select: text;
-   overflow: hidden;
+   overflow: clip;
    text-overflow: ellipsis;
 `;
 

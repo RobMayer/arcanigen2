@@ -28,6 +28,7 @@ import AngleInput from "!/components/inputs/AngleInput";
 import lodash from "lodash";
 import faSpiral from "!/components/icons/faSpiral";
 import faSpiralLight from "!/components/icons/faSpiralLight";
+import Checkbox from "!/components/buttons/Checkbox";
 
 interface ISpiralNode extends INodeDefinition {
    inputs: {
@@ -41,6 +42,8 @@ interface ISpiralNode extends INodeDefinition {
       strokeWidth: Length;
       strokeColor: Color;
       fillColor: Color;
+      strokeMarkStart: NodeRenderer;
+      strokeMarkEnd: NodeRenderer;
 
       positionX: Length;
       positionY: Length;
@@ -64,6 +67,7 @@ interface ISpiralNode extends INodeDefinition {
       strokeWidth: Length;
       fillColor: Color;
       strokeCap: StrokeCapMode;
+      strokeMarkAlign: boolean;
 
       positionX: Length;
       positionY: Length;
@@ -91,6 +95,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [strokeCap, setStrokeCap] = nodeHelper.useValueState(nodeId, "strokeCap");
 
    const [fillColor, setFillColor] = nodeHelper.useValueState(nodeId, "fillColor");
+   const [strokeMarkAlign, setStrokeMarkAlign] = nodeHelper.useValueState(nodeId, "strokeMarkAlign");
 
    const hasThetaStart = nodeHelper.useHasLink(nodeId, "thetaStart");
    const hasThetaEnd = nodeHelper.useHasLink(nodeId, "thetaEnd");
@@ -154,6 +159,15 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             <BaseNode.Input label={"Stroke Cap"}>
                <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODES} />
             </BaseNode.Input>
+            <SocketIn<ISpiralNode> nodeId={nodeId} socketId={"strokeMarkStart"} type={SocketTypes.SHAPE}>
+               Marker Start
+            </SocketIn>
+            <SocketIn<ISpiralNode> nodeId={nodeId} socketId={"strokeMarkEnd"} type={SocketTypes.SHAPE}>
+               Marker End
+            </SocketIn>
+            <Checkbox checked={strokeMarkAlign} onToggle={setStrokeMarkAlign}>
+               Align Markers
+            </Checkbox>
             <SocketIn<ISpiralNode> nodeId={nodeId} socketId={"strokeColor"} type={SocketTypes.COLOR}>
                <BaseNode.Input label={"Stroke Color"}>
                   <HexColorInput value={strokeColor} onValue={setStrokeColor} disabled={hasStrokeColor} />
@@ -170,7 +184,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    );
 });
 
-const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
+const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
    const radialMode = nodeHelper.useValue(nodeId, "radialMode");
    const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius", globals);
    const spread = nodeHelper.useCoalesce(nodeId, "spread", "spread", globals);
@@ -183,6 +197,10 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
    const strokeColor = nodeHelper.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
    const fillColor = nodeHelper.useCoalesce(nodeId, "fillColor", "fillColor", globals);
    const strokeCap = nodeHelper.useValue(nodeId, "strokeCap");
+
+   const [MarkStart, msId] = nodeHelper.useInputNode(nodeId, "strokeMarkStart", globals);
+   const [MarkEnd, meId] = nodeHelper.useInputNode(nodeId, "strokeMarkEnd", globals);
+   const strokeMarkAlign = nodeHelper.useValue(nodeId, "strokeMarkAlign");
 
    const positionMode = nodeHelper.useValue(nodeId, "positionMode");
    const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX", globals);
@@ -215,11 +233,45 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
 
    return (
       <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation}deg)` }}>
+         {MarkStart && msId && (
+            <marker
+               id={`markstart_${nodeId}_lyr-${depth ?? ""}`}
+               markerUnits="userSpaceOnUse"
+               markerWidth={"100%"}
+               markerHeight={"100%"}
+               refX={"center"}
+               refY={"center"}
+               overflow={"visible"}
+               orient={strokeMarkAlign ? "auto-start-reverse" : undefined}
+            >
+               <g style={{ transform: strokeMarkAlign ? `rotate(-90deg)` : "" }}>
+                  <MarkStart nodeId={msId} depth={(depth ?? "") + `_${nodeId}.markStart`} globals={globals} />
+               </g>
+            </marker>
+         )}
+         {MarkEnd && meId && (
+            <marker
+               id={`markend_${nodeId}_lyr-${depth ?? ""}`}
+               markerUnits="userSpaceOnUse"
+               markerWidth={"100%"}
+               markerHeight={"100%"}
+               refX={"center"}
+               refY={"center"}
+               overflow={"visible"}
+               orient={strokeMarkAlign ? "auto-start-reverse" : undefined}
+            >
+               <g style={{ transform: strokeMarkAlign ? `rotate(-90deg)` : "" }}>
+                  <MarkEnd nodeId={meId} depth={(depth ?? "") + `_${nodeId}.markEnd`} globals={globals} />
+               </g>
+            </marker>
+         )}
          <g
             stroke={MathHelper.colorToHTML(strokeColor)}
             fill={MathHelper.colorToHTML(fillColor)}
             strokeWidth={Math.max(0, MathHelper.lengthToPx(strokeWidth))}
             strokeLinecap={strokeCap}
+            markerStart={MarkStart && msId ? `url('#markstart_${nodeId}_lyr-${depth ?? ""}')` : undefined}
+            markerEnd={MarkEnd && meId ? `url('#markend_${nodeId}_lyr-${depth ?? ""}')` : undefined}
          >
             <path d={pathD} />
          </g>
@@ -244,6 +296,7 @@ const SpiralNodeHelper: INodeHelper<ISpiralNode> = {
       strokeCap: "butt",
       strokeColor: { r: 0, g: 0, b: 0, a: 1 },
       fillColor: null as Color,
+      strokeMarkAlign: true,
       thetaStart: 0,
       thetaEnd: 90,
 

@@ -230,7 +230,7 @@ const DragCanvas = styled(
    position: relative;
    width: 100%;
    height: 100%;
-   overflow: hidden;
+   overflow: clip;
    display: grid;
    place-items: center;
    place-content: center;
@@ -251,7 +251,7 @@ const Signal = styled.div`
 
 const Pan = styled.div`
    position: absolute;
-   overflow: hidden;
+   overflow: clip;
    inset: 0;
    display: grid;
    place-items: center;

@@ -76,12 +76,12 @@ const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
                )
             ) : (
                <>
-                  <mask id={`mask__${nodeId}_lyr-${depth ?? ""}`} mask-type={mode}>
+                  <mask id={`mask_${nodeId}_lyr-${depth ?? ""}`} mask-type={mode}>
                      <rect x={"-1000%"} y={"-1000%"} width={"2000%"} height={"2000%"} fill={mode === "alpha" ? "none" : "#000f"} />
                      {Mask && mId && <Mask nodeId={mId} depth={(depth ?? "") + `_${nodeId}.mask`} globals={globals} />}
                      {invert && mode === "luminance" && <rect x={"-1000%"} y={"-1000%"} width={"2000%"} height={"2000%"} fill={"#ffff"} style={INVERT} />}
                   </mask>
-                  <g mask={`url('#mask__${nodeId}_lyr-${depth ?? ""}')`}>
+                  <g mask={`url('#mask_${nodeId}_lyr-${depth ?? ""}')`}>
                      {Content && cId && <Content nodeId={cId} depth={(depth ?? "") + `_${nodeId}.content`} globals={globals} />}
                   </g>
                </>

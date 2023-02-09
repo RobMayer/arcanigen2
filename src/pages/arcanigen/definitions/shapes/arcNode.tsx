@@ -32,11 +32,14 @@ import AngleInput from "!/components/inputs/AngleInput";
 interface IArcNode extends INodeDefinition {
    inputs: {
       radius: Length;
+      thetaStart: number;
+      thetaEnd: number;
+
       strokeWidth: Length;
       strokeColor: Color;
       fillColor: Color;
-      thetaStart: number;
-      thetaEnd: number;
+      strokeMarkStart: NodeRenderer;
+      strokeMarkEnd: NodeRenderer;
 
       positionX: Length;
       positionY: Length;
@@ -52,11 +55,13 @@ interface IArcNode extends INodeDefinition {
       thetaStart: number;
       thetaEnd: number;
       pieSlice: boolean;
+
       strokeColor: Color;
       strokeWidth: Length;
       fillColor: Color;
       strokeJoin: StrokeJoinMode;
       strokeCap: StrokeCapMode;
+      strokeMarkAlign: boolean;
 
       positionX: Length;
       positionY: Length;
@@ -81,6 +86,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [strokeJoin, setStrokeJoin] = nodeHelper.useValueState(nodeId, "strokeJoin");
 
    const [fillColor, setFillColor] = nodeHelper.useValueState(nodeId, "fillColor");
+   const [strokeMarkAlign, setStrokeMarkAlign] = nodeHelper.useValueState(nodeId, "strokeMarkAlign");
 
    const hasThetaStart = nodeHelper.useHasLink(nodeId, "thetaStart");
    const hasThetaEnd = nodeHelper.useHasLink(nodeId, "thetaEnd");
@@ -115,7 +121,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             Pie Slice
          </Checkbox>
          <hr />
-         <BaseNode.Foldout label={"Appearance"} nodeId={nodeId} inputs={"strokeWidth strokeColor fillColor"} outputs={""}>
+         <BaseNode.Foldout label={"Appearance"} nodeId={nodeId} inputs={"strokeWidth strokeColor fillColor strokeMarkStart strokeMarkEnd"} outputs={""}>
             <SocketIn<IArcNode> nodeId={nodeId} socketId={"strokeWidth"} type={SocketTypes.LENGTH}>
                <BaseNode.Input label={"Stroke Width"}>
                   <LengthInput value={strokeWidth} onValidValue={setStrokeWidth} disabled={hasStrokeWidth} min={0} />
@@ -127,6 +133,15 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             <BaseNode.Input label={"Stroke Join"}>
                <ToggleList value={strokeJoin} onValue={setStrokeJoin} options={STROKEJOIN_MODES} />
             </BaseNode.Input>
+            <SocketIn<IArcNode> nodeId={nodeId} socketId={"strokeMarkStart"} type={SocketTypes.SHAPE}>
+               Marker Start
+            </SocketIn>
+            <SocketIn<IArcNode> nodeId={nodeId} socketId={"strokeMarkEnd"} type={SocketTypes.SHAPE}>
+               Marker End
+            </SocketIn>
+            <Checkbox checked={strokeMarkAlign} onToggle={setStrokeMarkAlign}>
+               Align Markers
+            </Checkbox>
             <SocketIn<IArcNode> nodeId={nodeId} socketId={"strokeColor"} type={SocketTypes.COLOR}>
                <BaseNode.Input label={"Stroke Color"}>
                   <HexColorInput value={strokeColor} onValue={setStrokeColor} disabled={hasStrokeColor} />
@@ -143,7 +158,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    );
 });
 
-const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
+const Renderer = memo(({ nodeId, globals, depth }: NodeRendererProps) => {
    const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius", globals);
    const thetaStart = nodeHelper.useCoalesce(nodeId, "thetaStart", "thetaStart", globals);
    const thetaEnd = nodeHelper.useCoalesce(nodeId, "thetaEnd", "thetaEnd", globals);
@@ -155,12 +170,17 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
 
    const pieSlice = nodeHelper.useValue(nodeId, "pieSlice");
 
+   const [MarkStart, msId] = nodeHelper.useInputNode(nodeId, "strokeMarkStart", globals);
+   const [MarkEnd, meId] = nodeHelper.useInputNode(nodeId, "strokeMarkEnd", globals);
+
    const positionMode = nodeHelper.useValue(nodeId, "positionMode");
    const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX", globals);
    const positionY = nodeHelper.useCoalesce(nodeId, "positionY", "positionY", globals);
    const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
    const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
    const rotation = nodeHelper.useCoalesce(nodeId, "rotation", "rotation", globals);
+
+   const strokeMarkAlign = nodeHelper.useValue(nodeId, "strokeMarkAlign");
 
    const pathD = useMemo(() => {
       const rad = MathHelper.lengthToPx(radius);
@@ -181,12 +201,47 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
 
    return (
       <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation}deg)` }}>
+         {MarkStart && msId && (
+            <marker
+               id={`markstart_${nodeId}_lyr-${depth ?? ""}`}
+               markerUnits="userSpaceOnUse"
+               markerWidth={"100%"}
+               markerHeight={"100%"}
+               refX={"center"}
+               refY={"center"}
+               overflow={"visible"}
+               orient={strokeMarkAlign ? "auto-start-reverse" : undefined}
+            >
+               <g style={{ transform: strokeMarkAlign ? `rotate(-90deg)` : "" }}>
+                  <MarkStart nodeId={msId} depth={(depth ?? "") + `_${nodeId}.markStart`} globals={globals} />
+               </g>
+            </marker>
+         )}
+         {MarkEnd && meId && (
+            <marker
+               id={`markend_${nodeId}_lyr-${depth ?? ""}`}
+               markerUnits="userSpaceOnUse"
+               markerWidth={"100%"}
+               markerHeight={"100%"}
+               refX={"center"}
+               refY={"center"}
+               overflow={"visible"}
+               orient={strokeMarkAlign ? "auto-start-reverse" : undefined}
+            >
+               <g style={{ transform: strokeMarkAlign ? `rotate(-90deg)` : "" }}>
+                  <MarkEnd nodeId={meId} depth={(depth ?? "") + `_${nodeId}.markEnd`} globals={globals} />
+               </g>
+            </marker>
+         )}
+
          <g
             stroke={MathHelper.colorToHTML(strokeColor)}
             fill={MathHelper.colorToHTML(fillColor)}
             strokeWidth={Math.max(0, MathHelper.lengthToPx(strokeWidth))}
             strokeLinecap={strokeCap}
             strokeLinejoin={strokeJoin}
+            markerStart={MarkStart && msId ? `url('#markstart_${nodeId}_lyr-${depth ?? ""}')` : undefined}
+            markerEnd={MarkEnd && meId ? `url('#markend_${nodeId}_lyr-${depth ?? ""}')` : undefined}
          >
             <path d={pathD} />
          </g>
@@ -211,7 +266,7 @@ const ArcNodeHelper: INodeHelper<IArcNode> = {
       thetaStart: 0,
       thetaEnd: 90,
       pieSlice: false,
-
+      strokeMarkAlign: true,
       positionX: { value: 0, unit: "px" },
       positionY: { value: 0, unit: "px" },
       positionRadius: { value: 0, unit: "px" },

@@ -40,12 +40,15 @@ interface IBurstNode extends INodeDefinition {
       spread: Length;
       innerRadius: Length;
       outerRadius: Length;
-      strokeWidth: Length;
-      strokeColor: Color;
       thetaStart: number;
       thetaEnd: number;
       thetaSteps: number;
       thetaCurve: Curve;
+
+      strokeColor: Color;
+      strokeWidth: Length;
+      strokeMarkStart: NodeRenderer;
+      strokeMarkEnd: NodeRenderer;
 
       positionX: Length;
       positionY: Length;
@@ -68,9 +71,11 @@ interface IBurstNode extends INodeDefinition {
       innerRadius: Length;
       outerRadius: Length;
       spurCount: number;
+
       strokeWidth: Length;
       strokeCap: StrokeCapMode;
       strokeColor: Color;
+      strokeMarkAlign: boolean;
 
       positionX: Length;
       positionY: Length;
@@ -100,8 +105,8 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
 
    const [strokeWidth, setStrokeWidth] = nodeHelper.useValueState(nodeId, "strokeWidth");
    const [strokeCap, setStrokeCap] = nodeHelper.useValueState(nodeId, "strokeCap");
-
    const [strokeColor, setStrokeColor] = nodeHelper.useValueState(nodeId, "strokeColor");
+   const [strokeMarkAlign, setStrokeMarkAlign] = nodeHelper.useValueState(nodeId, "strokeMarkAlign");
 
    const hasSpurCount = nodeHelper.useHasLink(nodeId, "spurCount");
    const hasThetaStart = nodeHelper.useHasLink(nodeId, "thetaStart");
@@ -176,7 +181,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             θ Distribution
          </SocketIn>
          <hr />
-         <BaseNode.Foldout label={"Appearance"} nodeId={nodeId} inputs={"strokeWidth strokeColor fillColor"} outputs={""}>
+         <BaseNode.Foldout label={"Appearance"} nodeId={nodeId} inputs={"strokeWidth strokeColor fillColor strokeMarkStart strokeMarkEnd"} outputs={""}>
             <SocketIn<IBurstNode> nodeId={nodeId} socketId={"strokeWidth"} type={SocketTypes.LENGTH}>
                <BaseNode.Input label={"Stroke Width"}>
                   <LengthInput value={strokeWidth} onValidValue={setStrokeWidth} disabled={hasStrokeWidth} min={0} />
@@ -190,13 +195,22 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                   <HexColorInput value={strokeColor} onValue={setStrokeColor} disabled={hasStrokeColor} />
                </BaseNode.Input>
             </SocketIn>
+            <SocketIn<IBurstNode> nodeId={nodeId} socketId={"strokeMarkStart"} type={SocketTypes.SHAPE}>
+               Marker Start
+            </SocketIn>
+            <SocketIn<IBurstNode> nodeId={nodeId} socketId={"strokeMarkEnd"} type={SocketTypes.SHAPE}>
+               Marker End
+            </SocketIn>
+            <Checkbox checked={strokeMarkAlign} onToggle={setStrokeMarkAlign}>
+               Align Markers
+            </Checkbox>
          </BaseNode.Foldout>
          <TransformPrefabs.Full<IBurstNode> nodeId={nodeId} nodeHelper={nodeHelper} />
       </BaseNode>
    );
 });
 
-const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
+const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
    const spurCount = Math.max(0, nodeHelper.useCoalesce(nodeId, "spurCount", "spurCount", globals));
    const radialMode = nodeHelper.useValue(nodeId, "radialMode");
    const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius", globals);
@@ -216,11 +230,15 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
    const thetaEnd = nodeHelper.useCoalesce(nodeId, "thetaEnd", "thetaEnd", globals);
    const thetaSteps = nodeHelper.useCoalesce(nodeId, "thetaSteps", "thetaSteps", globals);
    const thetaInclusive = nodeHelper.useValue(nodeId, "thetaInclusive");
+   const thetaCurve = nodeHelper.useInput(nodeId, "thetaCurve", globals);
 
    const strokeWidth = nodeHelper.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
    const strokeColor = nodeHelper.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
    const strokeCap = nodeHelper.useValue(nodeId, "strokeCap");
-   const thetaCurve = nodeHelper.useInput(nodeId, "thetaCurve", globals);
+
+   const [MarkStart, msId] = nodeHelper.useInputNode(nodeId, "strokeMarkStart", globals);
+   const [MarkEnd, meId] = nodeHelper.useInputNode(nodeId, "strokeMarkEnd", globals);
+   const strokeMarkAlign = nodeHelper.useValue(nodeId, "strokeMarkAlign");
 
    const rI = radialMode === "inout" ? MathHelper.lengthToPx(innerRadius) : MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(spread) / 2;
    const rO = radialMode === "inout" ? MathHelper.lengthToPx(outerRadius) : MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(spread) / 2;
@@ -240,7 +258,45 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
 
    return (
       <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation}deg)` }}>
-         <g stroke={MathHelper.colorToHTML(strokeColor)} strokeWidth={Math.max(0, MathHelper.lengthToPx(strokeWidth))} strokeLinecap={strokeCap}>
+         {MarkStart && msId && (
+            <marker
+               id={`markstart_${nodeId}_lyr-${depth ?? ""}`}
+               markerUnits="userSpaceOnUse"
+               markerWidth={"100%"}
+               markerHeight={"100%"}
+               refX={"center"}
+               refY={"center"}
+               overflow={"visible"}
+               orient={strokeMarkAlign ? "auto-start-reverse" : undefined}
+            >
+               <g style={{ transform: strokeMarkAlign ? `rotate(-90deg)` : "" }}>
+                  <MarkStart nodeId={msId} depth={(depth ?? "") + `_${nodeId}.markStart`} globals={globals} />
+               </g>
+            </marker>
+         )}
+         {MarkEnd && meId && (
+            <marker
+               id={`markend_${nodeId}_lyr-${depth ?? ""}`}
+               markerUnits="userSpaceOnUse"
+               markerWidth={"100%"}
+               markerHeight={"100%"}
+               refX={"center"}
+               refY={"center"}
+               overflow={"visible"}
+               orient={strokeMarkAlign ? "auto-start-reverse" : undefined}
+            >
+               <g style={{ transform: strokeMarkAlign ? `rotate(-90deg)` : "" }}>
+                  <MarkEnd nodeId={meId} depth={(depth ?? "") + `_${nodeId}.markEnd`} globals={globals} />
+               </g>
+            </marker>
+         )}
+         <g
+            stroke={MathHelper.colorToHTML(strokeColor)}
+            strokeWidth={Math.max(0, MathHelper.lengthToPx(strokeWidth))}
+            strokeLinecap={strokeCap}
+            markerStart={msId ? `url('#markstart_${nodeId}_lyr-${depth ?? ""}')` : undefined}
+            markerEnd={meId ? `url('#markend_${nodeId}_lyr-${depth ?? ""}')` : undefined}
+         >
             {points}
          </g>
       </g>
@@ -262,13 +318,15 @@ const BurstNodeHelper: INodeHelper<IBurstNode> = {
       spurCount: 5,
       innerRadius: { value: 140, unit: "px" },
       outerRadius: { value: 160, unit: "px" },
-      strokeWidth: { value: 1, unit: "px" },
-      strokeCap: "butt",
-      strokeColor: { r: 0, g: 0, b: 0, a: 1 },
       thetaStart: 0,
       thetaEnd: 90,
       thetaSteps: 30,
       thetaInclusive: true,
+
+      strokeWidth: { value: 1, unit: "px" },
+      strokeCap: "butt",
+      strokeColor: { r: 0, g: 0, b: 0, a: 1 },
+      strokeMarkAlign: true,
 
       positionX: { value: 0, unit: "px" },
       positionY: { value: 0, unit: "px" },
