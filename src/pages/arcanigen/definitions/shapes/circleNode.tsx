@@ -102,8 +102,8 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
    return (
       <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)}` }}>
          <g
-            stroke={MathHelper.colorToHex(strokeColor, "#000f")}
-            fill={MathHelper.colorToHex(fillColor, "transparent")}
+            stroke={MathHelper.colorToHTML(strokeColor, "#000f")}
+            fill={MathHelper.colorToHTML(fillColor)}
             strokeWidth={Math.max(0, MathHelper.lengthToPx(strokeWidth ?? { value: 1, unit: "px" }))}
          >
             <circle cx={0} cy={0} r={Math.max(0, MathHelper.lengthToPx(radius ?? { value: 100, unit: "px" }))} />

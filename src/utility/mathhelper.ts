@@ -66,12 +66,12 @@ export const angleLerp = (t: number, a: number, b: number, mode: AngleLerpMode, 
    const ccw = mod(lerp(t, a + (a < b ? 1 : 0), b, curve), 1);
    switch (mode) {
       case "closestCW":
-         return Math.abs(b - a) >= 0.5 ? ccw : cw;
-      case "closestCCW":
          return Math.abs(b - a) > 0.5 ? ccw : cw;
-      case "farthestCCW":
-         return Math.abs(b - a) >= 0.5 ? cw : ccw;
+      case "closestCCW":
+         return Math.abs(b - a) >= 0.5 ? ccw : cw;
       case "farthestCW":
+         return Math.abs(b - a) >= 0.5 ? cw : ccw;
+      case "farthestCCW":
          return Math.abs(b - a) > 0.5 ? cw : ccw;
       case "clockwise":
          return cw;
@@ -141,6 +141,16 @@ export const colorToHex = (color: Color, fallback: string = "") => {
       .padStart(2, "0")}${Math.round(color.a * 255)
       .toString(16)
       .padStart(2, "0")}`.toUpperCase();
+};
+
+export const colorToHTML = (color: Color, fallback: string = "") => {
+   if (color === undefined) {
+      return fallback;
+   }
+   if (color === null) {
+      return "transparent";
+   }
+   return `rgba( ${color.r * 100}%, ${color.g * 100}%, ${color.b * 100}%, ${color.a} )`;
 };
 
 export const WHITE = { r: 1.0, g: 1.0, b: 1.0, a: 1.0 };
@@ -233,6 +243,7 @@ const MathHelper = {
    lengthToPx,
    pxToLength,
    colorToHex,
+   colorToHTML,
    hexToColor,
    convertLength,
    getPosition,

@@ -54,13 +54,13 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const actualA = nodeHelper.useCoalesce(nodeId, "aIn", "a", globals);
 
    const res = useMemo(() => {
-      return MathHelper.colorToHex(
+      return MathHelper.colorToHTML(
          CMYK2color({
-            c: MathHelper.clamp(actualC, 0, 100),
-            m: MathHelper.clamp(actualM, 0, 100),
-            y: MathHelper.clamp(actualY, 0, 100),
-            k: MathHelper.clamp(actualK, 0, 100),
-            a: MathHelper.clamp(actualA, 0, 100),
+            c: MathHelper.clamp(actualC, 0, 1),
+            m: MathHelper.clamp(actualM, 0, 1),
+            y: MathHelper.clamp(actualY, 0, 1),
+            k: MathHelper.clamp(actualK, 0, 1),
+            a: MathHelper.clamp(actualA, 0, 1),
          })
       );
    }, [actualA, actualC, actualK, actualM, actualY]);
@@ -71,29 +71,29 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             <Swatch value={res} />
          </SocketOut>
          <hr />
-         <SocketIn<IColorCMYKNode> nodeId={nodeId} socketId={"cIn"} type={SocketTypes.FLOAT}>
+         <SocketIn<IColorCMYKNode> nodeId={nodeId} socketId={"cIn"} type={SocketTypes.PERCENT}>
             <BaseNode.Input label={"Cyan"}>
-               <SliderInput min={0} max={100} value={c} onValidValue={setC} disabled={hasCIn} />
+               <SliderInput min={0} max={1} value={c} onValidValue={setC} disabled={hasCIn} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IColorCMYKNode> nodeId={nodeId} socketId={"mIn"} type={SocketTypes.FLOAT}>
+         <SocketIn<IColorCMYKNode> nodeId={nodeId} socketId={"mIn"} type={SocketTypes.PERCENT}>
             <BaseNode.Input label={"Magenta"}>
-               <SliderInput min={0} max={100} value={m} onValidValue={setM} disabled={hasMIn} />
+               <SliderInput min={0} max={1} value={m} onValidValue={setM} disabled={hasMIn} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IColorCMYKNode> nodeId={nodeId} socketId={"yIn"} type={SocketTypes.FLOAT}>
+         <SocketIn<IColorCMYKNode> nodeId={nodeId} socketId={"yIn"} type={SocketTypes.PERCENT}>
             <BaseNode.Input label={"Yellow"}>
-               <SliderInput min={0} max={100} value={y} onValidValue={setY} disabled={hasYIn} />
+               <SliderInput min={0} max={1} value={y} onValidValue={setY} disabled={hasYIn} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IColorCMYKNode> nodeId={nodeId} socketId={"kIn"} type={SocketTypes.FLOAT}>
+         <SocketIn<IColorCMYKNode> nodeId={nodeId} socketId={"kIn"} type={SocketTypes.PERCENT}>
             <BaseNode.Input label={"Black (key)"}>
-               <SliderInput min={0} max={100} value={k} onValidValue={setK} disabled={hasKIn} />
+               <SliderInput min={0} max={1} value={k} onValidValue={setK} disabled={hasKIn} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IColorCMYKNode> nodeId={nodeId} socketId={"aIn"} type={SocketTypes.FLOAT}>
+         <SocketIn<IColorCMYKNode> nodeId={nodeId} socketId={"aIn"} type={SocketTypes.PERCENT}>
             <BaseNode.Input label={"Alpha"}>
-               <SliderInput min={0} max={100} value={a} onValidValue={setA} disabled={hasAIn} />
+               <SliderInput min={0} max={1} value={a} onValidValue={setA} disabled={hasAIn} />
             </BaseNode.Input>
          </SocketIn>
       </BaseNode>
@@ -103,11 +103,11 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
 const nodeMethods = ArcaneGraph.nodeMethods<IColorCMYKNode>();
 
 const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof IColorCMYKNode["outputs"], globals: Globals) => {
-   const c = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "cIn", "c", globals)));
-   const m = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "mIn", "m", globals)));
-   const y = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "yIn", "y", globals)));
-   const k = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "kIn", "k", globals)));
-   const a = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "aIn", "a", globals)));
+   const c = Math.max(0, Math.min(1, nodeMethods.coalesce(graph, nodeId, "cIn", "c", globals)));
+   const m = Math.max(0, Math.min(1, nodeMethods.coalesce(graph, nodeId, "mIn", "m", globals)));
+   const y = Math.max(0, Math.min(1, nodeMethods.coalesce(graph, nodeId, "yIn", "y", globals)));
+   const k = Math.max(0, Math.min(1, nodeMethods.coalesce(graph, nodeId, "kIn", "k", globals)));
+   const a = Math.max(0, Math.min(1, nodeMethods.coalesce(graph, nodeId, "aIn", "a", globals)));
    return CMYK2color({
       c,
       m,
@@ -125,11 +125,11 @@ const ColorCMYKNodeHelper: INodeHelper<IColorCMYKNode> = {
    type: NodeTypes.COLOR_CMYK,
    getOutput,
    initialize: () => ({
-      c: 100,
-      m: 100,
-      y: 100,
-      k: 100,
-      a: 100,
+      c: 1,
+      m: 1,
+      y: 1,
+      k: 1,
+      a: 1,
    }),
    controls: Controls,
 };

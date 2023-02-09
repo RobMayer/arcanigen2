@@ -58,12 +58,12 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                <LengthInput value={nib} onValidValue={setNib} disabled={hasNib} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IPenEffectNode> nodeId={nodeId} socketId={"smudge"} type={SocketTypes.INTERVAL}>
+         <SocketIn<IPenEffectNode> nodeId={nodeId} socketId={"smudge"} type={SocketTypes.PERCENT}>
             <BaseNode.Input label={"Smudge"}>
                <NumberInput value={smudge} onValidValue={setSmudge} disabled={hasSmudge} min={0} max={1} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IPenEffectNode> nodeId={nodeId} socketId={"jitter"} type={SocketTypes.INTERVAL}>
+         <SocketIn<IPenEffectNode> nodeId={nodeId} socketId={"jitter"} type={SocketTypes.PERCENT}>
             <BaseNode.Input label={"Jitter"}>
                <NumberInput value={jitter} onValidValue={setJitter} disabled={hasJitter} min={0} max={1} />
             </BaseNode.Input>

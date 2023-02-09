@@ -1,0 +1,145 @@
+import { memo, useEffect } from "react";
+import ArcaneGraph from "../graph";
+import {
+   AngleLerpMode,
+   ANGLE_LERP_MODES,
+   ControlRendererProps,
+   Curve,
+   Globals,
+   IArcaneGraph,
+   INodeDefinition,
+   INodeHelper,
+   NodeTypes,
+   Sequence,
+   SocketTypes,
+} from "../types";
+import MathHelper from "!/utility/mathhelper";
+
+import { faGaugeMed as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
+import { faGaugeMed as buttonIcon } from "@fortawesome/pro-light-svg-icons";
+import BaseNode from "../../nodeView/node";
+import { SocketIn, SocketOut } from "../../nodeView/socket";
+import SliderInput from "!/components/inputs/SliderInput";
+import AngleInput from "!/components/inputs/AngleInput";
+import Checkbox from "!/components/buttons/Checkbox";
+import Dropdown from "!/components/selectors/Dropdown";
+
+interface ILerpAngleNode extends INodeDefinition {
+   inputs: {
+      from: number;
+      to: number;
+      percent: number;
+      sequence: Sequence;
+      distribution: Curve;
+   };
+   outputs: {
+      value: number;
+   };
+   values: {
+      from: number;
+      to: number;
+      percent: number;
+      mode: AngleLerpMode;
+      bounded: boolean;
+   };
+}
+
+const nodeHelper = ArcaneGraph.nodeHooks<ILerpAngleNode>();
+
+const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [from, setFrom] = nodeHelper.useValueState(nodeId, "from");
+   const [to, setTo] = nodeHelper.useValueState(nodeId, "to");
+   const [percent, setPercent] = nodeHelper.useValueState(nodeId, "percent");
+   const [bounded, setBounded] = nodeHelper.useValueState(nodeId, "bounded");
+   const [mode, setMode] = nodeHelper.useValueState(nodeId, "mode");
+
+   const hasSequence = nodeHelper.useHasLink(nodeId, "sequence");
+
+   useEffect(() => {
+      if (bounded) {
+         setFrom((p) => MathHelper.mod(p, 360));
+         setTo((p) => MathHelper.mod(p, 360));
+      }
+   }, [bounded, setFrom, setTo]);
+
+   return (
+      <BaseNode<ILerpAngleNode> nodeId={nodeId} helper={LerpAngleNodeHelper}>
+         <SocketOut<ILerpAngleNode> socketId={"value"} nodeId={nodeId} type={SocketTypes.ANGLE}>
+            Value
+         </SocketOut>
+         <hr />
+         <SocketIn<ILerpAngleNode> socketId={"sequence"} nodeId={nodeId} type={SocketTypes.SEQUENCE}>
+            Sequence
+         </SocketIn>
+         <SocketIn<ILerpAngleNode> socketId={"from"} nodeId={nodeId} type={SocketTypes.ANGLE}>
+            <BaseNode.Input label={"From"}>
+               <AngleInput value={from} onValidValue={setFrom} wrap={!bounded} />
+            </BaseNode.Input>
+         </SocketIn>
+         <SocketIn<ILerpAngleNode> socketId={"to"} nodeId={nodeId} type={SocketTypes.ANGLE}>
+            <BaseNode.Input label={"To"}>
+               <AngleInput value={to} onValidValue={setTo} wrap={!bounded} />
+            </BaseNode.Input>
+         </SocketIn>
+         <Checkbox checked={bounded} onToggle={setBounded}>
+            Bounded (0-360)
+         </Checkbox>
+         <BaseNode.Input label={"Hue Direction"}>
+            <Dropdown value={mode} onValue={setMode} options={ANGLE_LERP_MODES} disabled={!bounded} />
+         </BaseNode.Input>
+         <hr />
+         <SocketIn<ILerpAngleNode> socketId={"distribution"} nodeId={nodeId} type={SocketTypes.CURVE}>
+            Value Distribution
+         </SocketIn>
+         <SocketIn<ILerpAngleNode> socketId={"percent"} nodeId={nodeId} type={SocketTypes.PERCENT}>
+            <BaseNode.Input label={"Percent"}>
+               <SliderInput value={percent} onValidValue={setPercent} disabled={hasSequence} min={0} max={1} />
+            </BaseNode.Input>
+         </SocketIn>
+      </BaseNode>
+   );
+});
+
+const nodeMethods = ArcaneGraph.nodeMethods<ILerpAngleNode>();
+
+const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof ILerpAngleNode["outputs"], globals: Globals) => {
+   const sequence = nodeMethods.getInput(graph, nodeId, "sequence", globals);
+
+   const percent = nodeMethods.coalesce(graph, nodeId, "percent", "percent", globals);
+   const mode = nodeMethods.getValue(graph, nodeId, "mode");
+   const bounded = nodeMethods.getValue(graph, nodeId, "bounded");
+   const from = nodeMethods.coalesce(graph, nodeId, "from", "from", globals);
+   const to = nodeMethods.coalesce(graph, nodeId, "to", "to", globals);
+   const distribution = nodeMethods.getInput(graph, nodeId, "distribution", globals);
+
+   if (sequence) {
+      const iter = globals.sequenceData[sequence.senderId] ?? sequence.min;
+      const t = MathHelper.delerp(iter, sequence.min, sequence.max);
+      return bounded ? MathHelper.angleLerp(t, from, to, mode, distribution) : MathHelper.lerp(t, from, to, distribution);
+   }
+
+   const t = MathHelper.angleLerp(MathHelper.clamp(percent, 0, 1), from / 360, to / 360, mode, distribution) * 360;
+
+   return bounded ? t : MathHelper.lerp(MathHelper.clamp(percent, 0, 1), from, to, distribution);
+
+   //TODO: How do I get sequence data from here?!?
+};
+
+const LerpAngleNodeHelper: INodeHelper<ILerpAngleNode> = {
+   name: "Angle Lerp",
+   buttonIcon,
+   nodeIcon,
+   flavour: "help",
+   type: NodeTypes.LERP_ANGLE,
+   getOutput,
+   initialize: () => ({
+      from: 0,
+      to: 180,
+      percent: 0,
+      mode: "closestCW",
+      bounded: true,
+   }),
+   controls: Controls,
+};
+
+export default LerpAngleNodeHelper;

@@ -27,21 +27,26 @@ export enum NodeTypes {
    VALUE_COLOR = "valueColor",
    VALUE_LENGTH = "valueLength",
    VALUE_ANGLE = "valueAngle",
-   CONVERT_VALUE = "convertValue",
+   VALUE_PERCENT = "valuePercent",
    LERP_NUMBER = "lerpNumber",
    LERP_COLOR = "lerpColor",
+   LERP_LENGTH = "lerpLength",
+   LERP_ANGLE = "lerpAngle",
    VALUE_CURVE = "valueCurve",
 
    EFFECT_BRUSH = "effectBrush",
    EFFECT_PENCIL = "effectPencil",
    EFFECT_PEN = "effectPen",
 
+   SPLIT_COLOR = "splitColor",
+   CONVERT_VALUE = "convertValue",
    MATH_ADD = "mathAdd",
    MATH_SUB = "mathSub",
    MATH_MUL = "mathMul",
    MATH_DIV = "mathDiv",
    MATH_MOD = "mathMod",
    MATH_ABS = "mathAbs",
+   MATH_RND = "mathRnd",
    VALUE_RANDOM = "valueRandom",
 
    COLOR_RGB = "colorRGB",
@@ -58,7 +63,7 @@ export enum SocketTypes {
    SHAPE = 1,
    FLOAT = 2,
    INTEGER = 4,
-   INTERVAL = 8,
+   PERCENT = 8,
    ANGLE = 16,
    LENGTH = 32,
    COLOR = 64,
@@ -66,7 +71,7 @@ export enum SocketTypes {
    CURVE = 256,
 
    ANY = 1 | 2 | 4 | 8 | 16 | 32 | 64 | 128 | 256,
-   NUMBER = 2 | 4 | 8,
+   NUMBER = 2 | 4,
 }
 
 export enum LinkTypes {

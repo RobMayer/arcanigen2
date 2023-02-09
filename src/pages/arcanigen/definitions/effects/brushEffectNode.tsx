@@ -54,7 +54,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                <LengthInput value={brushTip} onValidValue={setBrushTip} disabled={hasBrushTip} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IBrushEffectNode> nodeId={nodeId} socketId={"shake"} type={SocketTypes.INTERVAL}>
+         <SocketIn<IBrushEffectNode> nodeId={nodeId} socketId={"shake"} type={SocketTypes.PERCENT}>
             <BaseNode.Input label={"Shake"}>
                <NumberInput value={shake} onValidValue={setShake} disabled={hasShake} min={0} max={1} />
             </BaseNode.Input>

@@ -50,12 +50,12 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const actualA = nodeHelper.useCoalesce(nodeId, "aIn", "a", globals);
 
    const res = useMemo(() => {
-      return MathHelper.colorToHex(
+      return MathHelper.colorToHTML(
          HSV2color({
             h: MathHelper.mod(actualH, 360),
-            s: MathHelper.clamp(actualS, 0, 100),
-            v: MathHelper.clamp(actualV, 0, 100),
-            a: MathHelper.clamp(actualA, 0, 100),
+            s: MathHelper.clamp(actualS, 0, 1),
+            v: MathHelper.clamp(actualV, 0, 1),
+            a: MathHelper.clamp(actualA, 0, 1),
          })
       );
    }, [actualH, actualS, actualV, actualA]);
@@ -71,19 +71,19 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                <AngleInput value={h} onValidValue={setH} disabled={hasHIn} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IColorHSVNode> nodeId={nodeId} socketId={"sIn"} type={SocketTypes.FLOAT}>
+         <SocketIn<IColorHSVNode> nodeId={nodeId} socketId={"sIn"} type={SocketTypes.PERCENT}>
             <BaseNode.Input label={"Saturation"}>
-               <SliderInput min={0} max={100} value={s} onValidValue={setS} disabled={hasSIn} />
+               <SliderInput min={0} max={1} value={s} onValidValue={setS} disabled={hasSIn} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IColorHSVNode> nodeId={nodeId} socketId={"vIn"} type={SocketTypes.FLOAT}>
+         <SocketIn<IColorHSVNode> nodeId={nodeId} socketId={"vIn"} type={SocketTypes.PERCENT}>
             <BaseNode.Input label={"Value"}>
-               <SliderInput min={0} max={100} value={v} onValidValue={setV} disabled={hasVIn} />
+               <SliderInput min={0} max={1} value={v} onValidValue={setV} disabled={hasVIn} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IColorHSVNode> nodeId={nodeId} socketId={"aIn"} type={SocketTypes.FLOAT}>
+         <SocketIn<IColorHSVNode> nodeId={nodeId} socketId={"aIn"} type={SocketTypes.PERCENT}>
             <BaseNode.Input label={"Alpha"}>
-               <SliderInput min={0} max={100} value={a} onValidValue={setA} disabled={hasAIn} />
+               <SliderInput min={0} max={1} value={a} onValidValue={setA} disabled={hasAIn} />
             </BaseNode.Input>
          </SocketIn>
       </BaseNode>
@@ -94,9 +94,9 @@ const nodeMethods = ArcaneGraph.nodeMethods<IColorHSVNode>();
 
 const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof IColorHSVNode["outputs"], globals: Globals) => {
    const h = MathHelper.mod(nodeMethods.coalesce(graph, nodeId, "hIn", "h", globals), 360);
-   const s = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "sIn", "s", globals)));
-   const v = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "vIn", "v", globals)));
-   const a = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "aIn", "a", globals)));
+   const s = Math.max(0, Math.min(1, nodeMethods.coalesce(graph, nodeId, "sIn", "s", globals)));
+   const v = Math.max(0, Math.min(1, nodeMethods.coalesce(graph, nodeId, "vIn", "v", globals)));
+   const a = Math.max(0, Math.min(1, nodeMethods.coalesce(graph, nodeId, "aIn", "a", globals)));
    return HSV2color({ h, s, v, a });
 };
 
@@ -109,9 +109,9 @@ const ColorHSVNodeHelper: INodeHelper<IColorHSVNode> = {
    getOutput,
    initialize: () => ({
       h: 0,
-      s: 100,
-      v: 100,
-      a: 100,
+      s: 1,
+      v: 1,
+      a: 1,
    }),
    controls: Controls,
 };

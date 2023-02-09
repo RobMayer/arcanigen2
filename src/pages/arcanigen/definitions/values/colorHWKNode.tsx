@@ -50,12 +50,12 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const actualA = nodeHelper.useCoalesce(nodeId, "aIn", "a", globals);
 
    const res = useMemo(() => {
-      return MathHelper.colorToHex(
+      return MathHelper.colorToHTML(
          HWK2color({
             h: MathHelper.mod(actualH, 360),
-            w: MathHelper.clamp(actualW, 0, 100),
-            k: MathHelper.clamp(actualK, 0, 100),
-            a: MathHelper.clamp(actualA, 0, 100),
+            w: MathHelper.clamp(actualW, 0, 1),
+            k: MathHelper.clamp(actualK, 0, 1),
+            a: MathHelper.clamp(actualA, 0, 1),
          })
       );
    }, [actualH, actualW, actualK, actualA]);
@@ -71,19 +71,19 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                <AngleInput value={h} onValidValue={setH} disabled={hasHIn} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IColorHWKNode> nodeId={nodeId} socketId={"wIn"} type={SocketTypes.FLOAT}>
+         <SocketIn<IColorHWKNode> nodeId={nodeId} socketId={"wIn"} type={SocketTypes.PERCENT}>
             <BaseNode.Input label={"Whiteness"}>
-               <SliderInput min={0} max={100} value={w} onValidValue={setW} disabled={hasWIn} />
+               <SliderInput min={0} max={1} value={w} onValidValue={setW} disabled={hasWIn} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IColorHWKNode> nodeId={nodeId} socketId={"kIn"} type={SocketTypes.FLOAT}>
+         <SocketIn<IColorHWKNode> nodeId={nodeId} socketId={"kIn"} type={SocketTypes.PERCENT}>
             <BaseNode.Input label={"Blackness"}>
-               <SliderInput min={0} max={100} value={k} onValidValue={setK} disabled={hasKIn} />
+               <SliderInput min={0} max={1} value={k} onValidValue={setK} disabled={hasKIn} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IColorHWKNode> nodeId={nodeId} socketId={"aIn"} type={SocketTypes.FLOAT}>
+         <SocketIn<IColorHWKNode> nodeId={nodeId} socketId={"aIn"} type={SocketTypes.PERCENT}>
             <BaseNode.Input label={"Alpha"}>
-               <SliderInput min={0} max={100} value={a} onValidValue={setA} disabled={hasAIn} />
+               <SliderInput min={0} max={1} value={a} onValidValue={setA} disabled={hasAIn} />
             </BaseNode.Input>
          </SocketIn>
       </BaseNode>
@@ -94,9 +94,9 @@ const nodeMethods = ArcaneGraph.nodeMethods<IColorHWKNode>();
 
 const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof IColorHWKNode["outputs"], globals: Globals) => {
    const h = MathHelper.mod(nodeMethods.coalesce(graph, nodeId, "hIn", "h", globals), 360);
-   const w = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "wIn", "w", globals)));
-   const k = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "kIn", "k", globals)));
-   const a = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "aIn", "a", globals)));
+   const w = Math.max(0, Math.min(1, nodeMethods.coalesce(graph, nodeId, "wIn", "w", globals)));
+   const k = Math.max(0, Math.min(1, nodeMethods.coalesce(graph, nodeId, "kIn", "k", globals)));
+   const a = Math.max(0, Math.min(1, nodeMethods.coalesce(graph, nodeId, "aIn", "a", globals)));
    return HWK2color({ h, w, k, a });
 };
 
@@ -109,9 +109,9 @@ const ColorHWKNodeHelper: INodeHelper<IColorHWKNode> = {
    getOutput,
    initialize: () => ({
       h: 0,
-      w: 100,
-      k: 100,
-      a: 100,
+      w: 1,
+      k: 1,
+      a: 1,
    }),
    controls: Controls,
 };

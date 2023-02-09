@@ -10,7 +10,7 @@ type IProps = {
    flavour?: Flavour;
    min?: number;
    max?: number;
-   step?: number;
+   step?: number | "any";
 } & AbstractInputProps<number, HTMLInputElement> &
    HTMLAttributes<HTMLDivElement>;
 
@@ -20,7 +20,7 @@ const SliderInput = styled(
          value,
          min,
          max,
-         step,
+         step = "any",
          flavour = "accent",
          className,
          handlers,

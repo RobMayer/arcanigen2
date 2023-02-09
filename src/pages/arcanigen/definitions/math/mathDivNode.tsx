@@ -33,7 +33,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const hasB = nodeHelper.useHasLink(nodeId, "bIn");
    return (
       <BaseNode<IMathDivNode> nodeId={nodeId} helper={MathDivNodeHelper}>
-         <SocketOut<IMathDivNode> nodeId={nodeId} socketId={"result"} type={SocketTypes.NUMBER}>
+         <SocketOut<IMathDivNode> nodeId={nodeId} socketId={"result"} type={SocketTypes.FLOAT}>
             <BaseNode.Output label={"Result"}>{(hasB ? bIn : b) === 0 ? 0 : (hasA ? aIn : a) / (hasB ? bIn : b)}</BaseNode.Output>
          </SocketOut>
          <hr />

@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useEffect } from "react";
 import ArcaneGraph from "../graph";
 import { ControlRendererProps, IArcaneGraph, INodeDefinition, INodeHelper, NodeTypes, SocketTypes } from "../types";
 
@@ -30,10 +30,16 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [value, setValue] = nodeHelper.useValueState(nodeId, "value");
    const [bounded, setBounded] = nodeHelper.useValueState(nodeId, "bounded");
 
+   useEffect(() => {
+      if (bounded) {
+         setValue((p) => MathHelper.mod(p, 360));
+      }
+   }, [bounded, setValue]);
+
    return (
       <BaseNode<IAngleValueNode> nodeId={nodeId} helper={AngleValueNodeHelper}>
          <SocketOut<IAngleValueNode> nodeId={nodeId} socketId={"value"} type={SocketTypes.ANGLE}>
-            <AngleInput value={value} onValidValue={setValue} wrap />
+            <AngleInput value={value} onValidValue={setValue} wrap={!bounded} />
          </SocketOut>
          <Checkbox checked={bounded} onToggle={setBounded}>
             Bounded (0-360)
@@ -43,7 +49,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             <SocketOut<IAngleValueNode> nodeId={nodeId} socketId={"asDegrees"} type={SocketTypes.FLOAT}>
                as Degrees
             </SocketOut>
-            <SocketOut<IAngleValueNode> nodeId={nodeId} socketId={"asDegrees"} type={SocketTypes.FLOAT}>
+            <SocketOut<IAngleValueNode> nodeId={nodeId} socketId={"asRadians"} type={SocketTypes.FLOAT}>
                as Radians
             </SocketOut>
             <SocketOut<IAngleValueNode> nodeId={nodeId} socketId={"asTurns"} type={SocketTypes.FLOAT}>

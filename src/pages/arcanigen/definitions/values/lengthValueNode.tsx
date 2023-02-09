@@ -14,8 +14,11 @@ interface ILengthValueNode extends INodeDefinition {
    inputs: {};
    outputs: {
       value: Length;
-      unitless: number;
-      numeric: number;
+      lengthToPx: number;
+      lengthToPt: number;
+      lengthToIn: number;
+      lengthToMm: number;
+      lengthToCm: number;
    };
    values: {
       value: Length;
@@ -34,12 +37,21 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                <LengthInput value={value} onValidValue={setValue} />
             </BaseNode.Input>
          </SocketOut>
-         <BaseNode.Foldout nodeId={nodeId} inputs={""} outputs={"unitless numeric"} label={"Additional Outputs"}>
-            <SocketOut<ILengthValueNode> nodeId={nodeId} socketId={"numeric"} type={SocketTypes.FLOAT}>
-               Numeric Value
+         <BaseNode.Foldout nodeId={nodeId} inputs={""} outputs={"lengthToPx lengthToPt lengthToIn lengthToCm lengthToMm"} label={"Additional Outputs"}>
+            <SocketOut<ILengthValueNode> nodeId={nodeId} socketId={"lengthToPx"} type={SocketTypes.FLOAT}>
+               as Pixels (px)
             </SocketOut>
-            <SocketOut<ILengthValueNode> nodeId={nodeId} socketId={"unitless"} type={SocketTypes.FLOAT}>
-               Unitless Value
+            <SocketOut<ILengthValueNode> nodeId={nodeId} socketId={"lengthToPt"} type={SocketTypes.FLOAT}>
+               as Points (pt)
+            </SocketOut>
+            <SocketOut<ILengthValueNode> nodeId={nodeId} socketId={"lengthToIn"} type={SocketTypes.FLOAT}>
+               as Inches (in)
+            </SocketOut>
+            <SocketOut<ILengthValueNode> nodeId={nodeId} socketId={"lengthToMm"} type={SocketTypes.FLOAT}>
+               as Millimeters (mm)
+            </SocketOut>
+            <SocketOut<ILengthValueNode> nodeId={nodeId} socketId={"lengthToCm"} type={SocketTypes.FLOAT}>
+               as Centimeters (cm)
             </SocketOut>
          </BaseNode.Foldout>
       </BaseNode>
@@ -49,14 +61,20 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
 const nodeMethods = ArcaneGraph.nodeMethods<ILengthValueNode>();
 
 const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof ILengthValueNode["outputs"]) => {
-   const v = nodeMethods.getValue(graph, nodeId, "value");
+   const inputLength = nodeMethods.getValue(graph, nodeId, "value");
    switch (socket) {
       case "value":
-         return v;
-      case "unitless":
-         return v.value;
-      case "numeric":
-         return MathHelper.lengthToPx(v);
+         return inputLength;
+      case "lengthToPx":
+         return inputLength.value;
+      case "lengthToPt":
+         return MathHelper.convertLength(inputLength, "pt").value;
+      case "lengthToIn":
+         return MathHelper.convertLength(inputLength, "in").value;
+      case "lengthToMm":
+         return MathHelper.convertLength(inputLength, "mm").value;
+      case "lengthToCm":
+         return MathHelper.convertLength(inputLength, "cm").value;
    }
 };
 

@@ -32,13 +32,18 @@ import ColorHSVNodeHelper from "./values/colorHSVNode";
 import ColorHSLNodeHelper from "./values/colorHSLNode";
 import ColorHWKNodeHelper from "./values/colorHWKNode";
 import AngleValueNodeHelper from "./values/angleValueNode";
-import NumberLerpNodeHelper from "./math/numberLerpNode";
-import ColorLerpNodeHelper from "./math/colorLerpNode";
+import LerpNumberNodeHelper from "./math/lerpNumberNode";
+import LerpColorNodeHelper from "./math/lerpColorNode";
 import ColorHCYNodeHelper from "./values/colorHCYNode";
 import ColorCMYKNodeHelper from "./values/colorCMYKNode";
 import ColorHSINodeHelper from "./values/colorHSINode";
 import CurveNodeHelper from "./values/curveNode";
 import SpiralNodeHelper from "./shapes/spiralNode";
+import PercentValueNodeHelper from "./values/percentValueNode";
+import MathRndNodeHelper from "./math/mathRoundNode";
+import SplitColorNodeHelper from "./values/splitColorNode";
+import LerpAngleNodeHelper from "./math/lerpAngleNode";
+import LerpLengthNodeHelper from "./math/lerpLengthNode";
 
 // prettier-ignore
 export const getNodeHelper = (key: NodeTypes) => {
@@ -69,6 +74,7 @@ export const getNodeHelper = (key: NodeTypes) => {
       case NodeTypes.VALUE_ANGLE: return AngleValueNodeHelper;
 
       case NodeTypes.VALUE_COLOR: return HexColorNodeHelper;
+      case NodeTypes.VALUE_PERCENT: return PercentValueNodeHelper;
 
       case NodeTypes.MATH_ADD: return MathAddNodeHelper;
       case NodeTypes.MATH_SUB: return MathSubNodeHelper;
@@ -76,6 +82,7 @@ export const getNodeHelper = (key: NodeTypes) => {
       case NodeTypes.MATH_DIV: return MathDivNodeHelper;
       case NodeTypes.MATH_MOD: return MathModNodeHelper;
       case NodeTypes.MATH_ABS: return MathAbsNodeHelper;
+      case NodeTypes.MATH_RND: return MathRndNodeHelper;
 
       case NodeTypes.EFFECT_BRUSH: return BrushEffectNodeHelper;
       case NodeTypes.EFFECT_PENCIL: return PencilEffectNodeHelper;
@@ -91,9 +98,13 @@ export const getNodeHelper = (key: NodeTypes) => {
       case NodeTypes.COLOR_HSI: return ColorHSINodeHelper;
       case NodeTypes.COLOR_CMYK: return ColorCMYKNodeHelper;
 
-      case NodeTypes.LERP_NUMBER: return NumberLerpNodeHelper;
-      case NodeTypes.LERP_COLOR: return ColorLerpNodeHelper;
+      case NodeTypes.LERP_NUMBER: return LerpNumberNodeHelper;
+      case NodeTypes.LERP_COLOR: return LerpColorNodeHelper;
+      case NodeTypes.LERP_LENGTH: return LerpLengthNodeHelper;
+      case NodeTypes.LERP_ANGLE: return LerpAngleNodeHelper;
       case NodeTypes.VALUE_CURVE: return CurveNodeHelper;
+
+      case NodeTypes.SPLIT_COLOR: return SplitColorNodeHelper;
 
    }
 };

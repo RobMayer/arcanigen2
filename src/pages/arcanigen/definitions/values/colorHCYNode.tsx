@@ -50,12 +50,12 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const actualA = nodeHelper.useCoalesce(nodeId, "aIn", "a", globals);
 
    const res = useMemo(() => {
-      return MathHelper.colorToHex(
+      return MathHelper.colorToHTML(
          HCY2color({
             h: MathHelper.mod(actualH, 360),
-            c: MathHelper.clamp(actualC, 0, 100),
-            y: MathHelper.clamp(actualY, 0, 100),
-            a: MathHelper.clamp(actualA, 0, 100),
+            c: MathHelper.clamp(actualC, 0, 1),
+            y: MathHelper.clamp(actualY, 0, 1),
+            a: MathHelper.clamp(actualA, 0, 1),
          })
       );
    }, [actualH, actualC, actualY, actualA]);
@@ -71,19 +71,19 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                <AngleInput value={h} onValidValue={setH} disabled={hasHIn} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IColorHCYNode> nodeId={nodeId} socketId={"cIn"} type={SocketTypes.FLOAT}>
+         <SocketIn<IColorHCYNode> nodeId={nodeId} socketId={"cIn"} type={SocketTypes.PERCENT}>
             <BaseNode.Input label={"Chroma"}>
-               <SliderInput min={0} max={100} value={c} onValidValue={setC} disabled={hasCIn} />
+               <SliderInput min={0} max={1} value={c} onValidValue={setC} disabled={hasCIn} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IColorHCYNode> nodeId={nodeId} socketId={"yIn"} type={SocketTypes.FLOAT}>
+         <SocketIn<IColorHCYNode> nodeId={nodeId} socketId={"yIn"} type={SocketTypes.PERCENT}>
             <BaseNode.Input label={"Luminance"}>
-               <SliderInput min={0} max={100} value={y} onValidValue={setY} disabled={hasYIn} />
+               <SliderInput min={0} max={1} value={y} onValidValue={setY} disabled={hasYIn} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IColorHCYNode> nodeId={nodeId} socketId={"aIn"} type={SocketTypes.FLOAT}>
+         <SocketIn<IColorHCYNode> nodeId={nodeId} socketId={"aIn"} type={SocketTypes.PERCENT}>
             <BaseNode.Input label={"Alpha"}>
-               <SliderInput min={0} max={100} value={a} onValidValue={setA} disabled={hasAIn} />
+               <SliderInput min={0} max={1} value={a} onValidValue={setA} disabled={hasAIn} />
             </BaseNode.Input>
          </SocketIn>
       </BaseNode>
@@ -94,9 +94,9 @@ const nodeMethods = ArcaneGraph.nodeMethods<IColorHCYNode>();
 
 const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof IColorHCYNode["outputs"], globals: Globals) => {
    const h = MathHelper.mod(nodeMethods.coalesce(graph, nodeId, "hIn", "h", globals), 360);
-   const c = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "cIn", "c", globals)));
-   const y = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "yIn", "y", globals)));
-   const a = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "aIn", "a", globals)));
+   const c = Math.max(0, Math.min(1, nodeMethods.coalesce(graph, nodeId, "cIn", "c", globals)));
+   const y = Math.max(0, Math.min(1, nodeMethods.coalesce(graph, nodeId, "yIn", "y", globals)));
+   const a = Math.max(0, Math.min(1, nodeMethods.coalesce(graph, nodeId, "aIn", "a", globals)));
    return HCY2color({ h, c, y, a });
 };
 
@@ -110,8 +110,8 @@ const ColorHCYNodeHelper: INodeHelper<IColorHCYNode> = {
    initialize: () => ({
       h: 0,
       c: 0,
-      y: 100,
-      a: 100,
+      y: 1,
+      a: 1,
    }),
    controls: Controls,
 };

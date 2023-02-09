@@ -28,7 +28,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const hasA = nodeHelper.useHasLink(nodeId, "aIn");
    return (
       <BaseNode<IMathAbsNode> nodeId={nodeId} helper={MathAbsNodeHelper}>
-         <SocketOut<IMathAbsNode> nodeId={nodeId} socketId={"result"} type={SocketTypes.NUMBER}>
+         <SocketOut<IMathAbsNode> nodeId={nodeId} socketId={"result"} type={SocketTypes.FLOAT}>
             <BaseNode.Output label={"Result"}>{hasA ? aIn : a}</BaseNode.Output>
          </SocketOut>
          <hr />

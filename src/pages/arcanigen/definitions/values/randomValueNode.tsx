@@ -30,7 +30,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
 
    return (
       <BaseNode<IRandomValueNode> nodeId={nodeId} helper={RandomValueNodeHelper}>
-         <SocketOut<IRandomValueNode> nodeId={nodeId} socketId={"result"} type={SocketTypes.NUMBER}>
+         <SocketOut<IRandomValueNode> nodeId={nodeId} socketId={"result"} type={SocketTypes.INTEGER}>
             <BaseNode.Output label={"Result"}>{result}</BaseNode.Output>
          </SocketOut>
          <hr />

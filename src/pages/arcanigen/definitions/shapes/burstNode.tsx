@@ -240,7 +240,7 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
 
    return (
       <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation}deg)` }}>
-         <g stroke={MathHelper.colorToHex(strokeColor, "#000f")} strokeWidth={Math.max(0, MathHelper.lengthToPx(strokeWidth))} strokeLinecap={strokeCap}>
+         <g stroke={MathHelper.colorToHTML(strokeColor)} strokeWidth={Math.max(0, MathHelper.lengthToPx(strokeWidth))} strokeLinecap={strokeCap}>
             {points}
          </g>
       </g>

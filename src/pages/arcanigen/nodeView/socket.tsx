@@ -196,9 +196,10 @@ const Orb = styled(({ nodeId, socketId, type, className, mode, ...rest }: IOrbPr
 
 const getSocketFlavour = (type: SocketTypes): Flavour => {
    switch (type) {
-      case SocketTypes.LENGTH:
       case SocketTypes.COLOR:
       case SocketTypes.ANGLE:
+      case SocketTypes.LENGTH:
+      case SocketTypes.PERCENT:
          return "help";
       case SocketTypes.CURVE:
          return "info";

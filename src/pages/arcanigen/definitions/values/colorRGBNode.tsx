@@ -49,12 +49,12 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const actualA = nodeHelper.useCoalesce(nodeId, "aIn", "a", globals);
 
    const res = useMemo(() => {
-      return MathHelper.colorToHex(
+      return MathHelper.colorToHTML(
          RGB2color({
-            r: MathHelper.clamp(actualR, 0, 255),
-            g: MathHelper.clamp(actualG, 0, 255),
-            b: MathHelper.clamp(actualB, 0, 255),
-            a: MathHelper.clamp(actualA, 0, 100),
+            r: MathHelper.clamp(actualR, 0, 1),
+            g: MathHelper.clamp(actualG, 0, 1),
+            b: MathHelper.clamp(actualB, 0, 1),
+            a: MathHelper.clamp(actualA, 0, 1),
          })
       );
    }, [actualR, actualG, actualB, actualA]);
@@ -65,24 +65,24 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             <Swatch value={res} />
          </SocketOut>
          <hr />
-         <SocketIn<IColorRGBNode> nodeId={nodeId} socketId={"rIn"} type={SocketTypes.INTEGER}>
+         <SocketIn<IColorRGBNode> nodeId={nodeId} socketId={"rIn"} type={SocketTypes.PERCENT}>
             <BaseNode.Input label={"Red"}>
-               <SliderInput min={0} max={255} step={1} value={r} onValidValue={setR} disabled={hasRIn} />
+               <SliderInput min={0} max={1} value={r} onValidValue={setR} disabled={hasRIn} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IColorRGBNode> nodeId={nodeId} socketId={"gIn"} type={SocketTypes.INTEGER}>
+         <SocketIn<IColorRGBNode> nodeId={nodeId} socketId={"gIn"} type={SocketTypes.PERCENT}>
             <BaseNode.Input label={"Green"}>
-               <SliderInput min={0} max={255} step={1} value={g} onValidValue={setG} disabled={hasGIn} />
+               <SliderInput min={0} max={1} value={g} onValidValue={setG} disabled={hasGIn} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IColorRGBNode> nodeId={nodeId} socketId={"bIn"} type={SocketTypes.INTEGER}>
+         <SocketIn<IColorRGBNode> nodeId={nodeId} socketId={"bIn"} type={SocketTypes.PERCENT}>
             <BaseNode.Input label={"Blue"}>
-               <SliderInput min={0} max={255} step={1} value={b} onValidValue={setB} disabled={hasBIn} />
+               <SliderInput min={0} max={1} value={b} onValidValue={setB} disabled={hasBIn} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IColorRGBNode> nodeId={nodeId} socketId={"aIn"} type={SocketTypes.INTEGER}>
+         <SocketIn<IColorRGBNode> nodeId={nodeId} socketId={"aIn"} type={SocketTypes.PERCENT}>
             <BaseNode.Input label={"Alpha"}>
-               <SliderInput min={0} max={100} value={a} onValidValue={setA} disabled={hasAIn} />
+               <SliderInput min={0} max={1} value={a} onValidValue={setA} disabled={hasAIn} />
             </BaseNode.Input>
          </SocketIn>
       </BaseNode>
@@ -92,10 +92,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
 const nodeMethods = ArcaneGraph.nodeMethods<IColorRGBNode>();
 
 const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof IColorRGBNode["outputs"], globals: Globals) => {
-   const r = Math.max(0, Math.min(255, nodeMethods.coalesce(graph, nodeId, "rIn", "r", globals)));
-   const g = Math.max(0, Math.min(255, nodeMethods.coalesce(graph, nodeId, "gIn", "g", globals)));
-   const b = Math.max(0, Math.min(255, nodeMethods.coalesce(graph, nodeId, "bIn", "b", globals)));
-   const a = Math.max(0, Math.min(100, nodeMethods.coalesce(graph, nodeId, "aIn", "a", globals)));
+   const r = Math.max(0, Math.min(1, nodeMethods.coalesce(graph, nodeId, "rIn", "r", globals)));
+   const g = Math.max(0, Math.min(1, nodeMethods.coalesce(graph, nodeId, "gIn", "g", globals)));
+   const b = Math.max(0, Math.min(1, nodeMethods.coalesce(graph, nodeId, "bIn", "b", globals)));
+   const a = Math.max(0, Math.min(1, nodeMethods.coalesce(graph, nodeId, "aIn", "a", globals)));
    return RGB2color({ r, g, b, a });
 };
 
@@ -107,10 +107,10 @@ const ColorRGBNodeHelper: INodeHelper<IColorRGBNode> = {
    type: NodeTypes.COLOR_RGB,
    getOutput,
    initialize: () => ({
-      r: 255,
-      g: 255,
-      b: 255,
-      a: 100,
+      r: 1,
+      g: 1,
+      b: 1,
+      a: 1,
    }),
    controls: Controls,
 };

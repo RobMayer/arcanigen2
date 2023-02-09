@@ -21,20 +21,18 @@ import { faExclamationCircle, faGaugeMed as nodeIcon } from "@fortawesome/pro-so
 import { faGaugeMed as buttonIcon } from "@fortawesome/pro-light-svg-icons";
 import BaseNode from "../../nodeView/node";
 import { SocketIn, SocketOut } from "../../nodeView/socket";
-import NumberInput from "!/components/inputs/NumberInput";
 import Icon from "!/components/icons";
 import styled from "styled-components";
 import { Color } from "!/utility/types/units";
 import HexColorInput from "!/components/inputs/colorHexInput";
 import Dropdown from "!/components/selectors/Dropdown";
+import SliderInput from "!/components/inputs/SliderInput";
 
-interface IColorLerpNode extends INodeDefinition {
+interface ILerpColorNode extends INodeDefinition {
    inputs: {
       from: Color;
       to: Color;
-      start: number;
-      end: number;
-      interval: number;
+      percent: number;
       sequence: Sequence;
       distribution: Curve;
    };
@@ -44,22 +42,18 @@ interface IColorLerpNode extends INodeDefinition {
    values: {
       from: Color;
       to: Color;
-      start: number;
-      end: number;
-      interval: number;
+      percent: number;
       colorSpace: ColorSpace;
       hueMode: AngleLerpMode;
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<IColorLerpNode>();
+const nodeHelper = ArcaneGraph.nodeHooks<ILerpColorNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [from, setFrom] = nodeHelper.useValueState(nodeId, "from");
    const [to, setTo] = nodeHelper.useValueState(nodeId, "to");
-   const [start, setStart] = nodeHelper.useValueState(nodeId, "start");
-   const [end, setEnd] = nodeHelper.useValueState(nodeId, "end");
-   const [interval, setInterval] = nodeHelper.useValueState(nodeId, "interval");
+   const [percent, setPercent] = nodeHelper.useValueState(nodeId, "percent");
 
    const hasSequence = nodeHelper.useHasLink(nodeId, "sequence");
    const hasFrom = nodeHelper.useHasLink(nodeId, "from");
@@ -69,8 +63,8 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [hueMode, setHueMode] = nodeHelper.useValueState(nodeId, "hueMode");
 
    return (
-      <BaseNode<IColorLerpNode> nodeId={nodeId} helper={ColorLerpNodeHelper}>
-         <SocketOut<IColorLerpNode> socketId={"value"} nodeId={nodeId} type={SocketTypes.COLOR}>
+      <BaseNode<ILerpColorNode> nodeId={nodeId} helper={LerpColorNodeHelper}>
+         <SocketOut<ILerpColorNode> socketId={"value"} nodeId={nodeId} type={SocketTypes.COLOR}>
             <BaseNode.Output label={"Value"}>
                {hasSequence ? (
                   <Warning title={"This will be calculated during the render"}>
@@ -78,20 +72,20 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                      Varies
                   </Warning>
                ) : (
-                  interval
+                  percent
                )}
             </BaseNode.Output>
          </SocketOut>
          <hr />
-         <SocketIn<IColorLerpNode> socketId={"sequence"} nodeId={nodeId} type={SocketTypes.SEQUENCE}>
+         <SocketIn<ILerpColorNode> socketId={"sequence"} nodeId={nodeId} type={SocketTypes.SEQUENCE}>
             Sequence
          </SocketIn>
-         <SocketIn<IColorLerpNode> socketId={"from"} nodeId={nodeId} type={SocketTypes.COLOR}>
+         <SocketIn<ILerpColorNode> socketId={"from"} nodeId={nodeId} type={SocketTypes.COLOR}>
             <BaseNode.Input label={"From"}>
                <HexColorInput value={from} onValue={setFrom} disabled={hasFrom} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IColorLerpNode> socketId={"to"} nodeId={nodeId} type={SocketTypes.COLOR}>
+         <SocketIn<ILerpColorNode> socketId={"to"} nodeId={nodeId} type={SocketTypes.COLOR}>
             <BaseNode.Input label={"To"}>
                <HexColorInput value={to} onValue={setTo} disabled={hasTo} />
             </BaseNode.Input>
@@ -104,38 +98,26 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             <Dropdown value={hueMode} onValue={setHueMode} options={ANGLE_LERP_MODES} disabled={!HAS_HUE.includes(colorSpace)} />
          </BaseNode.Input>
          <hr />
-         <SocketIn<IColorLerpNode> socketId={"distribution"} nodeId={nodeId} type={SocketTypes.CURVE}>
+         <SocketIn<ILerpColorNode> socketId={"distribution"} nodeId={nodeId} type={SocketTypes.CURVE}>
             Value Distribution
          </SocketIn>
-         <SocketIn<IColorLerpNode> socketId={"start"} nodeId={nodeId} type={SocketTypes.NUMBER}>
-            <BaseNode.Input label={"Start"}>
-               <NumberInput value={start} onValidValue={setStart} disabled={hasSequence} max={end} />
-            </BaseNode.Input>
-         </SocketIn>
-         <SocketIn<IColorLerpNode> socketId={"interval"} nodeId={nodeId} type={SocketTypes.NUMBER}>
-            <BaseNode.Input label={"Interval"}>
-               <NumberInput value={interval} onValidValue={setInterval} disabled={hasSequence} min={start} max={end} />
-            </BaseNode.Input>
-         </SocketIn>
-         <SocketIn<IColorLerpNode> socketId={"end"} nodeId={nodeId} type={SocketTypes.NUMBER}>
-            <BaseNode.Input label={"End"}>
-               <NumberInput value={end} onValidValue={setEnd} disabled={hasSequence} min={start} />
+         <SocketIn<ILerpColorNode> socketId={"percent"} nodeId={nodeId} type={SocketTypes.PERCENT}>
+            <BaseNode.Input label={"Percent"}>
+               <SliderInput value={percent} onValidValue={setPercent} disabled={hasSequence} min={0} max={1} />
             </BaseNode.Input>
          </SocketIn>
       </BaseNode>
    );
 });
 
-const nodeMethods = ArcaneGraph.nodeMethods<IColorLerpNode>();
+const nodeMethods = ArcaneGraph.nodeMethods<ILerpColorNode>();
 
-const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof IColorLerpNode["outputs"], globals: Globals) => {
+const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof ILerpColorNode["outputs"], globals: Globals) => {
    const sequence = nodeMethods.getInput(graph, nodeId, "sequence", globals);
 
-   const interval = nodeMethods.coalesce(graph, nodeId, "interval", "interval", globals);
+   const percent = nodeMethods.coalesce(graph, nodeId, "percent", "percent", globals);
    const from = nodeMethods.coalesce(graph, nodeId, "from", "from", globals);
    const to = nodeMethods.coalesce(graph, nodeId, "to", "to", globals);
-   const start = nodeMethods.coalesce(graph, nodeId, "start", "start", globals);
-   const end = nodeMethods.coalesce(graph, nodeId, "end", "end", globals);
 
    const colorSpace = nodeMethods.getValue(graph, nodeId, "colorSpace");
    const hueMode = nodeMethods.getValue(graph, nodeId, "hueMode");
@@ -147,13 +129,12 @@ const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof IColorLerp
       return MathHelper.colorLerp(t, from, to, colorSpace, hueMode, distribution);
    }
 
-   const t = MathHelper.delerp(interval, start, end);
-   return MathHelper.colorLerp(t, from, to, colorSpace, hueMode, distribution);
+   return MathHelper.colorLerp(MathHelper.clamp(percent, 0, 1), from, to, colorSpace, hueMode, distribution);
 
    //TODO: How do I get sequence data from here?!?
 };
 
-const ColorLerpNodeHelper: INodeHelper<IColorLerpNode> = {
+const LerpColorNodeHelper: INodeHelper<ILerpColorNode> = {
    name: "Color Lerp",
    buttonIcon,
    nodeIcon,
@@ -163,16 +144,14 @@ const ColorLerpNodeHelper: INodeHelper<IColorLerpNode> = {
    initialize: () => ({
       from: { r: 0, g: 0, b: 0, a: 1 },
       to: { r: 1, g: 1, b: 1, a: 1 },
-      start: 0,
-      end: 1,
-      interval: 0,
+      percent: 0,
       colorSpace: "RGB",
       hueMode: "closestCW",
    }),
    controls: Controls,
 };
 
-export default ColorLerpNodeHelper;
+export default LerpColorNodeHelper;
 
 const Warning = styled.div`
    display: grid;

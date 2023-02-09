@@ -93,7 +93,7 @@ export const RootNodeRenderer = () => {
          width={`${w}px`}
          height={`${h}px`}
          viewBox={`${w / -2} ${h / -2} ${w} ${h}`}
-         style={{ backgroundColor: MathHelper.colorToHex(canvasColor) }}
+         style={{ backgroundColor: MathHelper.colorToHTML(canvasColor) }}
          xmlns="http://www.w3.org/2000/svg"
          xmlnsXlink="http://www.w3.org/1999/xlink"
       >

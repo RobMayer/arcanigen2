@@ -56,10 +56,6 @@ const getHue = (r: number, g: number, b: number) => {
 };
 
 export const RGB2color = ({ r, g, b, a }: ColorFields["RGB"]): Color => {
-   r /= 255;
-   g /= 255;
-   b /= 255;
-   a /= 100;
    return { r, g, b, a };
 };
 
@@ -67,21 +63,10 @@ export const color2RGB = (color: Color): ColorFields["RGB"] => {
    if (!color) {
       return { r: 0, g: 0, b: 0, a: 0 };
    }
-   const { r, g, b, a } = color;
-   return {
-      r: (r * 255) & 255,
-      g: (g * 255) & 255,
-      b: (b * 255) & 255,
-      a: a * 100,
-   };
+   return color;
 };
 
 export const CMYK2color = ({ c, m, y, k, a }: ColorFields["CMYK"]): Color => {
-   c /= 100;
-   m /= 100;
-   y /= 100;
-   k /= 100;
-   a /= 100;
    return {
       r: (1 - c) * (1 - k),
       g: (1 - m) * (1 - k),
@@ -97,11 +82,11 @@ export const color2CMYK = (color: Color): ColorFields["CMYK"] => {
    const { r, g, b, a } = color;
    const max = Math.max(r, g, b);
    return {
-      c: max === 0 ? 0 : ((max - r) / max) * 100,
-      m: max === 0 ? 0 : ((max - g) / max) * 100,
-      y: max === 0 ? 0 : ((max - b) / max) * 100,
-      k: (1 - max) * 100,
-      a: a * 100,
+      c: max === 0 ? 0 : (max - r) / max,
+      m: max === 0 ? 0 : (max - g) / max,
+      y: max === 0 ? 0 : (max - b) / max,
+      k: 1 - max,
+      a: a,
    };
 };
 
@@ -117,14 +102,11 @@ export const color2HSL = (color: Color): ColorFields["HSL"] => {
    const s = max === min ? 0 : (max - min) / (1 - Math.abs(min + max - 1));
    const l = (max + min) / 2;
 
-   return { h: h * 360, s: s * 100, l: l * 100, a: a * 100 };
+   return { h: h * 360, s, l, a };
 };
 
 export const HSL2color = ({ h, s, l, a }: ColorFields["HSL"]): Color => {
    h /= 360;
-   s /= 100;
-   l /= 100;
-   a /= 100;
 
    const tC = (1 - Math.abs(2 * l - 1)) * s;
    const tX = tC / 2 + l;
@@ -158,14 +140,11 @@ export const color2HSV = (color: Color): ColorFields["HSV"] => {
    const h = getHue(r, g, b);
    const s = max === 0 ? 0 : (max - min) / max;
    const v = max;
-   return { h: h * 360, s: s * 100, v: v * 100, a: a * 100 };
+   return { h: h * 360, s, v, a };
 };
 
 export const HSV2color = ({ h, s, v, a }: ColorFields["HSV"]): Color => {
    h /= 360;
-   s /= 100;
-   v /= 100;
-   a /= 100;
 
    const tC = v * s;
    const tX = tC * (1 - Math.abs(((h * 6) % 2) - 1));
@@ -199,14 +178,11 @@ export const color2HWK = (color: Color): ColorFields["HWK"] => {
    const w = Math.min(r, g, b);
    const k = 1 - Math.max(r, g, b);
 
-   return { h: h * 360, w: w * 100, k: k * 100, a: a * 100 };
+   return { h: h * 360, w, k, a };
 };
 
 export const HWK2color = ({ h, w, k, a }: ColorFields["HWK"]): Color => {
    h /= 360;
-   w /= 100;
-   k /= 100;
-   a /= 100;
 
    const tZ = w + k;
    if (k === 1) {
@@ -245,14 +221,11 @@ export const color2HSI = (color: Color): ColorFields["HSI"] => {
    const min = Math.min(r, g, b);
    const s = i === 0 ? 0 : 1 - min / i;
 
-   return { h: h * 360, s: s * 100, i: i * 100, a: a * 100 };
+   return { h: h * 360, s, i, a };
 };
 
 export const HSI2color = ({ h, s, i, a }: ColorFields["HSI"]): Color => {
    h /= 360;
-   s /= 100;
-   i /= 100;
-   a /= 100;
 
    const tZ = 1 - Math.abs(((h * 6) % 2) - 1);
    const tC = (3 * i * s) / (1 + tZ);
@@ -284,14 +257,11 @@ export const color2HCY = (color: Color): ColorFields["HCY"] => {
    const h = getHue(r, g, b);
    const c = Math.max(r, g, b) - Math.min(r, g, b);
    const y = r * SRGB.r + g * SRGB.g + b * SRGB.b;
-   return { h: h * 360, c: c * 100, y: y * 100, a: a * 100 };
+   return { h: h * 360, c, y, a };
 };
 
 export const HCY2color = ({ h, c, y, a }: ColorFields["HCY"]): Color => {
    h /= 360;
-   c /= 100;
-   y /= 100;
-   a /= 100;
 
    const tX = c * (1 - Math.abs(((h * 6) % 2) - 1));
 
@@ -358,24 +328,24 @@ export const colorComponents = (color: Color) => {
    const yellow = max === 0 ? 0 : (max - color.b) / max;
 
    return {
-      red: (color.r * 255) & 255,
-      green: (color.g * 255) & 255,
-      blue: (color.b * 255) & 255,
-      cyan: cyan * 100,
-      magenta: magenta * 100,
-      yellow: yellow * 100,
+      red: color.r,
+      green: color.g,
+      blue: color.b,
+      cyan,
+      magenta,
+      yellow,
       hue: hue * 360,
-      white: white * 100,
-      black: black * 100,
-      saturationV: saturationV * 100,
-      saturationI: saturationI * 100,
-      saturationL: saturationL * 100,
-      lightness: lightness * 100,
-      value: value * 100,
-      intensity: intensity * 100,
-      chroma: chroma * 100,
-      luminance: luminance * 100,
-      alpha: color.a * 100,
+      white,
+      black,
+      saturationV,
+      saturationI,
+      saturationL,
+      lightness,
+      value,
+      intensity,
+      chroma,
+      luminance,
+      alpha: color.a,
    };
 };
 

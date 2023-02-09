@@ -182,8 +182,8 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
    return (
       <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation}deg)` }}>
          <g
-            stroke={MathHelper.colorToHex(strokeColor, "#000f")}
-            fill={MathHelper.colorToHex(fillColor, "transparent")}
+            stroke={MathHelper.colorToHTML(strokeColor)}
+            fill={MathHelper.colorToHTML(fillColor)}
             strokeWidth={Math.max(0, MathHelper.lengthToPx(strokeWidth))}
             strokeLinejoin={strokeJoin}
          >
