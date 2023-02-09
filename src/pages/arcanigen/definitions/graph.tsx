@@ -76,8 +76,6 @@ const useStoreData = () => {
       });
    }, []);
 
-   const { remove: removeFromLocalStorage } = useLocalStorage("arcanigen");
-
    const reset = useCallback(() => {
       graphStore.current = {
          nodes: {
@@ -93,11 +91,9 @@ const useStoreData = () => {
          ROOT: posStore.current.ROOT,
       };
 
-      removeFromLocalStorage();
-
       graphListeners.current.forEach((callback) => callback());
       positionListeners.current.forEach((callback) => callback());
-   }, [removeFromLocalStorage]);
+   }, []);
 
    const save = useCallback(() => {
       return {
