@@ -131,7 +131,12 @@ const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
    const children = useMemo(() => {
       return lodash.range(pointCount).map((n, i) => {
          const coeff = MathHelper.delerp(n, 0, pointCount);
-         const rot = MathHelper.lerp(coeff, 0, 360, { curveFn: thetaCurve?.curveFn ?? "linear", easing: thetaCurve?.easing ?? "in" }) - 180;
+         const rot =
+            MathHelper.lerp(coeff, 0, 360, {
+               curveFn: thetaCurve?.curveFn ?? "linear",
+               easing: thetaCurve?.easing ?? "in",
+               intensity: thetaCurve?.intensity ?? 1,
+            }) - 180;
 
          return (
             <g key={n} style={{ transform: `rotate(${rot}deg) translate(0px, ${tR}px) rotate(${isRotating ? 180 : -rot}deg)` }}>
@@ -139,7 +144,7 @@ const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
             </g>
          );
       });
-   }, [output, childNodeId, pointCount, tR, isRotating, nodeId, depth, globals, thetaCurve?.curveFn, thetaCurve?.easing]);
+   }, [output, childNodeId, pointCount, tR, isRotating, nodeId, depth, globals, thetaCurve?.curveFn, thetaCurve?.easing, thetaCurve?.intensity]);
 
    return (
       <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation}deg)` }}>

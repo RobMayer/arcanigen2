@@ -202,11 +202,13 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
 
    const points = useMemo(() => {
       const tR = getTrueRadius(MathHelper.lengthToPx(radius), scribeMode, pointCount);
-      const angles = lodash
-         .range(0, pointCount)
-         .map((i) =>
-            MathHelper.lerp(MathHelper.delerp(i, 0, pointCount), 0, 360, { curveFn: thetaCurve?.curveFn ?? "linear", easing: thetaCurve?.easing ?? "in" })
-         );
+      const angles = lodash.range(0, pointCount).map((i) =>
+         MathHelper.lerp(MathHelper.delerp(i, 0, pointCount), 0, 360, {
+            curveFn: thetaCurve?.curveFn ?? "linear",
+            easing: thetaCurve?.easing ?? "in",
+            intensity: thetaCurve?.intensity ?? 1,
+         })
+      );
 
       return lodash
          .range(0, pointCount)
@@ -215,7 +217,7 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
             return `${tR * Math.cos(MathHelper.deg2rad(i - 90))},${tR * Math.sin(MathHelper.deg2rad(i - 90))}`;
          })
          .join(" ");
-   }, [radius, scribeMode, pointCount, skipCount, thetaCurve?.curveFn, thetaCurve?.easing]);
+   }, [radius, scribeMode, pointCount, skipCount, thetaCurve?.curveFn, thetaCurve?.easing, thetaCurve?.intensity]);
 
    return (
       <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation}deg)` }}>

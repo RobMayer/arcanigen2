@@ -217,11 +217,13 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
             const ang = MathHelper.lerp(MathHelper.delerp(i, 0, pointCount), 0, 360, {
                curveFn: thetaCurve?.curveFn ?? "linear",
                easing: thetaCurve?.easing ?? "in",
+               intensity: thetaCurve?.intensity ?? 1,
             });
 
             const nextAng = MathHelper.lerp(MathHelper.delerp(i + 1, 0, pointCount), 0, 360, {
                curveFn: thetaCurve?.curveFn ?? "linear",
                easing: thetaCurve?.easing ?? "in",
+               intensity: thetaCurve?.intensity ?? 1,
             });
 
             const th = Math.abs(nextAng - ang) / 2;
@@ -265,7 +267,19 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
             }`;
          })
          .join(" ");
-   }, [innerRadius, innerSmooth, outerRadius, outerSmooth, pointCount, radialMode, radius, spread, thetaCurve?.curveFn, thetaCurve?.easing]);
+   }, [
+      innerRadius,
+      innerSmooth,
+      outerRadius,
+      outerSmooth,
+      pointCount,
+      radialMode,
+      radius,
+      spread,
+      thetaCurve?.curveFn,
+      thetaCurve?.easing,
+      thetaCurve?.intensity,
+   ]);
 
    return (
       <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation}deg)` }}>

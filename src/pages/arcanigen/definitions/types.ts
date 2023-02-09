@@ -143,6 +143,7 @@ export type Position = {
 export type Curve = {
    curveFn: CurveFunction;
    easing: EasingMode;
+   intensity: number;
 };
 
 export type OutSocketsOf<T extends INodeDefinition> = keyof T["outputs"];

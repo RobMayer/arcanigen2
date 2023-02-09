@@ -7,6 +7,7 @@ export const deg2rad = (deg: number) => deg * (Math.PI / 180);
 const DEFAULT_CURVE: Curve = {
    curveFn: "linear",
    easing: "in",
+   intensity: 1,
 };
 
 const CURVE_HANDLERS: { [keys in CurveFunction]: (t: number) => number } = {
@@ -33,8 +34,9 @@ const handleCurve = (e: EasingMode, func: (t: number) => number) => {
    }
 };
 
-export const lerp = (t: number, a: number, b: number, { curveFn, easing }: Curve = DEFAULT_CURVE) => {
-   const nT = handleCurve(easing, CURVE_HANDLERS[curveFn])(t);
+export const lerp = (t: number, a: number, b: number, { curveFn, easing, intensity }: Curve = DEFAULT_CURVE) => {
+   const r = handleCurve(easing, CURVE_HANDLERS[curveFn])(t);
+   const nT = t + intensity * (r - t);
    return a + nT * (b - a);
 };
 

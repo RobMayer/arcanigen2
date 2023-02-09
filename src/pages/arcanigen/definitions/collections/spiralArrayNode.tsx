@@ -223,11 +223,23 @@ const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
          const coeff = MathHelper.delerp(n, 0, thetaInclusive ? pointCount - 1 : pointCount);
          const rot =
             thetaMode === "startstop"
-               ? MathHelper.lerp(coeff, 1 * thetaStart, 1 * thetaEnd, { curveFn: thetaCurve?.curveFn ?? "linear", easing: thetaCurve?.easing ?? "in" })
-               : thetaSteps * n;
+               ? MathHelper.lerp(coeff, 1 * thetaStart, 1 * thetaEnd, {
+                    curveFn: thetaCurve?.curveFn ?? "linear",
+                    easing: thetaCurve?.easing ?? "in",
+                    intensity: thetaCurve?.intensity ?? 1,
+                 })
+               : MathHelper.lerp(coeff, 0, pointCount * thetaSteps, {
+                    curveFn: thetaCurve?.curveFn ?? "linear",
+                    easing: thetaCurve?.easing ?? "in",
+                    intensity: thetaCurve?.intensity ?? 1,
+                 });
 
          // const rot = MathHelper.lerp(coeff, 0, 360) - 180;
-         const rad = MathHelper.lerp(coeff, rI, rO, { curveFn: radialCurve?.curveFn ?? "linear", easing: radialCurve?.easing ?? "in" });
+         const rad = MathHelper.lerp(coeff, rI, rO, {
+            curveFn: radialCurve?.curveFn ?? "linear",
+            easing: radialCurve?.easing ?? "in",
+            intensity: radialCurve?.intensity ?? 1,
+         });
 
          return (
             <g key={n} style={{ transform: `rotate(${rot + 180}deg) translate(0px, ${rad}px) rotate(${isRotating ? 180 : -rot - 180}deg)` }}>
@@ -252,8 +264,10 @@ const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
       globals,
       radialCurve?.curveFn,
       radialCurve?.easing,
+      radialCurve?.intensity,
       thetaCurve?.curveFn,
       thetaCurve?.easing,
+      thetaCurve?.intensity,
    ]);
 
    return (

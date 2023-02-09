@@ -173,11 +173,12 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
             const coeff = MathHelper.lerp(MathHelper.delerp(i, 0, pointCount), 0, 360, {
                curveFn: thetaCurve?.curveFn ?? "linear",
                easing: thetaCurve?.easing ?? "in",
+               intensity: thetaCurve?.intensity ?? 1,
             });
             return `${tR * Math.cos(MathHelper.deg2rad(coeff - 90))},${tR * Math.sin(MathHelper.deg2rad(coeff - 90))}`;
          })
          .join(" ");
-   }, [pointCount, radius, scribeMode, thetaCurve?.curveFn, thetaCurve?.easing]);
+   }, [pointCount, radius, scribeMode, thetaCurve?.curveFn, thetaCurve?.easing, thetaCurve?.intensity]);
 
    return (
       <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation}deg)` }}>

@@ -248,13 +248,21 @@ const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
          const coeff = MathHelper.delerp(n, 0, thetaInclusive ? spurCount - 1 : spurCount);
          const angle =
             thetaMode === "startstop"
-               ? MathHelper.lerp(coeff, 1 * thetaStart, 1 * thetaEnd, { curveFn: thetaCurve?.curveFn ?? "linear", easing: thetaCurve?.easing ?? "in" })
-               : thetaSteps * n;
+               ? MathHelper.lerp(coeff, 1 * thetaStart, 1 * thetaEnd, {
+                    curveFn: thetaCurve?.curveFn ?? "linear",
+                    easing: thetaCurve?.easing ?? "in",
+                    intensity: thetaCurve?.intensity ?? 1,
+                 })
+               : MathHelper.lerp(coeff, 0, spurCount * thetaSteps, {
+                    curveFn: thetaCurve?.curveFn ?? "linear",
+                    easing: thetaCurve?.easing ?? "in",
+                    intensity: thetaCurve?.intensity ?? 1,
+                 });
          const c = Math.cos(MathHelper.deg2rad(angle - 90));
          const s = Math.sin(MathHelper.deg2rad(angle - 90));
          return <line key={n} x1={rI * c} y1={rI * s} x2={rO * c} y2={rO * s} vectorEffect={"non-scaling-stroke"} />;
       });
-   }, [rI, rO, spurCount, thetaCurve?.curveFn, thetaCurve?.easing, thetaEnd, thetaInclusive, thetaMode, thetaStart, thetaSteps]);
+   }, [rI, rO, spurCount, thetaCurve?.curveFn, thetaCurve?.easing, thetaEnd, thetaInclusive, thetaMode, thetaStart, thetaSteps, thetaCurve?.intensity]);
 
    return (
       <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation}deg)` }}>
