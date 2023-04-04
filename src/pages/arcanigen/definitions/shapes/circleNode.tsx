@@ -100,7 +100,7 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
    const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
 
    return (
-      <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)}` }}>
+      <g transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)}`}>
          <g
             stroke={MathHelper.colorToHTML(strokeColor, "#000f")}
             fill={MathHelper.colorToHTML(fillColor)}

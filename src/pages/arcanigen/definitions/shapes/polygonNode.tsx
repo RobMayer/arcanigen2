@@ -181,7 +181,7 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
    }, [pointCount, radius, scribeMode, thetaCurve?.curveFn, thetaCurve?.easing, thetaCurve?.intensity]);
 
    return (
-      <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation}deg)` }}>
+      <g transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`}>
          <g
             stroke={MathHelper.colorToHTML(strokeColor)}
             fill={MathHelper.colorToHTML(fillColor)}

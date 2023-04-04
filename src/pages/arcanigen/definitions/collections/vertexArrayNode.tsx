@@ -139,18 +139,16 @@ const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
             }) - 180;
 
          return (
-            <g key={n} style={{ transform: `rotate(${rot}deg) translate(0px, ${tR}px) rotate(${isRotating ? 180 : -rot}deg)` }}>
-               {output && childNodeId && <Each output={output} host={nodeId} globals={globals} nodeId={childNodeId} depth={depth} index={i} />}
+            <g key={n} transform={`rotate(${rot}) translate(0, ${tR})`}>
+               <g transform={`rotate(${isRotating ? 180 : -rot}deg)`}>
+                  {output && childNodeId && <Each output={output} host={nodeId} globals={globals} nodeId={childNodeId} depth={depth} index={i} />}
+               </g>
             </g>
          );
       });
    }, [output, childNodeId, pointCount, tR, isRotating, nodeId, depth, globals, thetaCurve?.curveFn, thetaCurve?.easing, thetaCurve?.intensity]);
 
-   return (
-      <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation}deg)` }}>
-         {children}
-      </g>
-   );
+   return <g transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`}>{children}</g>;
 });
 
 const Each = ({ nodeId, globals, depth, index, host, output: Output }: NodeRendererProps & { index: number; host: string; output: NodeRenderer }) => {

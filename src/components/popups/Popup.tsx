@@ -304,9 +304,9 @@ export const Popup = ({
                   ref={aRef}
                   style={{
                      vectorEffect: "non-scaling-stroke",
-                     stroke: arrow ? arrow.border : "transparent",
+                     stroke: arrow ? arrow.border : "none",
                      strokeWidth: arrow ? arrow.stroke : "0px",
-                     fill: arrow ? arrow.color : "transparent",
+                     fill: arrow ? arrow.color : "none",
                   }}
                />
             </svg>
@@ -331,8 +331,8 @@ type PopupProps = {
 
 const defaultArrow: ArrowProps = {
    stroke: "0px",
-   border: "transparent",
-   color: "transparent",
+   border: "none",
+   color: "none",
    size: "1em",
 };
 

@@ -200,7 +200,7 @@ const Renderer = memo(({ nodeId, globals, depth }: NodeRendererProps) => {
    }, [pieSlice, radius, thetaEnd, thetaStart]);
 
    return (
-      <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation}deg)` }}>
+      <g transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`}>
          {MarkStart && msId && (
             <marker
                id={`markstart_${nodeId}_lyr-${depth ?? ""}`}
@@ -212,7 +212,7 @@ const Renderer = memo(({ nodeId, globals, depth }: NodeRendererProps) => {
                overflow={"visible"}
                orient={strokeMarkAlign ? "auto-start-reverse" : undefined}
             >
-               <g style={{ transform: strokeMarkAlign ? `rotate(-90deg)` : "" }}>
+               <g transform={strokeMarkAlign ? `rotate(-90)` : ""}>
                   <MarkStart nodeId={msId} depth={(depth ?? "") + `_${nodeId}.markStart`} globals={globals} />
                </g>
             </marker>
@@ -228,7 +228,7 @@ const Renderer = memo(({ nodeId, globals, depth }: NodeRendererProps) => {
                overflow={"visible"}
                orient={strokeMarkAlign ? "auto-start-reverse" : undefined}
             >
-               <g style={{ transform: strokeMarkAlign ? `rotate(-90deg)` : "" }}>
+               <g transform={strokeMarkAlign ? `rotate(-90)` : ""}>
                   <MarkEnd nodeId={meId} depth={(depth ?? "") + `_${nodeId}.markEnd`} globals={globals} />
                </g>
             </marker>

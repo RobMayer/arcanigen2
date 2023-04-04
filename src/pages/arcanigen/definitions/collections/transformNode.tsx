@@ -1,4 +1,4 @@
-import { memo, useMemo } from "react";
+import { memo } from "react";
 import ArcaneGraph from "../graph";
 import { INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, NodeTypes, PositionMode, POSITION_MODES, SocketTypes } from "../types";
 import MathHelper from "!/utility/mathhelper";
@@ -158,21 +158,18 @@ const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
 
    const [Output, cid] = nodeHelper.useInputNode(nodeId, "input", globals);
 
-   const style = useMemo(() => {
-      return {
-         transform: `${MathHelper.getPosition(
+   return (
+      <g
+         transform={`${MathHelper.getPosition(
             positionMode,
             positionX,
             positionY,
             positionTheta,
             positionRadius
-         )} rotate(${postRotation}deg) scale(${scaleX}%,${scaleY}%) skew(${skewX}deg, ${skewY}deg) rotate(${preRotation}deg)`,
-      };
-   }, [positionMode, positionRadius, positionTheta, positionX, positionY, preRotation, scaleX, scaleY, skewX, skewY, postRotation]);
-
-   return (
-      <g style={style} vectorEffect={"non-scaling-stroke"}>
-         {Output && cid && <Output nodeId={cid} depth={`${depth}_${nodeId}`} globals={globals} />}
+         )} rotate(${postRotation}) scale(${scaleX}, ${scaleY}) skew(${skewX}, ${skewY})`}
+         vectorEffect={"non-scaling-stroke"}
+      >
+         <g transform={`rotate(${preRotation})`}>{Output && cid && <Output nodeId={cid} depth={`${depth}_${nodeId}`} globals={globals} />}</g>
       </g>
    );
 });

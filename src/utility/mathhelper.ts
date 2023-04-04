@@ -105,7 +105,7 @@ export const hexToColor = (h: string) => {
    if (h === "") {
       return undefined;
    }
-   if (h === "transparent") {
+   if (h === "none") {
       return null;
    }
 
@@ -132,7 +132,7 @@ export const colorToHex = (color: Color, fallback: string = "") => {
       return fallback;
    }
    if (color === null) {
-      return "transparent";
+      return "none";
    }
    return `#${Math.round(color.r * 255)
       .toString(16)
@@ -150,7 +150,7 @@ export const colorToHTML = (color: Color, fallback: string = "") => {
       return fallback;
    }
    if (color === null) {
-      return "transparent";
+      return "none";
    }
    return `rgba( ${color.r * 100}%, ${color.g * 100}%, ${color.b * 100}%, ${color.a} )`;
 };
@@ -163,9 +163,9 @@ const getPosition = (mode: "cartesian" | "polar", x: Length, y: Length, theta: n
       const nX = lengthToPx(r) * Math.cos(((theta - 90) * Math.PI) / 180);
       const nY = lengthToPx(r) * Math.sin(((theta - 90) * Math.PI) / 180);
 
-      return `translate(${nX}px, ${nY}px)`;
+      return `translate(${nX}, ${nY})`;
    }
-   return `translate(${lengthToPx(x)}px, ${lengthToPx(y) * -1}px)`;
+   return `translate(${lengthToPx(x)}, ${lengthToPx(y) * -1})`;
 };
 
 export const shortestArc = (start: number, stop: number) => {

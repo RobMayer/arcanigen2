@@ -242,8 +242,10 @@ const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
          });
 
          return (
-            <g key={n} style={{ transform: `rotate(${rot + 180}deg) translate(0px, ${rad}px) rotate(${isRotating ? 180 : -rot - 180}deg)` }}>
-               {output && childNodeId && <Each output={output} nodeId={childNodeId} host={nodeId} depth={depth} globals={globals} index={i} />}
+            <g key={n} transform={`rotate(${rot + 180}) translate(0px, ${rad}px)`}>
+               <g key={n} transform={`rotate(${isRotating ? 180 : -rot - 180})`}>
+                  {output && childNodeId && <Each output={output} nodeId={childNodeId} host={nodeId} depth={depth} globals={globals} index={i} />}
+               </g>
             </g>
          );
       });
@@ -270,11 +272,7 @@ const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
       thetaCurve?.intensity,
    ]);
 
-   return (
-      <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation}deg)` }}>
-         {children}
-      </g>
-   );
+   return <g transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`}>{children}</g>;
 });
 
 const Each = ({ nodeId, globals, depth, index, host, output: Output }: NodeRendererProps & { index: number; host: string; output: NodeRenderer }) => {

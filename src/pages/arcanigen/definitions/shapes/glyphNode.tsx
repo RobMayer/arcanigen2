@@ -147,13 +147,13 @@ const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
    const rotation = nodeHelper.useCoalesce(nodeId, "rotation", "rotation", globals);
 
    return (
-      <g style={{ transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation}deg)` }}>
+      <g transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`}>
          <symbol id={`glyph_${nodeId}_lyr-${depth ?? ""}`} viewBox="0 0 512 512">
             <path d={path} vectorEffect={"non-scaling-stroke"} />
          </symbol>
          <g
-            stroke={MathHelper.colorToHTML(strokeColor, "transparent")}
-            fill={MathHelper.colorToHTML(fillColor, "transparent")}
+            stroke={MathHelper.colorToHTML(strokeColor, "none")}
+            fill={MathHelper.colorToHTML(fillColor, "none")}
             strokeWidth={Math.max(0, MathHelper.lengthToPx(strokeWidth ?? { value: 0, unit: "px" }))}
             strokeLinecap={strokeCap}
             strokeLinejoin={strokeJoin}
