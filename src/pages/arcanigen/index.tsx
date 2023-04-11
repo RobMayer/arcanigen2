@@ -8,8 +8,6 @@ import NodeView from "./nodeView";
 import OutputView from "./outputView";
 import ArcaneGraph from "./definitions/graph";
 import ActionButton from "!/components/buttons/ActionButton";
-import Icon from "!/components/icons";
-import { faBug } from "@fortawesome/pro-solid-svg-icons";
 import { saveAs } from "file-saver";
 import { IArcaneGraph } from "./definitions/types";
 import Modal, { useModal } from "!/components/popups/Modal";
@@ -65,7 +63,7 @@ const handleUpload = (element: HTMLInputElement, file: File, dispatch: (value: U
 };
 
 const ArcaneGraphMenu = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) => {
-   const { debug, save, load, reset } = ArcaneGraph.useGraph();
+   const { save, load, reset } = ArcaneGraph.useGraph();
 
    const modalControls = useModal();
 

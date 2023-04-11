@@ -45,6 +45,7 @@ import SplitColorNodeHelper from "./values/splitColorNode";
 import LerpAngleNodeHelper from "./math/lerpAngleNode";
 import LerpLengthNodeHelper from "./math/lerpLengthNode";
 import TransformNodeHelper from "./collections/transformNode";
+import MathSpreadNodeHelper from "./math/mathSpdNode";
 
 // prettier-ignore
 export const getNodeHelper = (key: NodeTypes) => {
@@ -84,6 +85,7 @@ export const getNodeHelper = (key: NodeTypes) => {
       case NodeTypes.MATH_DIV: return MathDivNodeHelper;
       case NodeTypes.MATH_MOD: return MathModNodeHelper;
       case NodeTypes.MATH_ABS: return MathAbsNodeHelper;
+      case NodeTypes.MATH_SPD: return MathSpreadNodeHelper;
       case NodeTypes.MATH_RND: return MathRndNodeHelper;
 
       case NodeTypes.EFFECT_BRUSH: return BrushEffectNodeHelper;

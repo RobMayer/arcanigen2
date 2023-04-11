@@ -13,9 +13,10 @@ type IProps<T extends INodeDefinition> = {
    nodeId: string;
    helper: INodeHelper<T>;
    noRemove?: boolean;
+   name?: string;
 } & HTMLAttributes<HTMLDivElement>;
 
-const BaseNode = <T extends INodeDefinition>({ nodeId, children, helper, noRemove = false, ...props }: IProps<T>) => {
+const BaseNode = <T extends INodeDefinition>({ nodeId, children, helper, name = "", noRemove = false, ...props }: IProps<T>) => {
    const [initialPostion, commitPosition] = useNodePosition(nodeId);
    const { removeNode } = ArcaneGraph.useGraph();
    const [isOpen, setIsOpen] = useState<boolean>(true);
@@ -141,7 +142,7 @@ const BaseNode = <T extends INodeDefinition>({ nodeId, children, helper, noRemov
             <Label className={`flavour-${helper.flavour}`}>
                <ProxySocket className={"in"} data-trh-graph-sockethost={nodeId} data-trh-graph-fallback={"in"} />
                <IconButton flavour={"bare"} icon={helper.nodeIcon} className={"muted"} onClick={handleToggle} />
-               <LabelInner ref={gripRef}>{helper.name}</LabelInner>
+               <LabelInner ref={gripRef}>{name ? `"${name}"` : helper.name}</LabelInner>
                {!noRemove ? <IconButton flavour={"bare"} icon={faClose} onClick={handleRemove} /> : <Icon icon={faBlank} />}
                <ProxySocket className={"out"} data-trh-graph-sockethost={nodeId} data-trh-graph-fallback={"out"} />
             </Label>

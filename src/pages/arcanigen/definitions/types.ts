@@ -49,6 +49,7 @@ export enum NodeTypes {
    MATH_MOD = "mathMod",
    MATH_ABS = "mathAbs",
    MATH_RND = "mathRnd",
+   MATH_SPD = "mathSpd",
    VALUE_RANDOM = "valueRandom",
 
    COLOR_RGB = "colorRGB",

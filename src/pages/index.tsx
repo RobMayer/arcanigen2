@@ -2,7 +2,7 @@ import ActionButton from "!/components/buttons/ActionButton";
 import Link from "!/components/buttons/Link";
 import Icon from "!/components/icons";
 import Page from "!/components/content/Page";
-import { faDiscord, faGithub, faInstagram, faTwitter } from "@fortawesome/free-brands-svg-icons";
+import { faDiscord, faGithub, faInstagram } from "@fortawesome/free-brands-svg-icons";
 import { HTMLAttributes } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
