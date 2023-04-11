@@ -81,7 +81,6 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          <SocketIn<ITransformNode> nodeId={nodeId} socketId={"input"} type={SocketTypes.SHAPE}>
             Input
          </SocketIn>
-         <hr />
          <BaseNode.Input label={"Position Mode"}>
             <ToggleList value={positionMode} onValue={setPositionMode} options={POSITION_MODES} />
          </BaseNode.Input>
@@ -160,13 +159,9 @@ const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
 
    return (
       <g
-         transform={`${MathHelper.getPosition(
-            positionMode,
-            positionX,
-            positionY,
-            positionTheta,
-            positionRadius
-         )} rotate(${postRotation}) scale(${scaleX}, ${scaleY}) skew(${skewX}, ${skewY})`}
+         transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${postRotation}) scale(${
+            scaleX / 100
+         }, ${scaleY / 100}) skewX(${skewX}) skewY(${skewY})`}
          vectorEffect={"non-scaling-stroke"}
       >
          <g transform={`rotate(${preRotation})`}>{Output && cid && <Output nodeId={cid} depth={`${depth}_${nodeId}`} globals={globals} />}</g>
