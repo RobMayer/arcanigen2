@@ -66,7 +66,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IResultNode> type={SocketTypes.LENGTH} nodeId={nodeId} socketId={"originOffsetX"}>
-            <BaseNode.Input label={"origin Offset X"}>
+            <BaseNode.Input label={"Origin Offset X"}>
                <LengthInput value={originOffsetX} onValidValue={setOriginOffsetX} disabled={hasOriginOffsetX} />
             </BaseNode.Input>
          </SocketIn>
@@ -105,8 +105,8 @@ export const RootNodeRenderer = () => {
    const canvasHeight = nodeHelper.useCoalesce("ROOT", "canvasHeight", "canvasHeight", globals);
    const canvasWidth = nodeHelper.useCoalesce("ROOT", "canvasWidth", "canvasWidth", globals);
 
-   const originOffsetX = nodeHelper.useCoalesce("ROOT", "canvasHeight", "canvasHeight", globals);
-   const originOffsetY = nodeHelper.useCoalesce("ROOT", "canvasWidth", "canvasWidth", globals);
+   const originOffsetX = nodeHelper.useCoalesce("ROOT", "originOffsetX", "originOffsetX", globals);
+   const originOffsetY = nodeHelper.useCoalesce("ROOT", "originOffsetY", "originOffsetY", globals);
 
    const x = useMemo(() => MathHelper.lengthToPx(originOffsetX ?? { value: 0, unit: "px" }), [originOffsetX]);
    const y = useMemo(() => MathHelper.lengthToPx(originOffsetY ?? { value: 0, unit: "px" }), [originOffsetY]);
@@ -124,7 +124,7 @@ export const RootNodeRenderer = () => {
          xmlns="http://www.w3.org/2000/svg"
          xmlnsXlink="http://www.w3.org/1999/xlink"
       >
-         <g transform={`translate(${x}, ${y}`}>{OutputRenderer && childNodeId && <OutputRenderer nodeId={childNodeId} depth={"ROOT"} globals={globals} />}</g>
+         <g transform={`translate(${x}, ${y})`}>{OutputRenderer && childNodeId && <OutputRenderer nodeId={childNodeId} depth={"ROOT"} globals={globals} />}</g>
       </svg>
    );
 };
