@@ -276,12 +276,6 @@ const Anchor = styled.div`
    position: absolute;
 `;
 
-const Center = styled.div`
-   width: 0;
-   height: 0;
-   position: absolute;
-`;
-
 // export const useDragCanvasValue = DragValueCTX.useFastContext;
 
 export const useDragCanvasEvents = () => useContext(EventCTX);
