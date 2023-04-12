@@ -299,7 +299,8 @@ const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
             </marker>
          )}
          <g
-            stroke={MathHelper.colorToHTML(strokeColor)}
+            stroke={MathHelper.colorToSVG(strokeColor)}
+            strokeOpacity={MathHelper.colorToOpacity(strokeColor)}
             strokeWidth={Math.max(0, MathHelper.lengthToPx(strokeWidth))}
             strokeLinecap={strokeCap}
             markerStart={msId ? `url('#markstart_${nodeId}_lyr-${depth ?? ""}')` : undefined}

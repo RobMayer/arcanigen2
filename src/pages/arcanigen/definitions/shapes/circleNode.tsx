@@ -102,8 +102,10 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
    return (
       <g transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)}`}>
          <g
-            stroke={MathHelper.colorToHTML(strokeColor, "#000f")}
-            fill={MathHelper.colorToHTML(fillColor)}
+            stroke={MathHelper.colorToSVG(strokeColor)}
+            fill={MathHelper.colorToSVG(fillColor)}
+            strokeOpacity={MathHelper.colorToOpacity(strokeColor)}
+            fillOpacity={MathHelper.colorToOpacity(fillColor)}
             strokeWidth={Math.max(0, MathHelper.lengthToPx(strokeWidth ?? { value: 1, unit: "px" }))}
          >
             <circle cx={0} cy={0} r={Math.max(0, MathHelper.lengthToPx(radius ?? { value: 100, unit: "px" }))} vectorEffect={"non-scaling-stroke"} />

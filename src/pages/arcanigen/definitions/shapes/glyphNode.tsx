@@ -152,8 +152,10 @@ const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
             <path d={path} vectorEffect={"non-scaling-stroke"} />
          </symbol>
          <g
-            stroke={MathHelper.colorToHTML(strokeColor, "none")}
-            fill={MathHelper.colorToHTML(fillColor, "none")}
+            stroke={MathHelper.colorToSVG(strokeColor, "none")}
+            fill={MathHelper.colorToSVG(fillColor, "none")}
+            strokeOpacity={MathHelper.colorToOpacity(strokeColor, 0)}
+            fillOpacity={MathHelper.colorToOpacity(fillColor, 0)}
             strokeWidth={Math.max(0, MathHelper.lengthToPx(strokeWidth ?? { value: 0, unit: "px" }))}
             strokeLinecap={strokeCap}
             strokeLinejoin={strokeJoin}

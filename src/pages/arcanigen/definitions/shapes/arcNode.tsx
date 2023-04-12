@@ -235,8 +235,10 @@ const Renderer = memo(({ nodeId, globals, depth }: NodeRendererProps) => {
          )}
 
          <g
-            stroke={MathHelper.colorToHTML(strokeColor)}
-            fill={MathHelper.colorToHTML(fillColor)}
+            stroke={MathHelper.colorToSVG(strokeColor)}
+            fill={MathHelper.colorToSVG(fillColor)}
+            strokeOpacity={MathHelper.colorToOpacity(strokeColor)}
+            fillOpacity={MathHelper.colorToOpacity(fillColor)}
             strokeWidth={Math.max(0, MathHelper.lengthToPx(strokeWidth))}
             strokeLinecap={strokeCap}
             strokeLinejoin={strokeJoin}
