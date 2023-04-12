@@ -140,7 +140,7 @@ const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
 
          return (
             <g key={n} transform={`rotate(${rot}) translate(0, ${tR})`}>
-               <g transform={`rotate(${isRotating ? 180 : rot})`}>
+               <g transform={`rotate(${isRotating ? 180 : -rot})`}>
                   {output && childNodeId && <Each output={output} host={nodeId} globals={globals} nodeId={childNodeId} depth={depth} index={i} />}
                </g>
             </g>
