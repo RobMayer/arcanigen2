@@ -167,17 +167,15 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
 
    const points = useMemo(() => {
       const tR = getTrueRadius(MathHelper.lengthToPx(radius), scribeMode, pointCount);
-      return lodash
-         .range(pointCount)
-         .map((i) => {
-            const coeff = MathHelper.lerp(MathHelper.delerp(i, 0, pointCount), 0, 360, {
-               curveFn: thetaCurve?.curveFn ?? "linear",
-               easing: thetaCurve?.easing ?? "in",
-               intensity: thetaCurve?.intensity ?? 1,
-            });
-            return `${tR * Math.cos(MathHelper.deg2rad(coeff - 90))},${tR * Math.sin(MathHelper.deg2rad(coeff - 90))}`;
-         })
-         .join(" ");
+      const p = lodash.range(pointCount).map((each, i) => {
+         const coeff = MathHelper.lerp(MathHelper.delerp(each, 0, pointCount), 0, 360, {
+            curveFn: thetaCurve?.curveFn ?? "linear",
+            easing: thetaCurve?.easing ?? "in",
+            intensity: thetaCurve?.intensity ?? 1,
+         });
+         return `${tR * Math.cos(MathHelper.deg2rad(coeff - 90))},${tR * Math.sin(MathHelper.deg2rad(coeff - 90))}`;
+      });
+      return `M ${p[0]} ${p.slice(1).map((e) => `L ${e}`)} Z`;
    }, [pointCount, radius, scribeMode, thetaCurve?.curveFn, thetaCurve?.easing, thetaCurve?.intensity]);
 
    return (
@@ -190,7 +188,7 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
             strokeWidth={Math.max(0, MathHelper.lengthToPx(strokeWidth))}
             strokeLinejoin={strokeJoin}
          >
-            <polygon points={points} vectorEffect={"non-scaling-stroke"} />
+            <path d={points} vectorEffect={"non-scaling-stroke"} />
          </g>
       </g>
    );
