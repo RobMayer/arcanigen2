@@ -67,7 +67,7 @@ const Checkbox = styled(
    }
    &.state-disabled {
       color: var(--icon-disabled);
-      &:is(state-checked) {
+      &:is(.state-checked) {
          color: var(--icon-disabled-checked);
       }
       > .text {

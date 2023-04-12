@@ -27,6 +27,7 @@ import { Color } from "!/utility/types/units";
 import HexColorInput from "!/components/inputs/colorHexInput";
 import Dropdown from "!/components/selectors/Dropdown";
 import SliderInput from "!/components/inputs/SliderInput";
+import Checkbox from "!/components/buttons/Checkbox";
 
 interface ILerpColorNode extends INodeDefinition {
    inputs: {
@@ -45,6 +46,7 @@ interface ILerpColorNode extends INodeDefinition {
       percent: number;
       colorSpace: ColorSpace;
       hueMode: AngleLerpMode;
+      isInclusive: boolean;
    };
 }
 
@@ -54,6 +56,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [from, setFrom] = nodeHelper.useValueState(nodeId, "from");
    const [to, setTo] = nodeHelper.useValueState(nodeId, "to");
    const [percent, setPercent] = nodeHelper.useValueState(nodeId, "percent");
+   const [isInclusive, setIsInclusive] = nodeHelper.useValueState(nodeId, "isInclusive");
 
    const hasSequence = nodeHelper.useHasLink(nodeId, "sequence");
    const hasFrom = nodeHelper.useHasLink(nodeId, "from");
@@ -97,6 +100,9 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          <BaseNode.Input label={"Hue Direction"}>
             <Dropdown value={hueMode} onValue={setHueMode} options={ANGLE_LERP_MODES} disabled={!HAS_HUE.includes(colorSpace)} />
          </BaseNode.Input>
+         <Checkbox checked={isInclusive} onToggle={setIsInclusive} disabled={!hasSequence}>
+            Inclusive
+         </Checkbox>
          <hr />
          <SocketIn<ILerpColorNode> socketId={"distribution"} nodeId={nodeId} type={SocketTypes.CURVE}>
             Value Distribution
@@ -123,9 +129,11 @@ const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof ILerpColor
    const hueMode = nodeMethods.getValue(graph, nodeId, "hueMode");
    const distribution = nodeMethods.getInput(graph, nodeId, "distribution", globals);
 
+   const isInclusive = nodeMethods.getValue(graph, nodeId, "isInclusive");
+
    if (sequence) {
       const iter = globals.sequenceData[sequence.senderId] ?? sequence.min;
-      const t = MathHelper.delerp(iter, sequence.min, sequence.max);
+      const t = MathHelper.delerp(iter, sequence.min, sequence.max - (isInclusive ? 1 : 0));
       return MathHelper.colorLerp(t, from, to, colorSpace, hueMode, distribution);
    }
 
@@ -147,6 +155,7 @@ const LerpColorNodeHelper: INodeHelper<ILerpColorNode> = {
       percent: 0,
       colorSpace: "RGB",
       hueMode: "closestCW",
+      isInclusive: true,
    }),
    controls: Controls,
 };

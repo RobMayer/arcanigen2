@@ -10,6 +10,7 @@ import { SocketIn, SocketOut } from "../../nodeView/socket";
 import SliderInput from "!/components/inputs/SliderInput";
 import { Length } from "!/utility/types/units";
 import LengthInput from "!/components/inputs/LengthInput";
+import Checkbox from "!/components/buttons/Checkbox";
 
 interface ILerpLengthNode extends INodeDefinition {
    inputs: {
@@ -26,6 +27,7 @@ interface ILerpLengthNode extends INodeDefinition {
       from: Length;
       to: Length;
       percent: number;
+      isInclusive: boolean;
    };
 }
 
@@ -35,6 +37,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [from, setFrom] = nodeHelper.useValueState(nodeId, "from");
    const [to, setTo] = nodeHelper.useValueState(nodeId, "to");
    const [percent, setPercent] = nodeHelper.useValueState(nodeId, "percent");
+   const [isInclusive, setIsInclusive] = nodeHelper.useValueState(nodeId, "isInclusive");
 
    const hasSequence = nodeHelper.useHasLink(nodeId, "sequence");
 
@@ -57,6 +60,9 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                <LengthInput value={to} onValidValue={setTo} />
             </BaseNode.Input>
          </SocketIn>
+         <Checkbox checked={isInclusive} onToggle={setIsInclusive} disabled={!hasSequence}>
+            Inclusive
+         </Checkbox>
          <hr />
          <SocketIn<ILerpLengthNode> socketId={"distribution"} nodeId={nodeId} type={SocketTypes.CURVE}>
             Value Distribution
@@ -80,9 +86,11 @@ const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof ILerpLengt
    const to = nodeMethods.coalesce(graph, nodeId, "to", "to", globals);
    const distribution = nodeMethods.getInput(graph, nodeId, "distribution", globals);
 
+   const isInclusive = nodeMethods.getValue(graph, nodeId, "isInclusive");
+
    if (sequence) {
       const iter = globals.sequenceData[sequence.senderId] ?? sequence.min;
-      const t = MathHelper.delerp(iter, sequence.min, sequence.max);
+      const t = MathHelper.delerp(iter, sequence.min, sequence.max - (isInclusive ? 1 : 0));
       return {
          value: MathHelper.lerp(t, MathHelper.lengthToPx(from), MathHelper.lengthToPx(to), distribution),
          unit: "px",
@@ -107,6 +115,7 @@ const LerpLengthNodeHelper: INodeHelper<ILerpLengthNode> = {
       from: { value: 0, unit: "px" },
       to: { value: 1, unit: "px" },
       percent: 0,
+      isInclusive: true,
    }),
    controls: Controls,
 };

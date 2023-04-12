@@ -14,6 +14,7 @@ export enum NodeTypes {
    SHAPE_BURST = "shapeBurst",
    SHAPE_ARC = "shapeArc",
    SHAPE_SPIRAL = "shapeSpiral",
+   SHAPE_SEGMENT = "shapeSegment",
    SHAPE_FLOODFILL = "shapeFloodFill",
    SHAPE_GLYPH = "shapeGlyph",
 
@@ -23,7 +24,9 @@ export enum NodeTypes {
 
    ARRAY_VERTEX = "arrayVertex",
    ARRAY_SPIRAL = "arraySpiral",
+   ARRAY_REPEAT = "arrayRepeat",
 
+   VALUE_NUMBER = "valueNumber",
    VALUE_COLOR = "valueColor",
    VALUE_LENGTH = "valueLength",
    VALUE_ANGLE = "valueAngle",

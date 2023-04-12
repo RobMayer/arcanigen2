@@ -41,6 +41,7 @@ interface ILerpAngleNode extends INodeDefinition {
       percent: number;
       mode: AngleLerpMode;
       bounded: boolean;
+      isInclusive: boolean;
    };
 }
 
@@ -52,6 +53,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [percent, setPercent] = nodeHelper.useValueState(nodeId, "percent");
    const [bounded, setBounded] = nodeHelper.useValueState(nodeId, "bounded");
    const [mode, setMode] = nodeHelper.useValueState(nodeId, "mode");
+   const [isInclusive, setIsInclusive] = nodeHelper.useValueState(nodeId, "isInclusive");
 
    const hasSequence = nodeHelper.useHasLink(nodeId, "sequence");
 
@@ -87,6 +89,9 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          <BaseNode.Input label={"Hue Direction"}>
             <Dropdown value={mode} onValue={setMode} options={ANGLE_LERP_MODES} disabled={!bounded} />
          </BaseNode.Input>
+         <Checkbox checked={isInclusive} onToggle={setIsInclusive} disabled={!hasSequence}>
+            Inclusive
+         </Checkbox>
          <hr />
          <SocketIn<ILerpAngleNode> socketId={"distribution"} nodeId={nodeId} type={SocketTypes.CURVE}>
             Value Distribution
@@ -112,9 +117,11 @@ const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof ILerpAngle
    const to = nodeMethods.coalesce(graph, nodeId, "to", "to", globals);
    const distribution = nodeMethods.getInput(graph, nodeId, "distribution", globals);
 
+   const isInclusive = nodeMethods.getValue(graph, nodeId, "isInclusive");
+
    if (sequence) {
       const iter = globals.sequenceData[sequence.senderId] ?? sequence.min;
-      const t = MathHelper.delerp(iter, sequence.min, sequence.max);
+      const t = MathHelper.delerp(iter, sequence.min, sequence.max - (isInclusive ? 1 : 0));
       return bounded ? MathHelper.angleLerp(t, from, to, mode, distribution) : MathHelper.lerp(t, from, to, distribution);
    }
 
@@ -138,6 +145,7 @@ const LerpAngleNodeHelper: INodeHelper<ILerpAngleNode> = {
       percent: 0,
       mode: "closestCW",
       bounded: true,
+      isInclusive: true,
    }),
    controls: Controls,
 };

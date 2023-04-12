@@ -9,6 +9,7 @@ import BaseNode from "../../nodeView/node";
 import { SocketIn, SocketOut } from "../../nodeView/socket";
 import NumberInput from "!/components/inputs/NumberInput";
 import SliderInput from "!/components/inputs/SliderInput";
+import Checkbox from "!/components/buttons/Checkbox";
 
 interface ILerpNumberNode extends INodeDefinition {
    inputs: {
@@ -25,6 +26,7 @@ interface ILerpNumberNode extends INodeDefinition {
       from: number;
       to: number;
       percent: number;
+      isInclusive: boolean;
    };
 }
 
@@ -34,6 +36,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [from, setFrom] = nodeHelper.useValueState(nodeId, "from");
    const [to, setTo] = nodeHelper.useValueState(nodeId, "to");
    const [percent, setPercent] = nodeHelper.useValueState(nodeId, "percent");
+   const [isInclusive, setIsInclusive] = nodeHelper.useValueState(nodeId, "isInclusive");
 
    const hasSequence = nodeHelper.useHasLink(nodeId, "sequence");
 
@@ -56,6 +59,9 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                <NumberInput value={to} onValidValue={setTo} />
             </BaseNode.Input>
          </SocketIn>
+         <Checkbox checked={isInclusive} onToggle={setIsInclusive} disabled={!hasSequence}>
+            Inclusive
+         </Checkbox>
          <hr />
          <SocketIn<ILerpNumberNode> socketId={"distribution"} nodeId={nodeId} type={SocketTypes.CURVE}>
             Value Distribution
@@ -78,10 +84,11 @@ const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof ILerpNumbe
    const from = nodeMethods.coalesce(graph, nodeId, "from", "from", globals);
    const to = nodeMethods.coalesce(graph, nodeId, "to", "to", globals);
    const distribution = nodeMethods.getInput(graph, nodeId, "distribution", globals);
+   const isInclusive = nodeMethods.getValue(graph, nodeId, "isInclusive");
 
    if (sequence) {
       const iter = globals.sequenceData[sequence.senderId] ?? sequence.min;
-      const t = MathHelper.delerp(iter, sequence.min, sequence.max);
+      const t = MathHelper.delerp(iter, sequence.min, sequence.max - (isInclusive ? 1 : 0));
       return MathHelper.lerp(t, from, to, distribution);
    }
 
@@ -101,6 +108,7 @@ const LerpNumberNodeHelper: INodeHelper<ILerpNumberNode> = {
       from: 0,
       to: 1,
       percent: 0,
+      isInclusive: true,
    }),
    controls: Controls,
 };

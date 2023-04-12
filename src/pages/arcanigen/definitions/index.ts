@@ -46,6 +46,9 @@ import LerpAngleNodeHelper from "./math/lerpAngleNode";
 import LerpLengthNodeHelper from "./math/lerpLengthNode";
 import TransformNodeHelper from "./collections/transformNode";
 import MathSpreadNodeHelper from "./math/mathSpdNode";
+import NumberValueNodeHelper from "./values/numberValueNode";
+import SegmentNodeHelper from "./shapes/segementNode";
+import RepeatArrayNodeHelper from "./collections/repeatArrayNode";
 
 // prettier-ignore
 export const getNodeHelper = (key: NodeTypes) => {
@@ -59,6 +62,7 @@ export const getNodeHelper = (key: NodeTypes) => {
 
       case NodeTypes.ARRAY_VERTEX: return VertexArrayNodeHelper;
       case NodeTypes.ARRAY_SPIRAL: return SpiralArrayNodeHelper;
+      case NodeTypes.ARRAY_REPEAT: return RepeatArrayNodeHelper;
 
       case NodeTypes.SHAPE_CIRCLE: return CircleNodeHelper;
       case NodeTypes.SHAPE_RING: return RingNodeHelper;
@@ -68,6 +72,7 @@ export const getNodeHelper = (key: NodeTypes) => {
       case NodeTypes.SHAPE_BURST: return BurstNodeHelper;
       case NodeTypes.SHAPE_ARC: return ArcNodeHelper;
       case NodeTypes.SHAPE_SPIRAL: return SpiralNodeHelper;
+      case NodeTypes.SHAPE_SEGMENT: return SegmentNodeHelper;
 
       case NodeTypes.SHAPE_FLOODFILL: return FloodFillNodeHelper;
       case NodeTypes.SHAPE_GLYPH: return GlyphNodeHelper;
@@ -78,6 +83,7 @@ export const getNodeHelper = (key: NodeTypes) => {
 
       case NodeTypes.VALUE_COLOR: return HexColorNodeHelper;
       case NodeTypes.VALUE_PERCENT: return PercentValueNodeHelper;
+      case NodeTypes.VALUE_NUMBER: return NumberValueNodeHelper;
 
       case NodeTypes.MATH_ADD: return MathAddNodeHelper;
       case NodeTypes.MATH_SUB: return MathSubNodeHelper;
