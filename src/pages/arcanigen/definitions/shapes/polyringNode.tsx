@@ -23,7 +23,7 @@ import {
    ExpandMode,
    EXPAND_MODES,
 } from "../types";
-import MathHelper from "!/utility/mathhelper";
+import MathHelper, { deg2rad } from "!/utility/mathhelper";
 
 import HexColorInput from "!/components/inputs/colorHexInput";
 import LengthInput from "!/components/inputs/LengthInput";
@@ -225,8 +225,7 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
    const thetaCurve = nodeHelper.useInput(nodeId, "thetaCurve", globals);
 
    const points = useMemo(() => {
-      const theSpread =
-         expandMode === "point" ? MathHelper.lengthToPx(spread) : MathHelper.lengthToPx(spread) * Math.tan(MathHelper.deg2rad(360 / pointCount) / 2);
+      const theSpread = expandMode === "point" ? MathHelper.lengthToPx(spread) : (1 / Math.cos(Math.PI / pointCount)) * MathHelper.lengthToPx(spread);
 
       const tIMod = radialMode === "inout" ? 0 : spreadAlignMode === "center" ? theSpread / 2 : spreadAlignMode === "inward" ? theSpread : 0;
       const tOMod = radialMode === "inout" ? 0 : spreadAlignMode === "center" ? theSpread / 2 : spreadAlignMode === "outward" ? theSpread : 0;
