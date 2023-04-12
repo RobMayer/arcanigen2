@@ -23,7 +23,7 @@ import {
    ExpandMode,
    EXPAND_MODES,
 } from "../types";
-import MathHelper, { deg2rad } from "!/utility/mathhelper";
+import MathHelper from "!/utility/mathhelper";
 
 import HexColorInput from "!/components/inputs/colorHexInput";
 import LengthInput from "!/components/inputs/LengthInput";
