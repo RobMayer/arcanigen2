@@ -49,6 +49,7 @@ import MathSpreadNodeHelper from "./math/mathSpdNode";
 import NumberValueNodeHelper from "./values/numberValueNode";
 import SegmentNodeHelper from "./shapes/segementNode";
 import RepeatArrayNodeHelper from "./collections/repeatArrayNode";
+import PolyringNodeHelper from "./shapes/polyringNode";
 
 // prettier-ignore
 export const getNodeHelper = (key: NodeTypes) => {
@@ -68,6 +69,7 @@ export const getNodeHelper = (key: NodeTypes) => {
       case NodeTypes.SHAPE_RING: return RingNodeHelper;
       case NodeTypes.SHAPE_POLYGON: return PolygonNodeHelper;
       case NodeTypes.SHAPE_POLYGRAM: return PolygramNodeHelper;
+      case NodeTypes.SHAPE_POLYRING: return PolyringNodeHelper;
       case NodeTypes.SHAPE_STAR: return StarNodeHelper;
       case NodeTypes.SHAPE_BURST: return BurstNodeHelper;
       case NodeTypes.SHAPE_ARC: return ArcNodeHelper;

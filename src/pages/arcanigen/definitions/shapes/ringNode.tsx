@@ -11,6 +11,8 @@ import {
    RadialMode,
    RADIAL_MODES,
    SocketTypes,
+   SPREAD_ALIGN_MODES,
+   SpreadAlignMode,
 } from "../types";
 import MathHelper from "!/utility/mathhelper";
 import { faCircleDot as nodeIcon } from "@fortawesome/pro-regular-svg-icons";
@@ -45,6 +47,7 @@ interface IRingNode extends INodeDefinition {
       radialMode: RadialMode;
       radius: Length;
       spread: Length;
+      spreadAlignMode: SpreadAlignMode;
       innerRadius: Length;
       outerRadius: Length;
       strokeWidth: Length;
@@ -64,6 +67,7 @@ const nodeHelper = ArcaneGraph.nodeHooks<IRingNode>();
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [radius, setRadius] = nodeHelper.useValueState(nodeId, "radius");
    const [spread, setSpread] = nodeHelper.useValueState(nodeId, "spread");
+   const [spreadAlignMode, setSpreadAlignMode] = nodeHelper.useValueState(nodeId, "spreadAlignMode");
    const [radialMode, setRadialMode] = nodeHelper.useValueState(nodeId, "radialMode");
    const [innerRadius, setInnerRadius] = nodeHelper.useValueState(nodeId, "innerRadius");
    const [outerRadius, setOuterRadius] = nodeHelper.useValueState(nodeId, "outerRadius");
@@ -107,6 +111,9 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                <LengthInput value={spread} onValidValue={setSpread} disabled={hasSpread || radialMode === "inout"} />
             </BaseNode.Input>
          </SocketIn>
+         <BaseNode.Input label={"Spread Align Mode"}>
+            <ToggleList value={spreadAlignMode} onValue={setSpreadAlignMode} options={SPREAD_ALIGN_MODES} disabled={radialMode === "inout"} />
+         </BaseNode.Input>
          <hr />
          <BaseNode.Foldout label={"Appearance"} nodeId={nodeId} inputs={"strokeWidth strokeColor fillColor"} outputs={""}>
             <SocketIn<IRingNode> nodeId={nodeId} socketId={"strokeWidth"} type={SocketTypes.LENGTH}>
@@ -134,6 +141,7 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
    const radialMode = nodeHelper.useValue(nodeId, "radialMode");
    const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius", globals);
    const spread = nodeHelper.useCoalesce(nodeId, "spread", "spread", globals);
+   const spreadAlignMode = nodeHelper.useValue(nodeId, "spreadAlignMode");
    const innerRadius = nodeHelper.useCoalesce(nodeId, "innerRadius", "innerRadius", globals);
    const outerRadius = nodeHelper.useCoalesce(nodeId, "outerRadius", "outerRadius", globals);
 
@@ -147,8 +155,25 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
    const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
    const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
 
-   const rI = radialMode === "inout" ? MathHelper.lengthToPx(innerRadius) : MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(spread) / 2;
-   const rO = radialMode === "inout" ? MathHelper.lengthToPx(outerRadius) : MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(spread) / 2;
+   const tIMod =
+      radialMode === "inout"
+         ? 0
+         : spreadAlignMode === "center"
+         ? MathHelper.lengthToPx(spread) / 2
+         : spreadAlignMode === "inward"
+         ? MathHelper.lengthToPx(spread)
+         : 0;
+   const tOMod =
+      radialMode === "inout"
+         ? 0
+         : spreadAlignMode === "center"
+         ? MathHelper.lengthToPx(spread) / 2
+         : spreadAlignMode === "outward"
+         ? MathHelper.lengthToPx(spread)
+         : 0;
+
+   const rI = radialMode === "inout" ? MathHelper.lengthToPx(innerRadius) : MathHelper.lengthToPx(radius) - tIMod;
+   const rO = radialMode === "inout" ? MathHelper.lengthToPx(outerRadius) : MathHelper.lengthToPx(radius) + tOMod;
 
    return (
       <g transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)}`}>
@@ -178,6 +203,7 @@ const RingNodeHelper: INodeHelper<IRingNode> = {
    initialize: () => ({
       radius: { value: 150, unit: "px" },
       spread: { value: 20, unit: "px" },
+      spreadAlignMode: "center",
       radialMode: "inout",
       innerRadius: { value: 140, unit: "px" },
       outerRadius: { value: 160, unit: "px" },

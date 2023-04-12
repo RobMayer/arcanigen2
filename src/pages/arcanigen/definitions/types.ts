@@ -10,6 +10,7 @@ export enum NodeTypes {
    SHAPE_RING = "shapeRing",
    SHAPE_POLYGON = "shapePolygon",
    SHAPE_POLYGRAM = "shapePolygram",
+   SHAPE_POLYRING = "shapePolyring",
    SHAPE_STAR = "shapeStar",
    SHAPE_BURST = "shapeBurst",
    SHAPE_ARC = "shapeArc",
@@ -190,6 +191,19 @@ export const RADIAL_MODES = {
    spread: "Spread",
 };
 export type RadialMode = keyof typeof RADIAL_MODES;
+
+export const SPREAD_ALIGN_MODES = {
+   center: "Center",
+   inward: "Inward",
+   outward: "Outward",
+};
+export type SpreadAlignMode = keyof typeof SPREAD_ALIGN_MODES;
+
+export const EXPAND_MODES = {
+   point: "by Point",
+   edge: "by Edge",
+};
+export type ExpandMode = keyof typeof EXPAND_MODES;
 
 export const THETA_MODES = {
    incremental: "Incremental",

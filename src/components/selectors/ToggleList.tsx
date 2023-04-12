@@ -79,7 +79,7 @@ const ToggleList = styled(
             >
                {Object.entries(options).map(([k, v]) => {
                   return (
-                     <Option key={k} selected={k === cache} value={k} select={handleChange}>
+                     <Option key={k} selected={k === cache} value={k} select={handleChange} disabled={disabled}>
                         {v}
                      </Option>
                   );
@@ -110,17 +110,24 @@ const ToggleList = styled(
       justify-content: center;
       color: var(--flavour-text-muted);
    }
-   & > .option:hover {
+   & > .option:hover:not(.state-disabled) {
       background: var(--flavour-effect-bg-highlight);
       color: var(--flavour-button-text);
    }
-   & > .option.state-selected {
+   & > .option.state-selected:not(.state-disabled) {
       color: var(--flavour-button-text);
       background: var(--flavour-button);
    }
-   & > .option.state-selected:hover {
+   & > .option.state-selected:hover:not(.state-disabled) {
       color: var(--flavour-button-text-highlight);
       background: var(--flavour-button-highlight);
+   }
+   & > .option.state-disabled {
+      cursor: default !important;
+      color: var(--disabled-button-text);
+   }
+   & > .option.state-selected.state-disabled {
+      background: var(--disabled-button);
    }
 `;
 
@@ -131,14 +138,15 @@ const Option = ({
    select,
    value,
    children,
+   disabled = false,
    ...props
-}: { selected: boolean; select: (v: string) => void; value: string } & HTMLAttributes<HTMLDivElement>) => {
+}: { selected: boolean; select: (v: string) => void; value: string; disabled?: boolean } & HTMLAttributes<HTMLDivElement>) => {
    const handleClick = useCallback(() => {
       select(value);
    }, [value, select]);
 
    return (
-      <div {...props} className={`option ${selected ? "state-selected" : ""}`} onClick={handleClick}>
+      <div {...props} className={`option ${selected ? "state-selected" : ""} ${disabled ? "state-disabled" : ""}`} onClick={disabled ? undefined : handleClick}>
          {children}
       </div>
    );
