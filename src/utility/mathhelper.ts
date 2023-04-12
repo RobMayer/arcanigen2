@@ -155,6 +155,26 @@ export const colorToHTML = (color: Color, fallback: string = "") => {
    return `rgba( ${color.r * 100}%, ${color.g * 100}%, ${color.b * 100}%, ${color.a} )`;
 };
 
+export const colorToSVG = (color: Color, fallback: string = "") => {
+   if (color === undefined) {
+      return fallback;
+   }
+   if (color === null) {
+      return "none";
+   }
+   return `rgb( ${color.r * 100}%, ${color.g * 100}%, ${color.b * 100}% )`;
+};
+
+export const colorToOpacity = (color: Color, fallback: number = 1) => {
+   if (color === undefined) {
+      return fallback;
+   }
+   if (color === null) {
+      return 0;
+   }
+   return color.a;
+};
+
 export const WHITE = { r: 1.0, g: 1.0, b: 1.0, a: 1.0 };
 export const BLACK = { r: 0.0, g: 0.0, b: 0.0, a: 1.0 };
 
@@ -246,6 +266,8 @@ const MathHelper = {
    pxToLength,
    colorToHex,
    colorToHTML,
+   colorToSVG,
+   colorToOpacity,
    hexToColor,
    convertLength,
    getPosition,

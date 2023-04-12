@@ -45,7 +45,16 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
 
 const Renderer = memo(({ nodeId }: NodeRendererProps) => {
    const floodColor = nodeHelper.useValue(nodeId, "floodColor");
-   return <rect x={"-1000%"} y={"-1000%"} width={"2000%"} height={"2000%"} fill={MathHelper.colorToHTML(floodColor)} />;
+   return (
+      <rect
+         x={"-1000%"}
+         y={"-1000%"}
+         width={"2000%"}
+         height={"2000%"}
+         fill={MathHelper.colorToSVG(floodColor)}
+         fillOpacity={MathHelper.colorToOpacity(floodColor)}
+      />
+   );
 });
 
 const FloodFillNodeHelper: INodeHelper<IFloodFillNode> = {
