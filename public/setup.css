@@ -1,6 +1,8 @@
 :root {
 
     --app-bg: hsl(0, 0%, 4%);
+    --app-text-shadow: #0008;
+    --app-box-shadow: #0008;
 
     --FIXME: magenta;
 
@@ -270,13 +272,15 @@
     --modelcard-text-shadow: rgb(33 34 43 / 100%);
 }
 
-@media (prefers-color-scheme: light) {
+@media (prefers-color-scheme: temp) {
     :root {
         --app-bg: #fff;
+        --app-text-shadow: #0004;
+        --app-box-shadow: #0004;
 
-        --layer0: hsl(0, 0%, 93%);
-        --layer1: hsl(0, 0%, 89%);
-        --layer2: hsl(0, 0%, 84%);
+        --layer0: hsl(0, 0%, 90%);
+        --layer1: hsl(0, 0%, 83%);
+        --layer2: hsl(0, 0%, 78%);
         --layer3: hsl(0, 0%, 79%);
         --layer4: hsl(0, 0%, 74%);
         --layer5: hsl(0, 0%, 67%);
@@ -722,4 +726,10 @@
         min-height: 0;
         overflow-y: scroll;
 
+      }
+
+      @keyframes snakeStroke {      
+        to {
+          stroke-dashoffset: 0;
+        }
       }

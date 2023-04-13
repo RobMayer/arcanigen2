@@ -207,6 +207,8 @@ const getSocketFlavour = (type: SocketTypes): Flavour => {
          return "emphasis";
       case SocketTypes.SHAPE:
          return "confirm";
+      case SocketTypes.PORTAL:
+         return "danger";
    }
    return "accent";
 };

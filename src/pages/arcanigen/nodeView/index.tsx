@@ -199,9 +199,13 @@ const EachNode = ({ type, nodeId }: { type: NodeTypes; nodeId: string }) => {
 
 const TMP_GLOBALS = {
    sequenceData: {},
+   portalData: {},
 };
 
 const getLinkType = (a: SocketTypes, b: SocketTypes): LinkTypes => {
+   if (a === SocketTypes.PORTAL && b === SocketTypes.PORTAL) {
+      return LinkTypes.PORTAL;
+   }
    if (a === SocketTypes.SHAPE && b === SocketTypes.SHAPE) {
       return LinkTypes.SHAPE;
    }

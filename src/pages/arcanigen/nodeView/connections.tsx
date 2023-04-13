@@ -175,28 +175,68 @@ const Connection = ({ linkId, fromNode, toNode, fromSocket, toSocket, type }: IL
       },
    });
 
-   const flavour = useMemo(() => {
-      return getLinkFlavour(type);
-   }, [type]);
-
    return (
-      <g tabIndex={-1} ref={gRef}>
-         <DisplayPath d={shape} className={`flavour-${flavour}`} />
-         <SelectPath d={shape} />
-      </g>
+      <ThePath tabIndex={-1} ref={gRef} className={`type_${getLinkType(type)}`}>
+         <path d={shape} className={"part_display"} />
+         <path d={shape} className={"part_special"} />
+         <path d={shape} className={"part_select"} />
+      </ThePath>
    );
 };
 
-const DisplayPath = styled.path`
-   stroke: var(--flavour-icon);
-   stroke-width: 2px;
-   g:focus > & {
-      stroke: var(--flavour-icon-highlight);
+const ThePath = styled.g`
+   --type-stroke: var(--accent-icon);
+   --type-stroke-selected: var(--accent-icon-highlight);
+   & > .part_display {
+      stroke: var(--type-stroke);
+      stroke-width: 2px;
+      pointer-events: none;
    }
-`;
-const SelectPath = styled.path`
-   stroke: transparent;
-   stroke-width: 12px;
+   & > .part_special {
+      stroke: none;
+      stroke-width: 0px;
+      pointer-events: none;
+   }
+   & > .part_select {
+      stroke: transparent;
+      stroke-width: 12px;
+      cursor: pointer;
+   }
+   &.type_sequence {
+      --type-stroke: var(--emphasis-icon);
+      --type-stroke-selected: var(--emphasis-icon-highlight);
+   }
+   &.type_shape {
+      --type-stroke: var(--confirm-icon);
+      --type-stroke-selected: var(--confirm-icon-highlight);
+   }
+   &.type_portal {
+      --type-stroke: var(--danger-icon);
+      --type-stroke-selected: var(--danger-icon-highlight);
+   }
+   &.type_portal > .part_display {
+      stroke-width: 6px;
+   }
+   &.type_portal > .part_special {
+      stroke: var(--danger-button-muted);
+      stroke-width: 5px;
+      stroke-dasharray: 0px 6px;
+      stroke-linecap: round;
+      stroke-dashoffset: 30px;
+      animation-name: snakeStroke;
+      animation-duration: 1s;
+      animation-iteration-count: infinite;
+      animation-timing-function: linear;
+   }
+   &:focus.type_portal > .part_special {
+      stroke: var(--danger-button);
+   }
+   &.type_portal > .part_select {
+      stroke-width: 16px;
+   }
+   &:focus > .part_display {
+      stroke: var(--type-stroke-selected);
+   }
 `;
 
 const WipConnection = () => {
@@ -256,14 +296,16 @@ const WipPath = styled.path`
    stroke-width: 2px;
 `;
 
-const getLinkFlavour = (type: LinkTypes): Flavour => {
+const getLinkType = (type: LinkTypes): string => {
    switch (type) {
       case LinkTypes.SHAPE:
-         return "confirm";
+         return "shape";
       case LinkTypes.SEQUENCE:
-         return "emphasis";
+         return "sequence";
       case LinkTypes.OTHER:
-         return "accent";
+         return "other";
+      case LinkTypes.PORTAL:
+         return "portal";
    }
    return "accent";
 };

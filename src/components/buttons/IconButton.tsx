@@ -32,7 +32,7 @@ const IconButton = styled(
    align-items: center;
    & > .icon {
       mix-blend-mode: var(--blend-icon);
-      filter: drop-shadow(0px 2px 1px #000f);
+      filter: drop-shadow(0px 2px 1px var(--app-box-shadow));
       vertical-align: -0.1875em;
       display: inline-flex;
       flex: 0 0 auto;

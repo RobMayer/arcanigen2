@@ -176,7 +176,7 @@ const Main = memo(styled.div`
    padding: 3px;
    font-size: 0.875em;
 
-   box-shadow: 0px 0px 8px #0008;
+   box-shadow: 0px 0px 8px var(--app-box-shadow);
 
    &.state-open {
       grid-template-rows: auto 1fr;

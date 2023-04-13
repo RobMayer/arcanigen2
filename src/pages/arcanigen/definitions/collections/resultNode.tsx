@@ -99,7 +99,7 @@ const ResultNodeHelper: INodeHelper<IResultNode> = {
 export default ResultNodeHelper;
 
 export const RootNodeRenderer = () => {
-   const globals = useMemo(() => ({ sequenceData: START_SEQUENCE }), []);
+   const globals = useMemo(() => ({ sequenceData: START_SEQUENCE, portalData: START_PORTAL }), []);
 
    const canvasColor = nodeHelper.useCoalesce("ROOT", "canvasColor", "canvasColor", globals);
    const canvasHeight = nodeHelper.useCoalesce("ROOT", "canvasHeight", "canvasHeight", globals);
@@ -132,3 +132,5 @@ export const RootNodeRenderer = () => {
 const START_SEQUENCE = {
    ROOT: 0,
 };
+
+const START_PORTAL = {};

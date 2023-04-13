@@ -23,6 +23,8 @@ export enum NodeTypes {
    COL_LAYERS = "collectionLayers",
    COL_MASK = "collectionMask",
    COL_SEQUENCE = "collectionSequence",
+   COL_PORTAL_IN = "collectionPortalIn",
+   COL_PORTAL_OUT = "collectionPortalOut",
 
    ARRAY_VERTEX = "arrayVertex",
    ARRAY_SPIRAL = "arraySpiral",
@@ -78,8 +80,9 @@ export enum SocketTypes {
    COLOR = 64,
    SEQUENCE = 128,
    CURVE = 256,
+   PORTAL = 512,
 
-   ANY = 1 | 2 | 4 | 8 | 16 | 32 | 64 | 128 | 256,
+   ANY = 1 | 2 | 4 | 8 | 16 | 32 | 64 | 128 | 256 | 512,
    NUMBER = 2 | 4,
 }
 
@@ -87,6 +90,7 @@ export enum LinkTypes {
    OTHER,
    SEQUENCE,
    SHAPE,
+   PORTAL,
 }
 
 export type InSocket = string | null;
@@ -131,12 +135,18 @@ export type ControlRenderer = ComponentType<ControlRendererProps>;
 
 export type Globals = {
    sequenceData: { [key: string]: number };
+   portalData: { [key: string]: number };
 };
 
 export type Sequence = {
    senderId: string;
    min: number;
    max: number;
+};
+
+export type PortalBus = {
+   senderId: string;
+   renderer: NodeRenderer;
 };
 
 export type Position = {
