@@ -142,7 +142,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    );
 });
 
-const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
+const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps) => {
    const positionMode = nodeHelper.useValue(nodeId, "positionMode");
    const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX", globals);
    const positionY = nodeHelper.useCoalesce(nodeId, "positionY", "positionY", globals);
@@ -164,7 +164,9 @@ const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
          }, ${scaleY / 100}) skewX(${skewX}) skewY(${skewY})`}
          vectorEffect={"non-scaling-stroke"}
       >
-         <g transform={`rotate(${preRotation})`}>{Output && cid && <Output nodeId={cid} depth={`${depth}_${nodeId}`} globals={globals} />}</g>
+         <g transform={`rotate(${preRotation})`}>
+            {Output && cid && <Output overrides={overrides} nodeId={cid} depth={`${depth}_${nodeId}`} globals={globals} />}
+         </g>
       </g>
    );
 });

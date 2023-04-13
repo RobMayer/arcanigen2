@@ -40,6 +40,7 @@ export enum NodeTypes {
    VALUE_CURVE = "valueCurve",
 
    COL_TRANSFORM = "collectionTransform",
+   COL_RESTYLE = "collectionOverrideStyles",
 
    EFFECT_BRUSH = "effectBrush",
    EFFECT_PENCIL = "effectPencil",
@@ -123,7 +124,7 @@ export type INodeInstance<T extends INodeDefinition> = {
    };
 } & T["values"];
 
-export type NodeRendererProps = { nodeId: string; depth: string; globals: Globals };
+export type NodeRendererProps = { nodeId: string; depth: string; globals: Globals; overrides?: { [key: string]: any } };
 export type NodeRenderer = ComponentType<NodeRendererProps>;
 export type ControlRendererProps = { nodeId: string; globals: Globals };
 export type ControlRenderer = ComponentType<ControlRendererProps>;

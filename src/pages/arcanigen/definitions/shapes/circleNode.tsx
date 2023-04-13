@@ -87,7 +87,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    );
 });
 
-const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
+const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) => {
    const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius", globals);
    const strokeWidth = nodeHelper.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
    const strokeColor = nodeHelper.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
@@ -102,11 +102,11 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
    return (
       <g transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)}`}>
          <g
-            stroke={MathHelper.colorToSVG(strokeColor)}
-            fill={MathHelper.colorToSVG(fillColor)}
-            strokeOpacity={MathHelper.colorToOpacity(strokeColor)}
-            fillOpacity={MathHelper.colorToOpacity(fillColor)}
-            strokeWidth={Math.max(0, MathHelper.lengthToPx(strokeWidth ?? { value: 1, unit: "px" }))}
+            stroke={MathHelper.colorToSVG("strokeColor" in overrides ? overrides.strokeColor : strokeColor)}
+            fill={MathHelper.colorToSVG("fillColor" in overrides ? overrides.fillColor : fillColor)}
+            strokeOpacity={MathHelper.colorToOpacity("strokeColor" in overrides ? overrides.strokeColor : strokeColor)}
+            fillOpacity={MathHelper.colorToOpacity("fillColor" in overrides ? overrides.fillColor : fillColor)}
+            strokeWidth={Math.max(0, MathHelper.lengthToPx("strokeWidth" in overrides ? overrides.strokeWidth : strokeWidth))}
          >
             <circle cx={0} cy={0} r={Math.max(0, MathHelper.lengthToPx(radius ?? { value: 100, unit: "px" }))} vectorEffect={"non-scaling-stroke"} />
          </g>

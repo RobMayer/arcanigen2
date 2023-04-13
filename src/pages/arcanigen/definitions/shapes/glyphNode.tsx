@@ -130,7 +130,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    );
 });
 
-const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
+const Renderer = memo(({ nodeId, depth, globals, overrides = {} }: NodeRendererProps) => {
    const path = nodeHelper.useValue(nodeId, "path");
    const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius", globals);
    const strokeWidth = nodeHelper.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
@@ -152,13 +152,13 @@ const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
             <path d={path} vectorEffect={"non-scaling-stroke"} />
          </symbol>
          <g
-            stroke={MathHelper.colorToSVG(strokeColor, "none")}
-            fill={MathHelper.colorToSVG(fillColor, "none")}
-            strokeOpacity={MathHelper.colorToOpacity(strokeColor, 0)}
-            fillOpacity={MathHelper.colorToOpacity(fillColor, 0)}
-            strokeWidth={Math.max(0, MathHelper.lengthToPx(strokeWidth ?? { value: 0, unit: "px" }))}
-            strokeLinecap={strokeCap}
-            strokeLinejoin={strokeJoin}
+            stroke={MathHelper.colorToSVG("strokeColor" in overrides ? overrides.strokeColor : strokeColor)}
+            fill={MathHelper.colorToSVG("fillColor" in overrides ? overrides.fillColor : fillColor)}
+            strokeOpacity={MathHelper.colorToOpacity("strokeColor" in overrides ? overrides.strokeColor : strokeColor)}
+            fillOpacity={MathHelper.colorToOpacity("fillColor" in overrides ? overrides.fillColor : fillColor)}
+            strokeWidth={Math.max(0, MathHelper.lengthToPx("strokeWidth" in overrides ? overrides.strokeWidth : strokeWidth))}
+            strokeLinecap={"strokeCap" in overrides ? overrides.strokeCap : strokeCap}
+            strokeLinejoin={"strokeJoin" in overrides ? overrides.strokeJoin : strokeJoin}
          >
             <use
                href={`#glyph_${nodeId}_lyr-${depth ?? ""}`}

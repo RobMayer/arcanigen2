@@ -138,7 +138,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    );
 });
 
-const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
+const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps) => {
    const sequence = nodeHelper.useInput(nodeId, "sequence", globals);
    const sockets = nodeHelper.useValue(nodeId, "sockets");
    const mode = nodeHelper.useValue(nodeId, "mode");
@@ -180,7 +180,7 @@ const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
       return <></>;
    }
 
-   return <g>{Comp && cId && <Comp nodeId={cId} globals={globals} depth={`${depth}_${nodeId}`} />}</g>;
+   return <g>{Comp && cId && <Comp nodeId={cId} globals={globals} depth={`${depth}_${nodeId}`} overrides={overrides} />}</g>;
 });
 
 const SequencerNodeHelper: INodeHelper<ISequencerNode> = {

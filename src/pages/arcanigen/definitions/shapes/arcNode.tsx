@@ -158,7 +158,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    );
 });
 
-const Renderer = memo(({ nodeId, globals, depth }: NodeRendererProps) => {
+const Renderer = memo(({ nodeId, globals, depth, overrides = {} }: NodeRendererProps) => {
    const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius", globals);
    const thetaStart = nodeHelper.useCoalesce(nodeId, "thetaStart", "thetaStart", globals);
    const thetaEnd = nodeHelper.useCoalesce(nodeId, "thetaEnd", "thetaEnd", globals);
@@ -235,13 +235,13 @@ const Renderer = memo(({ nodeId, globals, depth }: NodeRendererProps) => {
          )}
 
          <g
-            stroke={MathHelper.colorToSVG(strokeColor)}
-            fill={MathHelper.colorToSVG(fillColor)}
-            strokeOpacity={MathHelper.colorToOpacity(strokeColor)}
-            fillOpacity={MathHelper.colorToOpacity(fillColor)}
-            strokeWidth={Math.max(0, MathHelper.lengthToPx(strokeWidth))}
-            strokeLinecap={strokeCap}
-            strokeLinejoin={strokeJoin}
+            stroke={MathHelper.colorToSVG("strokeColor" in overrides ? overrides.strokeColor : strokeColor)}
+            fill={MathHelper.colorToSVG("fillColor" in overrides ? overrides.fillColor : fillColor)}
+            strokeOpacity={MathHelper.colorToOpacity("strokeColor" in overrides ? overrides.strokeColor : strokeColor)}
+            fillOpacity={MathHelper.colorToOpacity("fillColor" in overrides ? overrides.fillColor : fillColor)}
+            strokeWidth={Math.max(0, MathHelper.lengthToPx("strokeWidth" in overrides ? overrides.strokeWidth : strokeWidth))}
+            strokeLinecap={"strokeCap" in overrides ? overrides.strokeCap : strokeCap}
+            strokeLinejoin={"strokeJoin" in overrides ? overrides.strokeJoin : strokeJoin}
             markerStart={MarkStart && msId ? `url('#markstart_${nodeId}_lyr-${depth ?? ""}')` : undefined}
             markerEnd={MarkEnd && meId ? `url('#markend_${nodeId}_lyr-${depth ?? ""}')` : undefined}
          >

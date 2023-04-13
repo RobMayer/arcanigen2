@@ -35,7 +35,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          </SocketOut>
          <hr />
          <SocketIn<IFloodFillNode> nodeId={nodeId} socketId={"floodColor"} type={SocketTypes.COLOR}>
-            <BaseNode.Input label={"Floor Color"}>
+            <BaseNode.Input label={"Flood Color"}>
                <HexColorInput value={floodColor} onValue={setFloodColor} disabled={hasFloodColor} />
             </BaseNode.Input>
          </SocketIn>

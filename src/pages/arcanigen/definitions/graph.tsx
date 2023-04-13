@@ -5,7 +5,6 @@ import ObjHelper from "!/utility/objHelper";
 import fp from "lodash/fp";
 import lodash from "lodash";
 import { getNodeHelper } from ".";
-import useLocalStorage from "!/utility/hooks/useLocalStorage";
 
 const initState: IArcaneGraph = {
    nodes: {

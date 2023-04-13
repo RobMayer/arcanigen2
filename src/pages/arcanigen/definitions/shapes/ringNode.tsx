@@ -137,7 +137,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    );
 });
 
-const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
+const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) => {
    const spanMode = nodeHelper.useValue(nodeId, "spanMode");
    const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius", globals);
    const spread = nodeHelper.useCoalesce(nodeId, "spread", "spread", globals);
@@ -178,11 +178,11 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
    return (
       <g transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)}`}>
          <g
-            stroke={MathHelper.colorToSVG(strokeColor)}
-            fill={MathHelper.colorToSVG(fillColor)}
-            strokeOpacity={MathHelper.colorToOpacity(strokeColor)}
-            fillOpacity={MathHelper.colorToOpacity(fillColor)}
-            strokeWidth={Math.max(0, MathHelper.lengthToPx(strokeWidth))}
+            stroke={MathHelper.colorToSVG("strokeColor" in overrides ? overrides.strokeColor : strokeColor)}
+            fill={MathHelper.colorToSVG("fillColor" in overrides ? overrides.fillColor : fillColor)}
+            strokeOpacity={MathHelper.colorToOpacity("strokeColor" in overrides ? overrides.strokeColor : strokeColor)}
+            fillOpacity={MathHelper.colorToOpacity("fillColor" in overrides ? overrides.fillColor : fillColor)}
+            strokeWidth={Math.max(0, MathHelper.lengthToPx("strokeWidth" in overrides ? overrides.strokeWidth : strokeWidth))}
          >
             <path
                d={`M ${rO},0 A 1,1 0 0,0 ${-rO},0 A 1,1 0 0,0 ${rO},0 M ${rI},0 A 1,1 0 0,1 ${-rI},0 A 1,1 0 0,1 ${rI},0`}

@@ -9,8 +9,6 @@ import {
    NodeRendererProps,
    NodeTypes,
    PositionMode,
-   SpanMode,
-   SPAN_MODES,
    SocketTypes,
    StrokeCapMode,
    STROKECAP_MODES,
@@ -212,7 +210,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    );
 });
 
-const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
+const Renderer = memo(({ nodeId, depth, globals, overrides = {} }: NodeRendererProps) => {
    const spurCount = Math.max(0, nodeHelper.useCoalesce(nodeId, "spurCount", "spurCount", globals));
    const radialMode = nodeHelper.useValue(nodeId, "radialMode");
    const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius", globals);
@@ -301,10 +299,10 @@ const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
             </marker>
          )}
          <g
-            stroke={MathHelper.colorToSVG(strokeColor)}
-            strokeOpacity={MathHelper.colorToOpacity(strokeColor)}
-            strokeWidth={Math.max(0, MathHelper.lengthToPx(strokeWidth))}
-            strokeLinecap={strokeCap}
+            stroke={MathHelper.colorToSVG("strokeColor" in overrides ? overrides.strokeColor : strokeColor)}
+            strokeOpacity={MathHelper.colorToOpacity("strokeColor" in overrides ? overrides.strokeColor : strokeColor)}
+            strokeWidth={Math.max(0, MathHelper.lengthToPx("strokeWidth" in overrides ? overrides.strokeWidth : strokeWidth))}
+            strokeLinecap={"strokeCap" in overrides ? overrides.strokeCap : strokeCap}
             markerStart={msId ? `url('#markstart_${nodeId}_lyr-${depth ?? ""}')` : undefined}
             markerEnd={meId ? `url('#markend_${nodeId}_lyr-${depth ?? ""}')` : undefined}
          >

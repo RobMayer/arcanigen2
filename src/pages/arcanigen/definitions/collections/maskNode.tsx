@@ -57,7 +57,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    );
 });
 
-const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
+const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps) => {
    const [Content, cId] = nodeHelper.useInputNode(nodeId, "content", globals);
    const [Mask, mId] = nodeHelper.useInputNode(nodeId, "mask", globals);
    const invert = nodeHelper.useValue(nodeId, "invert");
@@ -82,7 +82,7 @@ const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
                      {invert && mode === "luminance" && <rect x={"-1000%"} y={"-1000%"} width={"2000%"} height={"2000%"} fill={"#ffff"} style={INVERT} />}
                   </mask>
                   <g mask={`url('#mask_${nodeId}_lyr-${depth ?? ""}')`}>
-                     {Content && cId && <Content nodeId={cId} depth={(depth ?? "") + `_${nodeId}.content`} globals={globals} />}
+                     {Content && cId && <Content nodeId={cId} depth={(depth ?? "") + `_${nodeId}.content`} globals={globals} overrides={overrides} />}
                   </g>
                </>
             )}

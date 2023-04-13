@@ -110,7 +110,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    );
 });
 
-const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
+const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps) => {
    const [output, childNodeId] = nodeHelper.useInputNode(nodeId, "input", globals);
    const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius", globals);
    const rScribeMode = nodeHelper.useValue(nodeId, "rScribeMode");
@@ -139,17 +139,27 @@ const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
          return (
             <g key={n} transform={`rotate(${rot}) translate(0, ${tR})`}>
                <g transform={`rotate(${isRotating ? 180 : -rot})`}>
-                  {output && childNodeId && <Each output={output} host={nodeId} globals={globals} nodeId={childNodeId} depth={depth} index={i} />}
+                  {output && childNodeId && (
+                     <Each overrides={overrides} output={output} host={nodeId} globals={globals} nodeId={childNodeId} depth={depth} index={i} />
+                  )}
                </g>
             </g>
          );
       });
-   }, [output, childNodeId, pointCount, tR, isRotating, nodeId, depth, globals, thetaCurve?.curveFn, thetaCurve?.easing, thetaCurve?.intensity]);
+   }, [output, overrides, childNodeId, pointCount, tR, isRotating, nodeId, depth, globals, thetaCurve?.curveFn, thetaCurve?.easing, thetaCurve?.intensity]);
 
    return <g transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`}>{children}</g>;
 });
 
-const Each = ({ nodeId, globals, depth, index, host, output: Output }: NodeRendererProps & { index: number; host: string; output: NodeRenderer }) => {
+const Each = ({
+   nodeId,
+   globals,
+   depth,
+   index,
+   host,
+   output: Output,
+   overrides,
+}: NodeRendererProps & { index: number; host: string; output: NodeRenderer }) => {
    const newGlobals = useMemo(() => {
       return {
          ...globals,
@@ -160,7 +170,7 @@ const Each = ({ nodeId, globals, depth, index, host, output: Output }: NodeRende
       };
    }, [globals, host, index]);
 
-   return <Output nodeId={nodeId} globals={newGlobals} depth={(depth ?? "") + `_${host}.${index}`} />;
+   return <Output overrides={overrides} nodeId={nodeId} globals={newGlobals} depth={(depth ?? "") + `_${host}.${index}`} />;
 };
 
 const nodeMethods = ArcaneGraph.nodeMethods<IVertexArrayNode>();

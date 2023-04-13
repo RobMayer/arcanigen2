@@ -151,13 +151,25 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    );
 });
 
-const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
+const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps) => {
    const sockets = nodeHelper.useValue(nodeId, "sockets") ?? [];
    const modes = nodeHelper.useValue(nodeId, "modes") ?? {};
    return (
       <g>
          {sockets.map((sId, i) => {
-            return <Each key={sId} nodeId={nodeId} socketId={sId} blendMode={modes[sId]} host={nodeId} depth={depth} index={i} globals={globals} />;
+            return (
+               <Each
+                  key={sId}
+                  nodeId={nodeId}
+                  socketId={sId}
+                  blendMode={modes[sId]}
+                  host={nodeId}
+                  depth={depth}
+                  index={i}
+                  globals={globals}
+                  overrides={overrides}
+               />
+            );
          })}
       </g>
    );
@@ -171,6 +183,7 @@ const Each = ({
    host,
    index,
    globals,
+   overrides,
 }: NodeRendererProps & {
    socketId: string;
    blendMode: BlendMode;
@@ -196,7 +209,11 @@ const Each = ({
       [blendMode]
    );
 
-   return <g style={styles}>{Comp && childId && <Comp nodeId={childId} depth={(depth ?? "") + `_${host}.${index}`} globals={newGlobalsglobals} />}</g>;
+   return (
+      <g style={styles}>
+         {Comp && childId && <Comp nodeId={childId} depth={(depth ?? "") + `_${host}.${index}`} globals={newGlobalsglobals} overrides={overrides} />}
+      </g>
+   );
 };
 
 const LayersNodeHelper: INodeHelper<ILayersNode> = {

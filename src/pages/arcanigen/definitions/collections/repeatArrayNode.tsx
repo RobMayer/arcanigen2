@@ -64,20 +64,34 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    );
 });
 
-const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
+const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps) => {
    const [output, childNodeId] = nodeHelper.useInputNode(nodeId, "input", globals);
    const iterationCount = nodeHelper.useCoalesce(nodeId, "iterationCount", "iterationCount", globals);
 
    const children = useMemo(() => {
       return lodash.range(iterationCount).map((n, i) => {
-         return <g key={i}>{output && childNodeId && <Each output={output} host={nodeId} globals={globals} nodeId={childNodeId} depth={depth} index={i} />}</g>;
+         return (
+            <g key={i}>
+               {output && childNodeId && (
+                  <Each overrides={overrides} output={output} host={nodeId} globals={globals} nodeId={childNodeId} depth={depth} index={i} />
+               )}
+            </g>
+         );
       });
-   }, [childNodeId, depth, globals, iterationCount, nodeId, output]);
+   }, [childNodeId, depth, globals, iterationCount, nodeId, output, overrides]);
 
    return <g>{children}</g>;
 });
 
-const Each = ({ nodeId, globals, depth, index, host, output: Output }: NodeRendererProps & { index: number; host: string; output: NodeRenderer }) => {
+const Each = ({
+   nodeId,
+   globals,
+   depth,
+   index,
+   host,
+   output: Output,
+   overrides,
+}: NodeRendererProps & { index: number; host: string; output: NodeRenderer }) => {
    const newGlobals = useMemo(() => {
       return {
          ...globals,
@@ -88,7 +102,7 @@ const Each = ({ nodeId, globals, depth, index, host, output: Output }: NodeRende
       };
    }, [globals, host, index]);
 
-   return <Output nodeId={nodeId} globals={newGlobals} depth={(depth ?? "") + `_${host}.${index}`} />;
+   return <Output nodeId={nodeId} globals={newGlobals} depth={(depth ?? "") + `_${host}.${index}`} overrides={overrides} />;
 };
 
 const nodeMethods = ArcaneGraph.nodeMethods<IRepeatArrayNode>();

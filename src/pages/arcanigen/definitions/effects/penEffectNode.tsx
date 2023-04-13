@@ -77,7 +77,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    );
 });
 
-const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
+const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps) => {
    const seed = nodeHelper.useCoalesce(nodeId, "seed", "seed", globals);
    const nib = nodeHelper.useCoalesce(nodeId, "nib", "nib", globals);
    const smudge = nodeHelper.useCoalesce(nodeId, "smudge", "smudge", globals);
@@ -97,7 +97,7 @@ const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
                <feBlend in2="SourceGraphic" />
             </filter>
             <g filter={`url('#effect_${nodeId}_lyr-${depth ?? ""}')`}>
-               {Content && cId && <Content globals={globals} nodeId={cId} depth={(depth ?? "") + `_${nodeId}`} />}
+               {Content && cId && <Content overrides={overrides} globals={globals} nodeId={cId} depth={(depth ?? "") + `_${nodeId}`} />}
             </g>
          </g>
       </>

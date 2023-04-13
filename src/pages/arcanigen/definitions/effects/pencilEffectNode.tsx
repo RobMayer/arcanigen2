@@ -47,7 +47,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    );
 });
 
-const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
+const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps) => {
    const seed = nodeHelper.useCoalesce(nodeId, "seed", "seed", globals);
    const [Content, cId] = nodeHelper.useInputNode(nodeId, "input", globals);
 
@@ -62,7 +62,7 @@ const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
                <feDisplacementMap xChannelSelector="R" yChannelSelector="G" scale="2.5" in="f3" result="f4" />
             </filter>
             <g filter={`url('#effect_${nodeId}_lyr-${depth ?? ""}')`}>
-               {Content && cId && <Content globals={globals} nodeId={cId} depth={(depth ?? "") + `_${nodeId}`} />}
+               {Content && cId && <Content globals={globals} nodeId={cId} depth={(depth ?? "") + `_${nodeId}`} overrides={overrides} />}
             </g>
          </g>
       </>

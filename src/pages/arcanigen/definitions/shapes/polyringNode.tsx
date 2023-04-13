@@ -236,7 +236,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    );
 });
 
-const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
+const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) => {
    const pointCount = Math.min(24, Math.max(3, nodeHelper.useCoalesce(nodeId, "pointCount", "pointCount", globals)));
    const rScribeMode = nodeHelper.useValue(nodeId, "rScribeMode");
    const iScribeMode = nodeHelper.useValue(nodeId, "iScribeMode");
@@ -315,12 +315,12 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
    return (
       <g transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`}>
          <g
-            stroke={MathHelper.colorToSVG(strokeColor)}
-            fill={MathHelper.colorToSVG(fillColor)}
-            strokeOpacity={MathHelper.colorToOpacity(strokeColor)}
-            fillOpacity={MathHelper.colorToOpacity(fillColor)}
-            strokeWidth={Math.max(0, MathHelper.lengthToPx(strokeWidth))}
-            strokeLinejoin={strokeJoin}
+            stroke={MathHelper.colorToSVG("strokeColor" in overrides ? overrides.strokeColor : strokeColor)}
+            fill={MathHelper.colorToSVG("fillColor" in overrides ? overrides.fillColor : fillColor)}
+            strokeOpacity={MathHelper.colorToOpacity("strokeColor" in overrides ? overrides.strokeColor : strokeColor)}
+            fillOpacity={MathHelper.colorToOpacity("fillColor" in overrides ? overrides.fillColor : fillColor)}
+            strokeWidth={Math.max(0, MathHelper.lengthToPx("strokeWidth" in overrides ? overrides.strokeWidth : strokeWidth))}
+            strokeLinejoin={"strokeJoin" in overrides ? overrides.strokeJoin : strokeJoin}
          >
             <path d={points} vectorEffect={"non-scaling-stroke"} />
          </g>

@@ -51,6 +51,7 @@ import SegmentNodeHelper from "./shapes/segementNode";
 import RepeatArrayNodeHelper from "./collections/repeatArrayNode";
 import PolyringNodeHelper from "./shapes/polyringNode";
 import KnotNodeHelper from "./shapes/knotNode";
+import OverrideStylesNodeHelper from "./collections/overrideStylesNode";
 
 // prettier-ignore
 export const getNodeHelper = (key: NodeTypes) => {
@@ -61,6 +62,7 @@ export const getNodeHelper = (key: NodeTypes) => {
       case NodeTypes.COL_MASK: return MaskNodeHelper;
       case NodeTypes.COL_SEQUENCE: return SequencerNodeHelper;
       case NodeTypes.COL_TRANSFORM: return TransformNodeHelper;
+      case NodeTypes.COL_RESTYLE: return OverrideStylesNodeHelper;
 
       case NodeTypes.ARRAY_VERTEX: return VertexArrayNodeHelper;
       case NodeTypes.ARRAY_SPIRAL: return SpiralArrayNodeHelper;
