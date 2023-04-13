@@ -9,13 +9,15 @@ import {
    NodeRendererProps,
    NodeTypes,
    PositionMode,
-   RadialMode,
-   RADIAL_MODES,
+   SpanMode,
+   SPAN_MODES,
    SocketTypes,
    StrokeCapMode,
    STROKECAP_MODES,
    ThetaMode,
    THETA_MODES,
+   RADIAL_MODES,
+   RadialMode,
 } from "../types";
 import MathHelper from "!/utility/mathhelper";
 
@@ -37,9 +39,9 @@ interface IBurstNode extends INodeDefinition {
    inputs: {
       spurCount: number;
       radius: Length;
-      spread: Length;
-      innerRadius: Length;
-      outerRadius: Length;
+      deviation: Length;
+      minorRadius: Length;
+      majorRadius: Length;
       thetaStart: number;
       thetaEnd: number;
       thetaSteps: number;
@@ -67,9 +69,9 @@ interface IBurstNode extends INodeDefinition {
       thetaSteps: number;
       thetaInclusive: boolean;
       radius: Length;
-      spread: Length;
-      innerRadius: Length;
-      outerRadius: Length;
+      deviation: Length;
+      minorRadius: Length;
+      majorRadius: Length;
       spurCount: number;
 
       strokeWidth: Length;
@@ -90,10 +92,10 @@ const nodeHelper = ArcaneGraph.nodeHooks<IBurstNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [radius, setRadius] = nodeHelper.useValueState(nodeId, "radius");
-   const [spread, setSpread] = nodeHelper.useValueState(nodeId, "spread");
+   const [deviation, setDeviation] = nodeHelper.useValueState(nodeId, "deviation");
    const [radialMode, setRadialMode] = nodeHelper.useValueState(nodeId, "radialMode");
-   const [innerRadius, setInnerRadius] = nodeHelper.useValueState(nodeId, "innerRadius");
-   const [outerRadius, setOuterRadius] = nodeHelper.useValueState(nodeId, "outerRadius");
+   const [minorRadius, setMinorRadius] = nodeHelper.useValueState(nodeId, "minorRadius");
+   const [majorRadius, setMajorRadius] = nodeHelper.useValueState(nodeId, "majorRadius");
 
    const [thetaMode, setThetaMode] = nodeHelper.useValueState(nodeId, "thetaMode");
    const [thetaStart, setThetaStart] = nodeHelper.useValueState(nodeId, "thetaStart");
@@ -113,10 +115,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const hasThetaEnd = nodeHelper.useHasLink(nodeId, "thetaEnd");
    const hasThetaSteps = nodeHelper.useHasLink(nodeId, "thetaSteps");
 
-   const hasInnerRadius = nodeHelper.useHasLink(nodeId, "innerRadius");
-   const hasOuterRadius = nodeHelper.useHasLink(nodeId, "outerRadius");
+   const hasMinorRadius = nodeHelper.useHasLink(nodeId, "minorRadius");
+   const hasMajorRadius = nodeHelper.useHasLink(nodeId, "majorRadius");
    const hasRadius = nodeHelper.useHasLink(nodeId, "radius");
-   const hasSpread = nodeHelper.useHasLink(nodeId, "spread");
+   const hasDeviation = nodeHelper.useHasLink(nodeId, "deviation");
    const hasStrokeWidth = nodeHelper.useHasLink(nodeId, "strokeWidth");
 
    const hasStrokeColor = nodeHelper.useHasLink(nodeId, "strokeColor");
@@ -135,24 +137,24 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          <BaseNode.Input label={"Radial Mode"}>
             <ToggleList value={radialMode} onValue={setRadialMode} options={RADIAL_MODES} />
          </BaseNode.Input>
-         <SocketIn<IBurstNode> nodeId={nodeId} socketId={"innerRadius"} type={SocketTypes.LENGTH}>
-            <BaseNode.Input label={"Inner Radius"}>
-               <LengthInput value={innerRadius} onValidValue={setInnerRadius} disabled={hasInnerRadius || radialMode === "spread"} />
+         <SocketIn<IBurstNode> nodeId={nodeId} socketId={"majorRadius"} type={SocketTypes.LENGTH}>
+            <BaseNode.Input label={"Major Radius"}>
+               <LengthInput value={majorRadius} onValidValue={setMajorRadius} disabled={hasMajorRadius || radialMode === "deviation"} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IBurstNode> nodeId={nodeId} socketId={"outerRadius"} type={SocketTypes.LENGTH}>
-            <BaseNode.Input label={"Outer Radius"}>
-               <LengthInput value={outerRadius} onValidValue={setOuterRadius} disabled={hasOuterRadius || radialMode === "spread"} />
+         <SocketIn<IBurstNode> nodeId={nodeId} socketId={"minorRadius"} type={SocketTypes.LENGTH}>
+            <BaseNode.Input label={"Minor Radius"}>
+               <LengthInput value={minorRadius} onValidValue={setMinorRadius} disabled={hasMinorRadius || radialMode === "deviation"} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IBurstNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
-               <LengthInput value={radius} onValidValue={setRadius} disabled={hasRadius || radialMode === "inout"} />
+               <LengthInput value={radius} onValidValue={setRadius} disabled={hasRadius || radialMode === "majorminor"} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<IBurstNode> nodeId={nodeId} socketId={"spread"} type={SocketTypes.LENGTH}>
-            <BaseNode.Input label={"Spread"}>
-               <LengthInput value={spread} onValidValue={setSpread} disabled={hasSpread || radialMode === "inout"} />
+         <SocketIn<IBurstNode> nodeId={nodeId} socketId={"deviation"} type={SocketTypes.LENGTH}>
+            <BaseNode.Input label={"Deviation"}>
+               <LengthInput value={deviation} onValidValue={setDeviation} disabled={hasDeviation || radialMode === "majorminor"} />
             </BaseNode.Input>
          </SocketIn>
          <hr />
@@ -214,9 +216,9 @@ const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
    const spurCount = Math.max(0, nodeHelper.useCoalesce(nodeId, "spurCount", "spurCount", globals));
    const radialMode = nodeHelper.useValue(nodeId, "radialMode");
    const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius", globals);
-   const spread = nodeHelper.useCoalesce(nodeId, "spread", "spread", globals);
-   const innerRadius = nodeHelper.useCoalesce(nodeId, "innerRadius", "innerRadius", globals);
-   const outerRadius = nodeHelper.useCoalesce(nodeId, "outerRadius", "outerRadius", globals);
+   const deviation = nodeHelper.useCoalesce(nodeId, "deviation", "deviation", globals);
+   const minorRadius = nodeHelper.useCoalesce(nodeId, "minorRadius", "minorRadius", globals);
+   const majorRadius = nodeHelper.useCoalesce(nodeId, "majorRadius", "majorRadius", globals);
 
    const positionMode = nodeHelper.useValue(nodeId, "positionMode");
    const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX", globals);
@@ -240,8 +242,8 @@ const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
    const [MarkEnd, meId] = nodeHelper.useInputNode(nodeId, "strokeMarkEnd", globals);
    const strokeMarkAlign = nodeHelper.useValue(nodeId, "strokeMarkAlign");
 
-   const rI = radialMode === "inout" ? MathHelper.lengthToPx(innerRadius) : MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(spread) / 2;
-   const rO = radialMode === "inout" ? MathHelper.lengthToPx(outerRadius) : MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(spread) / 2;
+   const rI = radialMode === "majorminor" ? MathHelper.lengthToPx(minorRadius) : MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(deviation) / 2;
+   const rO = radialMode === "majorminor" ? MathHelper.lengthToPx(majorRadius) : MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(deviation) / 2;
 
    const points = useMemo(() => {
       return lodash.range(spurCount).map((n) => {
@@ -321,12 +323,12 @@ const BurstNodeHelper: INodeHelper<IBurstNode> = {
    getOutput: () => Renderer,
    initialize: () => ({
       radius: { value: 150, unit: "px" },
-      spread: { value: 20, unit: "px" },
-      radialMode: "inout",
+      deviation: { value: 20, unit: "px" },
+      radialMode: "majorminor",
       thetaMode: "incremental",
       spurCount: 5,
-      innerRadius: { value: 140, unit: "px" },
-      outerRadius: { value: 160, unit: "px" },
+      minorRadius: { value: 140, unit: "px" },
+      majorRadius: { value: 160, unit: "px" },
       thetaStart: 0,
       thetaEnd: 90,
       thetaSteps: 30,

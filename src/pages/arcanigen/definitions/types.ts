@@ -10,6 +10,7 @@ export enum NodeTypes {
    SHAPE_RING = "shapeRing",
    SHAPE_POLYGON = "shapePolygon",
    SHAPE_POLYGRAM = "shapePolygram",
+   SHAPE_KNOT = "shapeKnot",
    SHAPE_POLYRING = "shapePolyring",
    SHAPE_STAR = "shapeStar",
    SHAPE_BURST = "shapeBurst",
@@ -186,11 +187,24 @@ export const SCRIBE_MODES = {
 };
 export type ScribeMode = keyof typeof SCRIBE_MODES;
 
-export const RADIAL_MODES = {
+export const SPAN_MODES = {
    inout: "Inner/Outer",
    spread: "Spread",
 };
+export type SpanMode = keyof typeof SPAN_MODES;
+
+export const RADIAL_MODES = {
+   majorminor: "Major/Minor",
+   deviation: "Deviation",
+};
 export type RadialMode = keyof typeof RADIAL_MODES;
+
+export const RADIAL_SPAN_MODES = {
+   majorminor: "Major/Minor",
+   deviation: "Deviation",
+   explicit: "Explicit",
+};
+export type RadialSpanMode = keyof typeof RADIAL_SPAN_MODES;
 
 export const SPREAD_ALIGN_MODES = {
    center: "Center",

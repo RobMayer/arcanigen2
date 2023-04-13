@@ -58,7 +58,7 @@ interface IPolygonNode extends INodeDefinition {
       radius: Length;
       strokeWidth: Length;
       pointCount: number;
-      scribeMode: ScribeMode;
+      rScribe: ScribeMode;
       strokeJoin: StrokeJoinMode;
       strokeColor: Color;
       fillColor: Color;
@@ -81,7 +81,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [strokeJoin, setStrokeJoin] = nodeHelper.useValueState(nodeId, "strokeJoin");
    const [fillColor, setFillColor] = nodeHelper.useValueState(nodeId, "fillColor");
    const [pointCount, setPointCount] = nodeHelper.useValueState(nodeId, "pointCount");
-   const [scribeMode, setScribeMode] = nodeHelper.useValueState(nodeId, "scribeMode");
+   const [rScribe, setRScribe] = nodeHelper.useValueState(nodeId, "rScribe");
    const hasRadius = nodeHelper.useHasLink(nodeId, "radius");
    const hasPointCount = nodeHelper.useHasLink(nodeId, "pointCount");
    const hasStrokeWidth = nodeHelper.useHasLink(nodeId, "strokeWidth");
@@ -102,11 +102,9 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          <SocketIn<IPolygonNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
                <LengthInput value={radius} onValidValue={setRadius} disabled={hasRadius} />
+               <Dropdown value={rScribe} onValue={setRScribe} options={SCRIBE_MODES} />
             </BaseNode.Input>
          </SocketIn>
-         <BaseNode.Input label={"Scribe Mode"}>
-            <Dropdown value={scribeMode} onValue={setScribeMode} options={SCRIBE_MODES} />
-         </BaseNode.Input>
          <SocketIn<IPolygonNode> nodeId={nodeId} socketId={"thetaCurve"} type={SocketTypes.CURVE}>
             θ Distribution
          </SocketIn>
@@ -150,7 +148,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
 const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
    const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius", globals);
    const pointCount = Math.min(24, Math.max(3, nodeHelper.useCoalesce(nodeId, "pointCount", "pointCount", globals)));
-   const scribeMode = nodeHelper.useValue(nodeId, "scribeMode");
+   const rScribe = nodeHelper.useValue(nodeId, "rScribe");
 
    const strokeWidth = nodeHelper.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
    const strokeJoin = nodeHelper.useValue(nodeId, "strokeJoin");
@@ -166,7 +164,7 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
    const thetaCurve = nodeHelper.useInput(nodeId, "thetaCurve", globals);
 
    const points = useMemo(() => {
-      const tR = getTrueRadius(MathHelper.lengthToPx(radius), scribeMode, pointCount);
+      const tR = getTrueRadius(MathHelper.lengthToPx(radius), rScribe, pointCount);
       const p = lodash.range(pointCount).map((each, i) => {
          const coeff = MathHelper.lerp(MathHelper.delerp(each, 0, pointCount), 0, 360, {
             curveFn: thetaCurve?.curveFn ?? "linear",
@@ -176,7 +174,7 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
          return `${tR * Math.cos(MathHelper.deg2rad(coeff - 90))},${tR * Math.sin(MathHelper.deg2rad(coeff - 90))}`;
       });
       return `M ${p[0]} ${p.slice(1).map((e) => `L ${e}`)} Z`;
-   }, [pointCount, radius, scribeMode, thetaCurve?.curveFn, thetaCurve?.easing, thetaCurve?.intensity]);
+   }, [pointCount, radius, rScribe, thetaCurve?.curveFn, thetaCurve?.easing, thetaCurve?.intensity]);
 
    return (
       <g transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`}>
@@ -208,9 +206,9 @@ const PolygonNodeHelper: INodeHelper<IPolygonNode> = {
       }
       const radius = nodeMethods.coalesce(graph, nodeId, "radius", "radius", globals);
       const pointCount = nodeMethods.getValue(graph, nodeId, "pointCount");
-      const scribeMode = nodeMethods.getValue(graph, nodeId, "scribeMode");
+      const rScribe = nodeMethods.getValue(graph, nodeId, "rScribe");
 
-      const tR = getTrueRadius(MathHelper.lengthToPx(radius), scribeMode, pointCount);
+      const tR = getTrueRadius(MathHelper.lengthToPx(radius), rScribe, pointCount);
 
       switch (socket) {
          case "rInscribe":
@@ -226,7 +224,7 @@ const PolygonNodeHelper: INodeHelper<IPolygonNode> = {
       strokeWidth: { value: 1, unit: "px" },
       pointCount: 3,
       strokeJoin: "miter",
-      scribeMode: "inscribe",
+      rScribe: "inscribe",
       strokeColor: { r: 0, g: 0, b: 0, a: 1 },
       fillColor: null as Color,
 

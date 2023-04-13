@@ -49,7 +49,7 @@ interface IVertexArrayNode extends INodeDefinition {
    };
    values: {
       radius: Length;
-      scribeMode: ScribeMode;
+      rScribeMode: ScribeMode;
       pointCount: number;
       isRotating: boolean;
 
@@ -67,7 +67,7 @@ const nodeHelper = ArcaneGraph.nodeHooks<IVertexArrayNode>();
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [radius, setRadius] = nodeHelper.useValueState(nodeId, "radius");
    const [pointCount, setPointCount] = nodeHelper.useValueState(nodeId, "pointCount");
-   const [scribeMode, setScribeMode] = nodeHelper.useValueState(nodeId, "scribeMode");
+   const [rScribeMode, setRScribeMode] = nodeHelper.useValueState(nodeId, "rScribeMode");
    const [isRotating, setIsRotating] = nodeHelper.useValueState(nodeId, "isRotating");
 
    const hasRadius = nodeHelper.useHasLink(nodeId, "radius");
@@ -91,11 +91,9 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          <SocketIn<IVertexArrayNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
                <LengthInput value={radius} onValidValue={setRadius} disabled={hasRadius} />
+               <Dropdown value={rScribeMode} onValue={setRScribeMode} options={SCRIBE_MODES} />
             </BaseNode.Input>
          </SocketIn>
-         <BaseNode.Input label={"Scribe Mode"}>
-            <Dropdown value={scribeMode} onValue={setScribeMode} options={SCRIBE_MODES} />
-         </BaseNode.Input>
          <SocketIn<IVertexArrayNode> nodeId={nodeId} socketId={"thetaCurve"} type={SocketTypes.CURVE}>
             θ Distribution
          </SocketIn>
@@ -115,10 +113,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
 const Renderer = memo(({ nodeId, depth, globals }: NodeRendererProps) => {
    const [output, childNodeId] = nodeHelper.useInputNode(nodeId, "input", globals);
    const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius", globals);
-   const scribeMode = nodeHelper.useValue(nodeId, "scribeMode");
+   const rScribeMode = nodeHelper.useValue(nodeId, "rScribeMode");
    const pointCount = Math.min(24, Math.max(3, nodeHelper.useCoalesce(nodeId, "pointCount", "pointCount", globals)));
    const isRotating = nodeHelper.useValue(nodeId, "isRotating");
-   const tR = getTrueRadius(MathHelper.lengthToPx(radius), scribeMode, pointCount);
+   const tR = getTrueRadius(MathHelper.lengthToPx(radius), rScribeMode, pointCount);
 
    const positionMode = nodeHelper.useValue(nodeId, "positionMode");
    const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX", globals);
@@ -187,7 +185,7 @@ const VertexArrayNodeHelper: INodeHelper<IVertexArrayNode> = {
    },
    initialize: () => ({
       radius: { value: 100, unit: "px" },
-      scribeMode: "inscribe",
+      rScribeMode: "inscribe",
       pointCount: 5,
       isRotating: true,
 

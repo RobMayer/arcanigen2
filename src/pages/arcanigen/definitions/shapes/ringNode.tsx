@@ -8,8 +8,8 @@ import {
    NodeRendererProps,
    NodeTypes,
    PositionMode,
-   RadialMode,
-   RADIAL_MODES,
+   SpanMode,
+   SPAN_MODES,
    SocketTypes,
    SPREAD_ALIGN_MODES,
    SpreadAlignMode,
@@ -44,7 +44,7 @@ interface IRingNode extends INodeDefinition {
       output: NodeRenderer;
    };
    values: {
-      radialMode: RadialMode;
+      spanMode: SpanMode;
       radius: Length;
       spread: Length;
       spreadAlignMode: SpreadAlignMode;
@@ -68,7 +68,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [radius, setRadius] = nodeHelper.useValueState(nodeId, "radius");
    const [spread, setSpread] = nodeHelper.useValueState(nodeId, "spread");
    const [spreadAlignMode, setSpreadAlignMode] = nodeHelper.useValueState(nodeId, "spreadAlignMode");
-   const [radialMode, setRadialMode] = nodeHelper.useValueState(nodeId, "radialMode");
+   const [spanMode, setSpanMode] = nodeHelper.useValueState(nodeId, "spanMode");
    const [innerRadius, setInnerRadius] = nodeHelper.useValueState(nodeId, "innerRadius");
    const [outerRadius, setOuterRadius] = nodeHelper.useValueState(nodeId, "outerRadius");
    const [strokeWidth, setStrokeWidth] = nodeHelper.useValueState(nodeId, "strokeWidth");
@@ -88,31 +88,31 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             Output
          </SocketOut>
          <hr />
-         <BaseNode.Input label={"Radial Mode"}>
-            <ToggleList value={radialMode} onValue={setRadialMode} options={RADIAL_MODES} />
+         <BaseNode.Input label={"Span Mode"}>
+            <ToggleList value={spanMode} onValue={setSpanMode} options={SPAN_MODES} />
          </BaseNode.Input>
          <SocketIn<IRingNode> nodeId={nodeId} socketId={"innerRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Inner Radius"}>
-               <LengthInput value={innerRadius} onValidValue={setInnerRadius} disabled={hasInnerRadius || radialMode === "spread"} />
+               <LengthInput value={innerRadius} onValidValue={setInnerRadius} disabled={hasInnerRadius || spanMode === "spread"} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IRingNode> nodeId={nodeId} socketId={"outerRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Outer Radius"}>
-               <LengthInput value={outerRadius} onValidValue={setOuterRadius} disabled={hasOuterRadius || radialMode === "spread"} />
+               <LengthInput value={outerRadius} onValidValue={setOuterRadius} disabled={hasOuterRadius || spanMode === "spread"} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IRingNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
-               <LengthInput value={radius} onValidValue={setRadius} disabled={hasRadius || radialMode === "inout"} />
+               <LengthInput value={radius} onValidValue={setRadius} disabled={hasRadius || spanMode === "inout"} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IRingNode> nodeId={nodeId} socketId={"spread"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Spread"}>
-               <LengthInput value={spread} onValidValue={setSpread} disabled={hasSpread || radialMode === "inout"} />
+               <LengthInput value={spread} onValidValue={setSpread} disabled={hasSpread || spanMode === "inout"} />
             </BaseNode.Input>
          </SocketIn>
          <BaseNode.Input label={"Spread Align Mode"}>
-            <ToggleList value={spreadAlignMode} onValue={setSpreadAlignMode} options={SPREAD_ALIGN_MODES} disabled={radialMode === "inout"} />
+            <ToggleList value={spreadAlignMode} onValue={setSpreadAlignMode} options={SPREAD_ALIGN_MODES} disabled={spanMode === "inout"} />
          </BaseNode.Input>
          <hr />
          <BaseNode.Foldout label={"Appearance"} nodeId={nodeId} inputs={"strokeWidth strokeColor fillColor"} outputs={""}>
@@ -138,7 +138,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
 });
 
 const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
-   const radialMode = nodeHelper.useValue(nodeId, "radialMode");
+   const spanMode = nodeHelper.useValue(nodeId, "spanMode");
    const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius", globals);
    const spread = nodeHelper.useCoalesce(nodeId, "spread", "spread", globals);
    const spreadAlignMode = nodeHelper.useValue(nodeId, "spreadAlignMode");
@@ -156,7 +156,7 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
    const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
 
    const tIMod =
-      radialMode === "inout"
+      spanMode === "inout"
          ? 0
          : spreadAlignMode === "center"
          ? MathHelper.lengthToPx(spread) / 2
@@ -164,7 +164,7 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
          ? MathHelper.lengthToPx(spread)
          : 0;
    const tOMod =
-      radialMode === "inout"
+      spanMode === "inout"
          ? 0
          : spreadAlignMode === "center"
          ? MathHelper.lengthToPx(spread) / 2
@@ -172,8 +172,8 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
          ? MathHelper.lengthToPx(spread)
          : 0;
 
-   const rI = radialMode === "inout" ? MathHelper.lengthToPx(innerRadius) : MathHelper.lengthToPx(radius) - tIMod;
-   const rO = radialMode === "inout" ? MathHelper.lengthToPx(outerRadius) : MathHelper.lengthToPx(radius) + tOMod;
+   const rI = spanMode === "inout" ? MathHelper.lengthToPx(innerRadius) : MathHelper.lengthToPx(radius) - tIMod;
+   const rO = spanMode === "inout" ? MathHelper.lengthToPx(outerRadius) : MathHelper.lengthToPx(radius) + tOMod;
 
    return (
       <g transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)}`}>
@@ -204,7 +204,7 @@ const RingNodeHelper: INodeHelper<IRingNode> = {
       radius: { value: 150, unit: "px" },
       spread: { value: 20, unit: "px" },
       spreadAlignMode: "center",
-      radialMode: "inout",
+      spanMode: "inout",
       innerRadius: { value: 140, unit: "px" },
       outerRadius: { value: 160, unit: "px" },
       strokeWidth: { value: 1, unit: "px" },

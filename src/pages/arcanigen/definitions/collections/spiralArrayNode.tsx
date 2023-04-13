@@ -11,8 +11,8 @@ import {
    NodeRendererProps,
    NodeTypes,
    PositionMode,
-   RadialMode,
-   RADIAL_MODES,
+   SpanMode,
+   SPAN_MODES,
    Sequence,
    SocketTypes,
    ThetaMode,
@@ -60,7 +60,7 @@ interface ISpiralArrayNode extends INodeDefinition {
    values: {
       pointCount: number;
       isRotating: boolean;
-      radialMode: RadialMode;
+      radialMode: SpanMode;
       thetaMode: ThetaMode;
       thetaStart: number;
       thetaEnd: number;
@@ -124,7 +124,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             </BaseNode.Input>
          </SocketIn>
          <BaseNode.Input label={"Radial Mode"}>
-            <ToggleList value={radialMode} onValue={setRadialMode} options={RADIAL_MODES} />
+            <ToggleList value={radialMode} onValue={setRadialMode} options={SPAN_MODES} />
          </BaseNode.Input>
          <SocketIn<ISpiralArrayNode> nodeId={nodeId} socketId={"innerRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Inner Radius"}>

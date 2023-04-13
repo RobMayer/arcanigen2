@@ -9,8 +9,8 @@ import {
    NodeRendererProps,
    NodeTypes,
    PositionMode,
-   RadialMode,
-   RADIAL_MODES,
+   SpanMode,
+   SPAN_MODES,
    SocketTypes,
    StrokeCapMode,
    STROKECAP_MODES,
@@ -55,7 +55,7 @@ interface ISpiralNode extends INodeDefinition {
       output: NodeRenderer;
    };
    values: {
-      radialMode: RadialMode;
+      radialMode: SpanMode;
       radius: Length;
       spread: Length;
       innerRadius: Length;
@@ -116,7 +116,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          </SocketOut>
          <hr />
          <BaseNode.Input label={"Radial Mode"}>
-            <ToggleList value={radialMode} onValue={setRadialMode} options={RADIAL_MODES} />
+            <ToggleList value={radialMode} onValue={setRadialMode} options={SPAN_MODES} />
          </BaseNode.Input>
          <SocketIn<ISpiralNode> nodeId={nodeId} socketId={"innerRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Inner Radius"}>

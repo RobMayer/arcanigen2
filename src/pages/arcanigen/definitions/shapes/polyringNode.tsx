@@ -16,8 +16,8 @@ import {
    SocketTypes,
    StrokeJoinMode,
    STROKEJOIN_MODES,
-   RADIAL_MODES,
-   RadialMode,
+   SPAN_MODES,
+   SpanMode,
    SpreadAlignMode,
    SPREAD_ALIGN_MODES,
    ExpandMode,
@@ -59,12 +59,20 @@ interface IPolyringNode extends INodeDefinition {
    };
    outputs: {
       output: NodeRenderer;
-      rInscribe: Length;
-      rCircumscribe: Length;
-      rMiddle: Length;
+      cInscribe: Length;
+      cCircumscribe: Length;
+      cMiddle: Length;
+
+      oInscribe: Length;
+      oCircumscribe: Length;
+      oMiddle: Length;
+
+      iInscribe: Length;
+      iCircumscribe: Length;
+      iMiddle: Length;
    };
    values: {
-      radialMode: RadialMode;
+      spanMode: SpanMode;
       radius: Length;
       spread: Length;
       spreadAlignMode: SpreadAlignMode;
@@ -74,7 +82,9 @@ interface IPolyringNode extends INodeDefinition {
 
       strokeWidth: Length;
       pointCount: number;
-      scribeMode: ScribeMode;
+      rScribeMode: ScribeMode;
+      iScribeMode: ScribeMode;
+      oScribeMode: ScribeMode;
       strokeJoin: StrokeJoinMode;
       strokeColor: Color;
       fillColor: Color;
@@ -92,19 +102,21 @@ const nodeHelper = ArcaneGraph.nodeHooks<IPolyringNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [radius, setRadius] = nodeHelper.useValueState(nodeId, "radius");
+   const [rScribeMode, setRScribeMode] = nodeHelper.useValueState(nodeId, "rScribeMode");
    const [spread, setSpread] = nodeHelper.useValueState(nodeId, "spread");
    const [spreadAlignMode, setSpreadAlignMode] = nodeHelper.useValueState(nodeId, "spreadAlignMode");
    const [expandMode, setExpandMode] = nodeHelper.useValueState(nodeId, "expandMode");
-   const [radialMode, setRadialMode] = nodeHelper.useValueState(nodeId, "radialMode");
+   const [spanMode, setSpanMode] = nodeHelper.useValueState(nodeId, "spanMode");
    const [innerRadius, setInnerRadius] = nodeHelper.useValueState(nodeId, "innerRadius");
+   const [iScribeMode, setIScribeMode] = nodeHelper.useValueState(nodeId, "iScribeMode");
    const [outerRadius, setOuterRadius] = nodeHelper.useValueState(nodeId, "outerRadius");
+   const [oScribeMode, setOScribeMode] = nodeHelper.useValueState(nodeId, "oScribeMode");
 
    const [strokeWidth, setStrokeWidth] = nodeHelper.useValueState(nodeId, "strokeWidth");
    const [strokeColor, setStrokeColor] = nodeHelper.useValueState(nodeId, "strokeColor");
    const [strokeJoin, setStrokeJoin] = nodeHelper.useValueState(nodeId, "strokeJoin");
    const [fillColor, setFillColor] = nodeHelper.useValueState(nodeId, "fillColor");
    const [pointCount, setPointCount] = nodeHelper.useValueState(nodeId, "pointCount");
-   const [scribeMode, setScribeMode] = nodeHelper.useValueState(nodeId, "scribeMode");
 
    const hasInnerRadius = nodeHelper.useHasLink(nodeId, "innerRadius");
    const hasOuterRadius = nodeHelper.useHasLink(nodeId, "outerRadius");
@@ -127,37 +139,37 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                <SliderInput revertInvalid value={pointCount} onValidValue={setPointCount} min={3} max={24} step={1} disabled={hasPointCount} />
             </BaseNode.Input>
          </SocketIn>
-         <BaseNode.Input label={"Radial Mode"}>
-            <ToggleList value={radialMode} onValue={setRadialMode} options={RADIAL_MODES} />
+         <BaseNode.Input label={"Span Mode"}>
+            <ToggleList value={spanMode} onValue={setSpanMode} options={SPAN_MODES} />
          </BaseNode.Input>
          <SocketIn<IPolyringNode> nodeId={nodeId} socketId={"innerRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Inner Radius"}>
-               <LengthInput value={innerRadius} onValidValue={setInnerRadius} disabled={hasInnerRadius || radialMode === "spread"} />
+               <LengthInput value={innerRadius} onValidValue={setInnerRadius} disabled={hasInnerRadius || spanMode === "spread"} />
+               <Dropdown value={iScribeMode} onValue={setIScribeMode} options={SCRIBE_MODES} disabled={spanMode === "spread"} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IPolyringNode> nodeId={nodeId} socketId={"outerRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Outer Radius"}>
-               <LengthInput value={outerRadius} onValidValue={setOuterRadius} disabled={hasOuterRadius || radialMode === "spread"} />
+               <LengthInput value={outerRadius} onValidValue={setOuterRadius} disabled={hasOuterRadius || spanMode === "spread"} />
+               <Dropdown value={oScribeMode} onValue={setOScribeMode} options={SCRIBE_MODES} disabled={spanMode === "spread"} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IPolyringNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
-               <LengthInput value={radius} onValidValue={setRadius} disabled={hasRadius || radialMode === "inout"} />
+               <LengthInput value={radius} onValidValue={setRadius} disabled={hasRadius || spanMode === "inout"} />
+               <Dropdown value={rScribeMode} onValue={setRScribeMode} options={SCRIBE_MODES} disabled={spanMode === "inout"} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IPolyringNode> nodeId={nodeId} socketId={"spread"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Spread"}>
-               <LengthInput value={spread} onValidValue={setSpread} disabled={hasSpread || radialMode === "inout"} />
+               <LengthInput value={spread} onValidValue={setSpread} disabled={hasSpread || spanMode === "inout"} />
             </BaseNode.Input>
          </SocketIn>
          <BaseNode.Input label={"Spread Align Mode"}>
-            <ToggleList value={spreadAlignMode} onValue={setSpreadAlignMode} options={SPREAD_ALIGN_MODES} disabled={radialMode === "inout"} />
+            <ToggleList value={spreadAlignMode} onValue={setSpreadAlignMode} options={SPREAD_ALIGN_MODES} disabled={spanMode === "inout"} />
          </BaseNode.Input>
          <BaseNode.Input label={"Expand Mode"}>
-            <ToggleList value={expandMode} onValue={setExpandMode} options={EXPAND_MODES} disabled={radialMode === "inout"} />
-         </BaseNode.Input>
-         <BaseNode.Input label={"Scribe Mode"}>
-            <Dropdown value={scribeMode} onValue={setScribeMode} options={SCRIBE_MODES} />
+            <ToggleList value={expandMode} onValue={setExpandMode} options={EXPAND_MODES} disabled={spanMode === "inout"} />
          </BaseNode.Input>
          <SocketIn<IPolyringNode> nodeId={nodeId} socketId={"thetaCurve"} type={SocketTypes.CURVE}>
             θ Distribution
@@ -184,15 +196,40 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             </SocketIn>
          </BaseNode.Foldout>
          <TransformPrefabs.Full<IPolyringNode> nodeId={nodeId} nodeHelper={nodeHelper} />
-         <BaseNode.Foldout label={"Additional Outputs"} inputs={""} outputs={"rInscribe rCircumscribe rMiddle"} nodeId={nodeId}>
-            <SocketOut<IPolyringNode> nodeId={nodeId} socketId={"rInscribe"} type={SocketTypes.LENGTH}>
-               Inscribe Radius
+         <BaseNode.Foldout
+            label={"Additional Outputs"}
+            inputs={""}
+            outputs={"cInscribe cCircumscribe cMiddle oInscribe oCircumscribe oMiddle iInscribe iCircumscribe iMiddle"}
+            nodeId={nodeId}
+         >
+            <SocketOut<IPolyringNode> nodeId={nodeId} socketId={"cInscribe"} type={SocketTypes.LENGTH}>
+               Inscribe Center
             </SocketOut>
-            <SocketOut<IPolyringNode> nodeId={nodeId} socketId={"rCircumscribe"} type={SocketTypes.LENGTH}>
-               Circumscribe Radius
+            <SocketOut<IPolyringNode> nodeId={nodeId} socketId={"cCircumscribe"} type={SocketTypes.LENGTH}>
+               Circumscribe Center
             </SocketOut>
-            <SocketOut<IPolyringNode> nodeId={nodeId} socketId={"rMiddle"} type={SocketTypes.LENGTH}>
-               Middle Radius
+            <SocketOut<IPolyringNode> nodeId={nodeId} socketId={"cMiddle"} type={SocketTypes.LENGTH}>
+               Middle Center
+            </SocketOut>
+
+            <SocketOut<IPolyringNode> nodeId={nodeId} socketId={"oInscribe"} type={SocketTypes.LENGTH}>
+               Inscribe Outer
+            </SocketOut>
+            <SocketOut<IPolyringNode> nodeId={nodeId} socketId={"oCircumscribe"} type={SocketTypes.LENGTH}>
+               Circumscribe Outer
+            </SocketOut>
+            <SocketOut<IPolyringNode> nodeId={nodeId} socketId={"oMiddle"} type={SocketTypes.LENGTH}>
+               Middle Outer
+            </SocketOut>
+
+            <SocketOut<IPolyringNode> nodeId={nodeId} socketId={"iInscribe"} type={SocketTypes.LENGTH}>
+               Inscribe Inner
+            </SocketOut>
+            <SocketOut<IPolyringNode> nodeId={nodeId} socketId={"iCircumscribe"} type={SocketTypes.LENGTH}>
+               Circumscribe Inner
+            </SocketOut>
+            <SocketOut<IPolyringNode> nodeId={nodeId} socketId={"iMiddle"} type={SocketTypes.LENGTH}>
+               Middle Inner
             </SocketOut>
          </BaseNode.Foldout>
       </BaseNode>
@@ -201,11 +238,13 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
 
 const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
    const pointCount = Math.min(24, Math.max(3, nodeHelper.useCoalesce(nodeId, "pointCount", "pointCount", globals)));
-   const scribeMode = nodeHelper.useValue(nodeId, "scribeMode");
+   const rScribeMode = nodeHelper.useValue(nodeId, "rScribeMode");
+   const iScribeMode = nodeHelper.useValue(nodeId, "iScribeMode");
+   const oScribeMode = nodeHelper.useValue(nodeId, "oScribeMode");
    const spreadAlignMode = nodeHelper.useValue(nodeId, "spreadAlignMode");
    const expandMode = nodeHelper.useValue(nodeId, "expandMode");
 
-   const radialMode = nodeHelper.useValue(nodeId, "radialMode");
+   const spanMode = nodeHelper.useValue(nodeId, "spanMode");
    const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius", globals);
    const spread = nodeHelper.useCoalesce(nodeId, "spread", "spread", globals);
    const innerRadius = nodeHelper.useCoalesce(nodeId, "innerRadius", "innerRadius", globals);
@@ -227,11 +266,17 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
    const points = useMemo(() => {
       const theSpread = expandMode === "point" ? MathHelper.lengthToPx(spread) : (1 / Math.cos(Math.PI / pointCount)) * MathHelper.lengthToPx(spread);
 
-      const tIMod = radialMode === "inout" ? 0 : spreadAlignMode === "center" ? theSpread / 2 : spreadAlignMode === "inward" ? theSpread : 0;
-      const tOMod = radialMode === "inout" ? 0 : spreadAlignMode === "center" ? theSpread / 2 : spreadAlignMode === "outward" ? theSpread : 0;
+      const tIMod = spanMode === "inout" ? 0 : spreadAlignMode === "center" ? theSpread / 2 : spreadAlignMode === "inward" ? theSpread : 0;
+      const tOMod = spanMode === "inout" ? 0 : spreadAlignMode === "center" ? theSpread / 2 : spreadAlignMode === "outward" ? theSpread : 0;
 
-      const tI = getTrueRadius(radialMode === "inout" ? MathHelper.lengthToPx(innerRadius) : MathHelper.lengthToPx(radius), scribeMode, pointCount) - tIMod;
-      const tO = getTrueRadius(radialMode === "inout" ? MathHelper.lengthToPx(outerRadius) : MathHelper.lengthToPx(radius), scribeMode, pointCount) + tOMod;
+      const tI =
+         (spanMode === "inout"
+            ? getTrueRadius(MathHelper.lengthToPx(innerRadius), iScribeMode, pointCount)
+            : getTrueRadius(MathHelper.lengthToPx(radius), rScribeMode, pointCount)) - tIMod;
+      const tO =
+         (spanMode === "inout"
+            ? getTrueRadius(MathHelper.lengthToPx(outerRadius), oScribeMode, pointCount)
+            : getTrueRadius(MathHelper.lengthToPx(radius), rScribeMode, pointCount)) + tOMod;
 
       const innerPoints: string[] = [];
       const outerPoints: string[] = [];
@@ -255,9 +300,11 @@ const Renderer = memo(({ nodeId, globals }: NodeRendererProps) => {
       innerRadius,
       outerRadius,
       pointCount,
-      radialMode,
+      spanMode,
       radius,
-      scribeMode,
+      rScribeMode,
+      iScribeMode,
+      oScribeMode,
       spread,
       spreadAlignMode,
       thetaCurve?.curveFn,
@@ -293,19 +340,55 @@ const PolyringNodeHelper: INodeHelper<IPolyringNode> = {
       if (socket === "output") {
          return Renderer;
       }
-      const radius = nodeMethods.coalesce(graph, nodeId, "radius", "radius", globals);
-      const pointCount = nodeMethods.getValue(graph, nodeId, "pointCount");
-      const scribeMode = nodeMethods.getValue(graph, nodeId, "scribeMode");
 
-      const tR = getTrueRadius(MathHelper.lengthToPx(radius), scribeMode, pointCount);
+      const spread = nodeMethods.getValue(graph, nodeId, "spread");
+      const expandMode = nodeMethods.getValue(graph, nodeId, "expandMode");
+      const spanMode = nodeMethods.getValue(graph, nodeId, "spanMode");
+      const spreadAlignMode = nodeMethods.getValue(graph, nodeId, "spreadAlignMode");
+      const radius = nodeMethods.coalesce(graph, nodeId, "radius", "radius", globals);
+      const innerRadius = nodeMethods.coalesce(graph, nodeId, "innerRadius", "outerRadius", globals);
+      const outerRadius = nodeMethods.coalesce(graph, nodeId, "innerRadius", "outerRadius", globals);
+
+      const iScribeMode = nodeMethods.getValue(graph, nodeId, "iScribeMode");
+      const oScribeMode = nodeMethods.getValue(graph, nodeId, "oScribeMode");
+      const rScribeMode = nodeMethods.getValue(graph, nodeId, "rScribeMode");
+
+      const pointCount = nodeMethods.getValue(graph, nodeId, "pointCount");
+      const theSpread = expandMode === "point" ? MathHelper.lengthToPx(spread) : (1 / Math.cos(Math.PI / pointCount)) * MathHelper.lengthToPx(spread);
+
+      const tIMod = spanMode === "inout" ? 0 : spreadAlignMode === "center" ? theSpread / 2 : spreadAlignMode === "inward" ? theSpread : 0;
+      const tOMod = spanMode === "inout" ? 0 : spreadAlignMode === "center" ? theSpread / 2 : spreadAlignMode === "outward" ? theSpread : 0;
+
+      const tI =
+         (spanMode === "inout"
+            ? getTrueRadius(MathHelper.lengthToPx(innerRadius), iScribeMode, pointCount)
+            : getTrueRadius(MathHelper.lengthToPx(radius), rScribeMode, pointCount)) - tIMod;
+      const tO =
+         (spanMode === "inout"
+            ? getTrueRadius(MathHelper.lengthToPx(outerRadius), oScribeMode, pointCount)
+            : getTrueRadius(MathHelper.lengthToPx(radius), rScribeMode, pointCount)) + tOMod;
+
+      const tR = (tI + tO) / 2;
 
       switch (socket) {
-         case "rInscribe":
+         case "cInscribe":
             return MathHelper.pxToLength(getPassedRadius(tR, "inscribe", pointCount));
-         case "rCircumscribe":
+         case "cCircumscribe":
             return MathHelper.pxToLength(getPassedRadius(tR, "circumscribe", pointCount));
-         case "rMiddle":
+         case "cMiddle":
             return MathHelper.pxToLength(getPassedRadius(tR, "middle", pointCount));
+         case "oInscribe":
+            return MathHelper.pxToLength(getPassedRadius(tO, "inscribe", pointCount));
+         case "oCircumscribe":
+            return MathHelper.pxToLength(getPassedRadius(tO, "circumscribe", pointCount));
+         case "oMiddle":
+            return MathHelper.pxToLength(getPassedRadius(tO, "middle", pointCount));
+         case "iInscribe":
+            return MathHelper.pxToLength(getPassedRadius(tI, "inscribe", pointCount));
+         case "iCircumscribe":
+            return MathHelper.pxToLength(getPassedRadius(tI, "circumscribe", pointCount));
+         case "iMiddle":
+            return MathHelper.pxToLength(getPassedRadius(tI, "middle", pointCount));
       }
    },
    initialize: () => ({
@@ -313,13 +396,15 @@ const PolyringNodeHelper: INodeHelper<IPolyringNode> = {
       spread: { value: 20, unit: "px" },
       spreadAlignMode: "center",
       expandMode: "point",
-      radialMode: "inout",
+      spanMode: "inout",
       innerRadius: { value: 140, unit: "px" },
       outerRadius: { value: 160, unit: "px" },
       strokeWidth: { value: 1, unit: "px" },
       pointCount: 3,
       strokeJoin: "miter",
-      scribeMode: "inscribe",
+      rScribeMode: "inscribe",
+      iScribeMode: "inscribe",
+      oScribeMode: "inscribe",
       strokeColor: { r: 0, g: 0, b: 0, a: 1 },
       fillColor: null as Color,
 
