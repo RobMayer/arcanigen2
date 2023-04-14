@@ -7,7 +7,7 @@ import Dropdown from "!/components/selectors/Dropdown";
 import BaseNode from "../../nodeView/node";
 import { SocketIn, SocketOut } from "../../nodeView/socket";
 import MathHelper from "!/utility/mathhelper";
-import TextInput from "!/components/inputs/TextInput";
+import { MetaPrefab } from "../../nodeView/prefabs";
 
 interface IMathRndNode extends INodeDefinition {
    inputs: {
@@ -17,22 +17,17 @@ interface IMathRndNode extends INodeDefinition {
       output: number;
    };
    values: {
-      name: string;
       roundingMode: RoundingMode;
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<IMathRndNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<IMathRndNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-   const [roundingMode, setRoundingMode] = nodeHelper.useValueState(nodeId, "roundingMode");
+   const [roundingMode, setRoundingMode] = nodeHooks.useValueState(nodeId, "roundingMode");
 
    return (
-      <BaseNode<IMathRndNode> nodeId={nodeId} helper={MathRndNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<IMathRndNode> nodeId={nodeId} helper={MathRndNodeHelper} hooks={nodeHooks}>
          <SocketIn<IMathRndNode> nodeId={nodeId} socketId={"input"} type={SocketTypes.NUMBER}>
             Value
          </SocketIn>
@@ -43,6 +38,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          <BaseNode.Input label={"Rounding Method"}>
             <Dropdown value={roundingMode} options={ROUNDING_MODES} onValue={setRoundingMode} />
          </BaseNode.Input>
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
@@ -62,7 +58,6 @@ const MathRndNodeHelper: INodeHelper<IMathRndNode> = {
    type: NodeTypes.MATH_RND,
    getOutput,
    initialize: () => ({
-      name: "",
       roundingMode: "nearestUp",
    }),
    controls: Controls,

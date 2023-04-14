@@ -9,7 +9,7 @@ import { SocketOut } from "../../nodeView/socket";
 import Dropdown from "!/components/selectors/Dropdown";
 import ToggleList from "!/components/selectors/ToggleList";
 import SliderInput from "!/components/inputs/SliderInput";
-import TextInput from "!/components/inputs/TextInput";
+import { MetaPrefab } from "../../nodeView/prefabs";
 
 interface ICurveNode extends INodeDefinition {
    inputs: {};
@@ -17,26 +17,21 @@ interface ICurveNode extends INodeDefinition {
       output: Curve;
    };
    values: {
-      name: string;
       curveFn: CurveFunction;
       easing: EasingMode;
       intensity: number;
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<ICurveNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<ICurveNode>();
 
 const Controls = memo(({ nodeId }: { nodeId: string }) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-   const [curveFn, setCurveFn] = nodeHelper.useValueState(nodeId, "curveFn");
-   const [easing, setEasing] = nodeHelper.useValueState(nodeId, "easing");
-   const [intensity, setIntensity] = nodeHelper.useValueState(nodeId, "intensity");
+   const [curveFn, setCurveFn] = nodeHooks.useValueState(nodeId, "curveFn");
+   const [easing, setEasing] = nodeHooks.useValueState(nodeId, "easing");
+   const [intensity, setIntensity] = nodeHooks.useValueState(nodeId, "intensity");
 
    return (
-      <BaseNode<ICurveNode> nodeId={nodeId} helper={CurveNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<ICurveNode> nodeId={nodeId} helper={CurveNodeHelper} hooks={nodeHooks}>
          <SocketOut<ICurveNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.CURVE}>
             Function
          </SocketOut>
@@ -50,6 +45,7 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          <BaseNode.Input label={"Intensity"}>
             <SliderInput value={intensity} onValidValue={setIntensity} min={0} max={1} />
          </BaseNode.Input>
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
@@ -75,7 +71,6 @@ const CurveNodeHelper: INodeHelper<ICurveNode> = {
    type: NodeTypes.VALUE_CURVE,
    getOutput,
    initialize: () => ({
-      name: "",
       curveFn: "linear",
       easing: "in",
       intensity: 1,

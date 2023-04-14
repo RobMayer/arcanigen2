@@ -7,7 +7,7 @@ import { faPlusMinus as buttonIcon } from "@fortawesome/pro-light-svg-icons";
 import NumberInput from "!/components/inputs/NumberInput";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
-import TextInput from "!/components/inputs/TextInput";
+import { MetaPrefab } from "../../nodeView/prefabs";
 
 interface IMathSpreadNode extends INodeDefinition {
    inputs: {
@@ -19,27 +19,22 @@ interface IMathSpreadNode extends INodeDefinition {
       outer: number;
    };
    values: {
-      name: string;
       a: number;
       b: number;
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<IMathSpreadNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<IMathSpreadNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-   const [a, setA] = nodeHelper.useValueState(nodeId, "a");
-   const [b, setB] = nodeHelper.useValueState(nodeId, "b");
-   const aIn = nodeHelper.useInput(nodeId, "aIn", globals);
-   const bIn = nodeHelper.useInput(nodeId, "bIn", globals);
-   const hasA = nodeHelper.useHasLink(nodeId, "aIn");
-   const hasB = nodeHelper.useHasLink(nodeId, "bIn");
+   const [a, setA] = nodeHooks.useValueState(nodeId, "a");
+   const [b, setB] = nodeHooks.useValueState(nodeId, "b");
+   const aIn = nodeHooks.useInput(nodeId, "aIn", globals);
+   const bIn = nodeHooks.useInput(nodeId, "bIn", globals);
+   const hasA = nodeHooks.useHasLink(nodeId, "aIn");
+   const hasB = nodeHooks.useHasLink(nodeId, "bIn");
    return (
-      <BaseNode<IMathSpreadNode> nodeId={nodeId} helper={MathSpreadNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<IMathSpreadNode> nodeId={nodeId} helper={MathSpreadNodeHelper} hooks={nodeHooks}>
          <SocketOut<IMathSpreadNode> nodeId={nodeId} socketId={"inner"} type={SocketTypes.FLOAT}>
             <BaseNode.Output label={"Inner"}>{(hasA ? aIn : a) - (hasB ? bIn : b)}</BaseNode.Output>
          </SocketOut>
@@ -57,6 +52,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                <NumberInput value={hasB ? bIn : b} onValidValue={setB} disabled={hasB} />
             </BaseNode.Input>
          </SocketIn>
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
@@ -80,7 +76,6 @@ const MathSpreadNodeHelper: INodeHelper<IMathSpreadNode> = {
       }
    },
    initialize: () => ({
-      name: "",
       a: 0,
       b: 0,
    }),

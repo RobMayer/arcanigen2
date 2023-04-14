@@ -27,8 +27,7 @@ import LengthInput from "!/components/inputs/LengthInput";
 import ToggleList from "!/components/selectors/ToggleList";
 import TextArea from "!/components/inputs/TextArea";
 import styled from "styled-components";
-import { TransformPrefabs } from "../../nodeView/prefabs";
-import TextInput from "!/components/inputs/TextInput";
+import { MetaPrefab, TransformPrefabs } from "../../nodeView/prefabs";
 
 interface IGlyphNode extends INodeDefinition {
    inputs: {
@@ -47,7 +46,6 @@ interface IGlyphNode extends INodeDefinition {
       output: NodeRenderer;
    };
    values: {
-      name: string;
       radius: Length;
       path: string;
       strokeWidth: Length;
@@ -65,28 +63,24 @@ interface IGlyphNode extends INodeDefinition {
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<IGlyphNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<IGlyphNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-   const [path, setPath] = nodeHelper.useValueState(nodeId, "path");
-   const [radius, setRadius] = nodeHelper.useValueState(nodeId, "radius");
-   const [strokeWidth, setStrokeWidth] = nodeHelper.useValueState(nodeId, "strokeWidth");
-   const [strokeColor, setStrokeColor] = nodeHelper.useValueState(nodeId, "strokeColor");
-   const [strokeJoin, setStrokeJoin] = nodeHelper.useValueState(nodeId, "strokeJoin");
-   const [strokeCap, setStrokeCap] = nodeHelper.useValueState(nodeId, "strokeCap");
-   const [fillColor, setFillColor] = nodeHelper.useValueState(nodeId, "fillColor");
+   const [path, setPath] = nodeHooks.useValueState(nodeId, "path");
+   const [radius, setRadius] = nodeHooks.useValueState(nodeId, "radius");
+   const [strokeWidth, setStrokeWidth] = nodeHooks.useValueState(nodeId, "strokeWidth");
+   const [strokeColor, setStrokeColor] = nodeHooks.useValueState(nodeId, "strokeColor");
+   const [strokeJoin, setStrokeJoin] = nodeHooks.useValueState(nodeId, "strokeJoin");
+   const [strokeCap, setStrokeCap] = nodeHooks.useValueState(nodeId, "strokeCap");
+   const [fillColor, setFillColor] = nodeHooks.useValueState(nodeId, "fillColor");
 
-   const hasRadius = nodeHelper.useHasLink(nodeId, "radius");
-   const hasStrokeWidth = nodeHelper.useHasLink(nodeId, "strokeWidth");
-   const hasStrokeColor = nodeHelper.useHasLink(nodeId, "strokeColor");
-   const hasFillColor = nodeHelper.useHasLink(nodeId, "fillColor");
+   const hasRadius = nodeHooks.useHasLink(nodeId, "radius");
+   const hasStrokeWidth = nodeHooks.useHasLink(nodeId, "strokeWidth");
+   const hasStrokeColor = nodeHooks.useHasLink(nodeId, "strokeColor");
+   const hasFillColor = nodeHooks.useHasLink(nodeId, "fillColor");
 
    return (
-      <BaseNode<IGlyphNode> nodeId={nodeId} helper={GlyphNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<IGlyphNode> nodeId={nodeId} helper={GlyphNodeHelper} hooks={nodeHooks}>
          <SocketOut<IGlyphNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -131,26 +125,27 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                </BaseNode.Input>
             </SocketIn>
          </BaseNode.Foldout>
-         <TransformPrefabs.Full<IGlyphNode> nodeId={nodeId} nodeHelper={nodeHelper} />
+         <TransformPrefabs.Full<IGlyphNode> nodeId={nodeId} hooks={nodeHooks} />
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
 
 const Renderer = memo(({ nodeId, depth, globals, overrides = {} }: NodeRendererProps) => {
-   const path = nodeHelper.useValue(nodeId, "path");
-   const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius", globals);
-   const strokeWidth = nodeHelper.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
-   const strokeColor = nodeHelper.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
-   const fillColor = nodeHelper.useCoalesce(nodeId, "fillColor", "fillColor", globals);
-   const strokeCap = nodeHelper.useValue(nodeId, "strokeCap");
-   const strokeJoin = nodeHelper.useValue(nodeId, "strokeJoin");
+   const path = nodeHooks.useValue(nodeId, "path");
+   const radius = nodeHooks.useCoalesce(nodeId, "radius", "radius", globals);
+   const strokeWidth = nodeHooks.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
+   const strokeColor = nodeHooks.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
+   const fillColor = nodeHooks.useCoalesce(nodeId, "fillColor", "fillColor", globals);
+   const strokeCap = nodeHooks.useValue(nodeId, "strokeCap");
+   const strokeJoin = nodeHooks.useValue(nodeId, "strokeJoin");
 
-   const positionMode = nodeHelper.useValue(nodeId, "positionMode");
-   const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX", globals);
-   const positionY = nodeHelper.useCoalesce(nodeId, "positionY", "positionY", globals);
-   const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
-   const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
-   const rotation = nodeHelper.useCoalesce(nodeId, "rotation", "rotation", globals);
+   const positionMode = nodeHooks.useValue(nodeId, "positionMode");
+   const positionX = nodeHooks.useCoalesce(nodeId, "positionX", "positionX", globals);
+   const positionY = nodeHooks.useCoalesce(nodeId, "positionY", "positionY", globals);
+   const positionTheta = nodeHooks.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
+   const positionRadius = nodeHooks.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
+   const rotation = nodeHooks.useCoalesce(nodeId, "rotation", "rotation", globals);
 
    return (
       <g transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`}>
@@ -187,7 +182,6 @@ const GlyphNodeHelper: INodeHelper<IGlyphNode> = {
    type: NodeTypes.SHAPE_GLYPH,
    getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IGlyphNode["outputs"]) => Renderer,
    initialize: () => ({
-      name: "",
       path: "",
       radius: { value: 100, unit: "px" },
       strokeWidth: { value: 0, unit: "px" },

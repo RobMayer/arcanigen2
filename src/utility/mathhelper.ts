@@ -257,6 +257,27 @@ export const round = (t: number, method: RoundingMode) => {
    }
 };
 
+const LENGTH_REGEX = /([0-9.]+)(px|mm|in|cm|pt)/;
+const UNITS = ["px", "in", "cm", "mm", "pt"];
+
+export const listToLengths = (t: string, sep: string = " ") => {
+   const n = t.split(sep);
+   return n.filter(Boolean).reduce((acc, each) => {
+      const tokens = each.match(LENGTH_REGEX);
+      if (tokens && tokens.length === 3) {
+         const [, v, u] = tokens;
+         const value = Number(v);
+         const unit = u.toLowerCase() as "px" | "in" | "cm" | "mm" | "pt";
+         if (!isNaN(value) && UNITS.includes(unit)) {
+            acc.push({ value, unit });
+         }
+      }
+      return acc;
+   }, [] as Length[]);
+};
+
+const LENGTH_LIST_REGEX = "^([0-9.])+(px|mm|in|cm|pt)(?:\\s([0-9.])+(px|mm|in|cm|pt))*$";
+
 const MathHelper = {
    deg2rad,
    mod,
@@ -277,9 +298,11 @@ const MathHelper = {
    clamp,
    angleLerp,
    colorLerp,
+   listToLengths,
    round,
    WHITE,
    BLACK,
+   LENGTH_LIST_REGEX,
 };
 
 export default MathHelper;

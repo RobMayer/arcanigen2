@@ -9,7 +9,7 @@ import BaseNode from "../../nodeView/node";
 import AngleInput from "!/components/inputs/AngleInput";
 import MathHelper from "!/utility/mathhelper";
 import Checkbox from "!/components/buttons/Checkbox";
-import TextInput from "!/components/inputs/TextInput";
+import { MetaPrefab } from "../../nodeView/prefabs";
 
 interface IAngleValueNode extends INodeDefinition {
    inputs: {};
@@ -20,18 +20,16 @@ interface IAngleValueNode extends INodeDefinition {
       asTurns: number;
    };
    values: {
-      name: string;
       value: number;
       bounded: boolean;
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<IAngleValueNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<IAngleValueNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-   const [value, setValue] = nodeHelper.useValueState(nodeId, "value");
-   const [bounded, setBounded] = nodeHelper.useValueState(nodeId, "bounded");
+   const [value, setValue] = nodeHooks.useValueState(nodeId, "value");
+   const [bounded, setBounded] = nodeHooks.useValueState(nodeId, "bounded");
 
    useEffect(() => {
       if (bounded) {
@@ -40,10 +38,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    }, [bounded, setValue]);
 
    return (
-      <BaseNode<IAngleValueNode> nodeId={nodeId} helper={AngleValueNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<IAngleValueNode> nodeId={nodeId} helper={AngleValueNodeHelper} hooks={nodeHooks}>
          <SocketOut<IAngleValueNode> nodeId={nodeId} socketId={"value"} type={SocketTypes.ANGLE}>
             <AngleInput value={value} onValidValue={setValue} wrap={!bounded} />
          </SocketOut>
@@ -62,6 +57,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                as Turns
             </SocketOut>
          </BaseNode.Foldout>
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
@@ -91,7 +87,6 @@ const AngleValueNodeHelper: INodeHelper<IAngleValueNode> = {
    type: NodeTypes.VALUE_ANGLE,
    getOutput,
    initialize: () => ({
-      name: "",
       value: 0,
       bounded: false,
    }),

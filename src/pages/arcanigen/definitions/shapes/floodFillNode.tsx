@@ -9,7 +9,7 @@ import HexColorInput from "!/components/inputs/colorHexInput";
 import { Color } from "!/utility/types/units";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
-import TextInput from "!/components/inputs/TextInput";
+import { MetaPrefab } from "../../nodeView/prefabs";
 
 interface IFloodFillNode extends INodeDefinition {
    inputs: {
@@ -19,23 +19,18 @@ interface IFloodFillNode extends INodeDefinition {
       output: NodeRenderer;
    };
    values: {
-      name: string;
       floodColor: Color;
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<IFloodFillNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<IFloodFillNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-   const [floodColor, setFloodColor] = nodeHelper.useValueState(nodeId, "floodColor");
-   const hasFloodColor = nodeHelper.useHasLink(nodeId, "floodColor");
+   const [floodColor, setFloodColor] = nodeHooks.useValueState(nodeId, "floodColor");
+   const hasFloodColor = nodeHooks.useHasLink(nodeId, "floodColor");
 
    return (
-      <BaseNode<IFloodFillNode> nodeId={nodeId} helper={FloodFillNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<IFloodFillNode> nodeId={nodeId} helper={FloodFillNodeHelper} hooks={nodeHooks}>
          <SocketOut<IFloodFillNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -45,12 +40,13 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                <HexColorInput value={floodColor} onValue={setFloodColor} disabled={hasFloodColor} />
             </BaseNode.Input>
          </SocketIn>
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
 
 const Renderer = memo(({ nodeId }: NodeRendererProps) => {
-   const floodColor = nodeHelper.useValue(nodeId, "floodColor");
+   const floodColor = nodeHooks.useValue(nodeId, "floodColor");
    return (
       <rect
          x={"-1000%"}
@@ -71,7 +67,6 @@ const FloodFillNodeHelper: INodeHelper<IFloodFillNode> = {
    type: NodeTypes.SHAPE_FLOODFILL,
    getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IFloodFillNode["outputs"]) => Renderer,
    initialize: () => ({
-      name: "",
       floodColor: { r: 0, g: 0, b: 0, a: 1 },
    }),
    controls: Controls,

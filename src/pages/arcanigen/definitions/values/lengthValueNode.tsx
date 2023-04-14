@@ -9,7 +9,7 @@ import LengthInput from "!/components/inputs/LengthInput";
 import { Length } from "!/utility/types/units";
 import BaseNode from "../../nodeView/node";
 import { SocketOut } from "../../nodeView/socket";
-import TextInput from "!/components/inputs/TextInput";
+import { MetaPrefab } from "../../nodeView/prefabs";
 
 interface ILengthValueNode extends INodeDefinition {
    inputs: {};
@@ -22,22 +22,17 @@ interface ILengthValueNode extends INodeDefinition {
       lengthToCm: number;
    };
    values: {
-      name: string;
       value: Length;
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<ILengthValueNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<ILengthValueNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-   const [value, setValue] = nodeHelper.useValueState(nodeId, "value");
+   const [value, setValue] = nodeHooks.useValueState(nodeId, "value");
 
    return (
-      <BaseNode<ILengthValueNode> nodeId={nodeId} helper={LengthValueNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<ILengthValueNode> nodeId={nodeId} helper={LengthValueNodeHelper} hooks={nodeHooks}>
          <SocketOut<ILengthValueNode> nodeId={nodeId} socketId={"value"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Value"}>
                <LengthInput value={value} onValidValue={setValue} />
@@ -66,6 +61,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                as Centimeters (cm)
             </SocketOut>
          </BaseNode.Foldout>
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
@@ -98,7 +94,6 @@ const LengthValueNodeHelper: INodeHelper<ILengthValueNode> = {
    type: NodeTypes.VALUE_LENGTH,
    getOutput,
    initialize: () => ({
-      name: "",
       value: { value: 1, unit: "px" },
    }),
    controls: Controls,

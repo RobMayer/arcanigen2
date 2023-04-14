@@ -13,14 +13,15 @@ type IProps<T extends INodeDefinition> = {
    nodeId: string;
    helper: INodeHelper<T>;
    noRemove?: boolean;
-   name?: string;
+   hooks: ReturnType<typeof ArcaneGraph["nodeHooks"]>;
 } & HTMLAttributes<HTMLDivElement>;
 
-const BaseNode = <T extends INodeDefinition>({ nodeId, children, helper, name = "", noRemove = false, ...props }: IProps<T>) => {
+const BaseNode = <T extends INodeDefinition>({ nodeId, children, helper, hooks, noRemove = false, ...props }: IProps<T>) => {
    const [initialPostion, commitPosition] = useNodePosition(nodeId);
    const { removeNode } = ArcaneGraph.useGraph();
    const [isOpen, setIsOpen] = useNodeToggle(nodeId);
    const { eventBus, origin } = useNodeGraphEventBus();
+   const name = hooks.useValue(nodeId, "name") ?? "";
 
    useLayoutEffect(() => {
       if (eventBus.current) {
@@ -138,7 +139,7 @@ const BaseNode = <T extends INodeDefinition>({ nodeId, children, helper, name = 
 
    return (
       <MoveWrapper ref={mainRef} tabIndex={-1} data-trh-graph-node={nodeId}>
-         <Main {...props} className={isOpen ? "state-open" : "state-closed"}>
+         <Main {...props} className={`${isOpen ? "state-open" : "state-closed"}`}>
             <Label className={`flavour-${helper.flavour}`}>
                <ProxySocket className={"in"} data-trh-graph-sockethost={nodeId} data-trh-graph-fallback={"in"} />
                <IconButton flavour={"bare"} icon={helper.nodeIcon} className={"muted"} onClick={handleToggle} />
@@ -200,6 +201,9 @@ const Label = styled.div`
    font-weight: bold;
    font-variant: small-caps;
    font-size: 1.25em;
+   .has-importance > & {
+      background: var(--flavour-button);
+   }
 `;
 
 const Params = styled.div`

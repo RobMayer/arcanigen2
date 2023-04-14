@@ -23,8 +23,7 @@ import ToggleList from "!/components/selectors/ToggleList";
 import { Length, Color } from "!/utility/types/units";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
-import { TransformPrefabs } from "../../nodeView/prefabs";
-import TextInput from "!/components/inputs/TextInput";
+import { MetaPrefab, TransformPrefabs } from "../../nodeView/prefabs";
 
 interface IRingNode extends INodeDefinition {
    inputs: {
@@ -45,7 +44,6 @@ interface IRingNode extends INodeDefinition {
       output: NodeRenderer;
    };
    values: {
-      name: string;
       spanMode: SpanMode;
       radius: Length;
       spread: Length;
@@ -64,32 +62,28 @@ interface IRingNode extends INodeDefinition {
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<IRingNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<IRingNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-   const [radius, setRadius] = nodeHelper.useValueState(nodeId, "radius");
-   const [spread, setSpread] = nodeHelper.useValueState(nodeId, "spread");
-   const [spreadAlignMode, setSpreadAlignMode] = nodeHelper.useValueState(nodeId, "spreadAlignMode");
-   const [spanMode, setSpanMode] = nodeHelper.useValueState(nodeId, "spanMode");
-   const [innerRadius, setInnerRadius] = nodeHelper.useValueState(nodeId, "innerRadius");
-   const [outerRadius, setOuterRadius] = nodeHelper.useValueState(nodeId, "outerRadius");
-   const [strokeWidth, setStrokeWidth] = nodeHelper.useValueState(nodeId, "strokeWidth");
-   const [strokeColor, setStrokeColor] = nodeHelper.useValueState(nodeId, "strokeColor");
-   const [fillColor, setFillColor] = nodeHelper.useValueState(nodeId, "fillColor");
-   const hasInnerRadius = nodeHelper.useHasLink(nodeId, "innerRadius");
-   const hasOuterRadius = nodeHelper.useHasLink(nodeId, "outerRadius");
-   const hasRadius = nodeHelper.useHasLink(nodeId, "radius");
-   const hasSpread = nodeHelper.useHasLink(nodeId, "spread");
-   const hasStrokeWidth = nodeHelper.useHasLink(nodeId, "strokeWidth");
-   const hasStrokeColor = nodeHelper.useHasLink(nodeId, "strokeColor");
-   const hasFillColor = nodeHelper.useHasLink(nodeId, "fillColor");
+   const [radius, setRadius] = nodeHooks.useValueState(nodeId, "radius");
+   const [spread, setSpread] = nodeHooks.useValueState(nodeId, "spread");
+   const [spreadAlignMode, setSpreadAlignMode] = nodeHooks.useValueState(nodeId, "spreadAlignMode");
+   const [spanMode, setSpanMode] = nodeHooks.useValueState(nodeId, "spanMode");
+   const [innerRadius, setInnerRadius] = nodeHooks.useValueState(nodeId, "innerRadius");
+   const [outerRadius, setOuterRadius] = nodeHooks.useValueState(nodeId, "outerRadius");
+   const [strokeWidth, setStrokeWidth] = nodeHooks.useValueState(nodeId, "strokeWidth");
+   const [strokeColor, setStrokeColor] = nodeHooks.useValueState(nodeId, "strokeColor");
+   const [fillColor, setFillColor] = nodeHooks.useValueState(nodeId, "fillColor");
+   const hasInnerRadius = nodeHooks.useHasLink(nodeId, "innerRadius");
+   const hasOuterRadius = nodeHooks.useHasLink(nodeId, "outerRadius");
+   const hasRadius = nodeHooks.useHasLink(nodeId, "radius");
+   const hasSpread = nodeHooks.useHasLink(nodeId, "spread");
+   const hasStrokeWidth = nodeHooks.useHasLink(nodeId, "strokeWidth");
+   const hasStrokeColor = nodeHooks.useHasLink(nodeId, "strokeColor");
+   const hasFillColor = nodeHooks.useHasLink(nodeId, "fillColor");
 
    return (
-      <BaseNode<IRingNode> nodeId={nodeId} helper={RingNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<IRingNode> nodeId={nodeId} helper={RingNodeHelper} hooks={nodeHooks}>
          <SocketOut<IRingNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -138,28 +132,29 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                </BaseNode.Input>
             </SocketIn>
          </BaseNode.Foldout>
-         <TransformPrefabs.Position<IRingNode> nodeId={nodeId} nodeHelper={nodeHelper} />
+         <TransformPrefabs.Position<IRingNode> nodeId={nodeId} hooks={nodeHooks} />
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
 
 const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) => {
-   const spanMode = nodeHelper.useValue(nodeId, "spanMode");
-   const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius", globals);
-   const spread = nodeHelper.useCoalesce(nodeId, "spread", "spread", globals);
-   const spreadAlignMode = nodeHelper.useValue(nodeId, "spreadAlignMode");
-   const innerRadius = nodeHelper.useCoalesce(nodeId, "innerRadius", "innerRadius", globals);
-   const outerRadius = nodeHelper.useCoalesce(nodeId, "outerRadius", "outerRadius", globals);
+   const spanMode = nodeHooks.useValue(nodeId, "spanMode");
+   const radius = nodeHooks.useCoalesce(nodeId, "radius", "radius", globals);
+   const spread = nodeHooks.useCoalesce(nodeId, "spread", "spread", globals);
+   const spreadAlignMode = nodeHooks.useValue(nodeId, "spreadAlignMode");
+   const innerRadius = nodeHooks.useCoalesce(nodeId, "innerRadius", "innerRadius", globals);
+   const outerRadius = nodeHooks.useCoalesce(nodeId, "outerRadius", "outerRadius", globals);
 
-   const strokeColor = nodeHelper.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
-   const strokeWidth = nodeHelper.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
-   const fillColor = nodeHelper.useCoalesce(nodeId, "fillColor", "fillColor", globals);
+   const strokeColor = nodeHooks.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
+   const strokeWidth = nodeHooks.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
+   const fillColor = nodeHooks.useCoalesce(nodeId, "fillColor", "fillColor", globals);
 
-   const positionMode = nodeHelper.useValue(nodeId, "positionMode");
-   const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX", globals);
-   const positionY = nodeHelper.useCoalesce(nodeId, "positionY", "positionY", globals);
-   const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
-   const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
+   const positionMode = nodeHooks.useValue(nodeId, "positionMode");
+   const positionX = nodeHooks.useCoalesce(nodeId, "positionX", "positionX", globals);
+   const positionY = nodeHooks.useCoalesce(nodeId, "positionY", "positionY", globals);
+   const positionTheta = nodeHooks.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
+   const positionRadius = nodeHooks.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
 
    const tIMod =
       spanMode === "inout"
@@ -207,7 +202,6 @@ const RingNodeHelper: INodeHelper<IRingNode> = {
    type: NodeTypes.SHAPE_RING,
    getOutput: () => Renderer,
    initialize: () => ({
-      name: "",
       radius: { value: 150, unit: "px" },
       spread: { value: 20, unit: "px" },
       spreadAlignMode: "center",

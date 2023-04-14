@@ -8,7 +8,7 @@ import HexColorInput from "!/components/inputs/colorHexInput";
 import { Color } from "!/utility/types/units";
 import BaseNode from "../../nodeView/node";
 import { SocketOut } from "../../nodeView/socket";
-import TextInput from "!/components/inputs/TextInput";
+import { MetaPrefab } from "../../nodeView/prefabs";
 
 interface IHexColorNode extends INodeDefinition {
    inputs: {};
@@ -18,21 +18,16 @@ interface IHexColorNode extends INodeDefinition {
       alpha: number;
    };
    values: {
-      name: string;
       value: Color;
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<IHexColorNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<IHexColorNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-   const [value, setValue] = nodeHelper.useValueState(nodeId, "value");
+   const [value, setValue] = nodeHooks.useValueState(nodeId, "value");
    return (
-      <BaseNode<IHexColorNode> nodeId={nodeId} helper={HexColorNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<IHexColorNode> nodeId={nodeId} helper={HexColorNodeHelper} hooks={nodeHooks}>
          <SocketOut<IHexColorNode> nodeId={nodeId} socketId={"full"} type={SocketTypes.COLOR}>
             <BaseNode.Input label={"Value"}>
                <HexColorInput value={value} onValue={setValue} />
@@ -45,6 +40,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          <SocketOut<IHexColorNode> nodeId={nodeId} socketId={"alpha"} type={SocketTypes.PERCENT}>
             Alpha (α)
          </SocketOut>
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
@@ -72,7 +68,6 @@ const HexColorNodeHelper: INodeHelper<IHexColorNode> = {
    type: NodeTypes.VALUE_COLOR,
    getOutput,
    initialize: () => ({
-      name: "",
       value: { r: 0, g: 0, b: 0, a: 1 },
    }),
    controls: Controls,

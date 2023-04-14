@@ -23,7 +23,7 @@ import SliderInput from "!/components/inputs/SliderInput";
 import AngleInput from "!/components/inputs/AngleInput";
 import Checkbox from "!/components/buttons/Checkbox";
 import Dropdown from "!/components/selectors/Dropdown";
-import TextInput from "!/components/inputs/TextInput";
+import { MetaPrefab } from "../../nodeView/prefabs";
 
 interface ILerpAngleNode extends INodeDefinition {
    inputs: {
@@ -37,7 +37,6 @@ interface ILerpAngleNode extends INodeDefinition {
       value: number;
    };
    values: {
-      name: string;
       from: number;
       to: number;
       percent: number;
@@ -47,18 +46,17 @@ interface ILerpAngleNode extends INodeDefinition {
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<ILerpAngleNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<ILerpAngleNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-   const [from, setFrom] = nodeHelper.useValueState(nodeId, "from");
-   const [to, setTo] = nodeHelper.useValueState(nodeId, "to");
-   const [percent, setPercent] = nodeHelper.useValueState(nodeId, "percent");
-   const [bounded, setBounded] = nodeHelper.useValueState(nodeId, "bounded");
-   const [mode, setMode] = nodeHelper.useValueState(nodeId, "mode");
-   const [isInclusive, setIsInclusive] = nodeHelper.useValueState(nodeId, "isInclusive");
+   const [from, setFrom] = nodeHooks.useValueState(nodeId, "from");
+   const [to, setTo] = nodeHooks.useValueState(nodeId, "to");
+   const [percent, setPercent] = nodeHooks.useValueState(nodeId, "percent");
+   const [bounded, setBounded] = nodeHooks.useValueState(nodeId, "bounded");
+   const [mode, setMode] = nodeHooks.useValueState(nodeId, "mode");
+   const [isInclusive, setIsInclusive] = nodeHooks.useValueState(nodeId, "isInclusive");
 
-   const hasSequence = nodeHelper.useHasLink(nodeId, "sequence");
+   const hasSequence = nodeHooks.useHasLink(nodeId, "sequence");
 
    useEffect(() => {
       if (bounded) {
@@ -68,10 +66,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    }, [bounded, setFrom, setTo]);
 
    return (
-      <BaseNode<ILerpAngleNode> nodeId={nodeId} helper={LerpAngleNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<ILerpAngleNode> nodeId={nodeId} helper={LerpAngleNodeHelper} hooks={nodeHooks}>
          <SocketOut<ILerpAngleNode> socketId={"value"} nodeId={nodeId} type={SocketTypes.ANGLE}>
             Value
          </SocketOut>
@@ -107,6 +102,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                <SliderInput value={percent} onValidValue={setPercent} disabled={hasSequence} min={0} max={1} />
             </BaseNode.Input>
          </SocketIn>
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
@@ -144,7 +140,6 @@ const LerpAngleNodeHelper: INodeHelper<ILerpAngleNode> = {
    type: NodeTypes.LERP_ANGLE,
    getOutput,
    initialize: () => ({
-      name: "",
       from: 0,
       to: 180,
       percent: 0,

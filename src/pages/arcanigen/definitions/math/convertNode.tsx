@@ -10,7 +10,7 @@ import { SocketIn, SocketOut } from "../../nodeView/socket";
 import Checkbox from "!/components/buttons/Checkbox";
 import MathHelper from "!/utility/mathhelper";
 import NumberInput from "!/components/inputs/NumberInput";
-import TextInput from "!/components/inputs/TextInput";
+import { MetaPrefab } from "../../nodeView/prefabs";
 
 interface IConvertNode extends INodeDefinition {
    inputs: {
@@ -37,7 +37,6 @@ interface IConvertNode extends INodeDefinition {
       lengthToMm: number;
    };
    values: {
-      name: string;
       numberToLengthUnit: Length["unit"];
       numberToAngleBounded: boolean;
       numberToPercentLower: number;
@@ -48,7 +47,6 @@ interface IConvertNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<IConvertNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [numberToLengthUnit, setNumberToLengthUnit] = nodeHelper.useValueState(nodeId, "numberToLengthUnit");
    const [numberToAngleBounded, setNumberToAngleBounded] = nodeHelper.useValueState(nodeId, "numberToAngleBounded");
    const [numberToPercentLower, setNumberToPercentLower] = nodeHelper.useValueState(nodeId, "numberToPercentLower");
@@ -60,10 +58,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const actualPercentUpper = nodeHelper.useInput(nodeId, "numberToPercentUpper", globals);
 
    return (
-      <BaseNode<IConvertNode> nodeId={nodeId} helper={ConvertNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<IConvertNode> nodeId={nodeId} helper={ConvertNodeHelper} hooks={nodeHelper}>
          <BaseNode.Foldout
             panelId={"fromNumber"}
             label={"Number"}
@@ -180,6 +175,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                as Centimeters (cm)
             </SocketOut>
          </BaseNode.Foldout>
+         <MetaPrefab nodeId={nodeId} hooks={nodeHelper} />
       </BaseNode>
    );
 });
@@ -233,7 +229,6 @@ const ConvertNodeHelper: INodeHelper<IConvertNode> = {
    type: NodeTypes.CONVERT_VALUE,
    getOutput,
    initialize: () => ({
-      name: "",
       numberToLengthUnit: "px",
       numberToAngleBounded: true,
       numberToPercentLower: 0,

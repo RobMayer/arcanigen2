@@ -30,8 +30,7 @@ import { Length, Color } from "!/utility/types/units";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
 import lodash from "lodash";
-import { TransformPrefabs } from "../../nodeView/prefabs";
-import TextInput from "!/components/inputs/TextInput";
+import { MetaPrefab, TransformPrefabs } from "../../nodeView/prefabs";
 
 interface IPolygonNode extends INodeDefinition {
    inputs: {
@@ -56,7 +55,6 @@ interface IPolygonNode extends INodeDefinition {
       rMiddle: Length;
    };
    values: {
-      name: string;
       radius: Length;
       strokeWidth: Length;
       pointCount: number;
@@ -74,28 +72,24 @@ interface IPolygonNode extends INodeDefinition {
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<IPolygonNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<IPolygonNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-   const [radius, setRadius] = nodeHelper.useValueState(nodeId, "radius");
-   const [strokeWidth, setStrokeWidth] = nodeHelper.useValueState(nodeId, "strokeWidth");
-   const [strokeColor, setStrokeColor] = nodeHelper.useValueState(nodeId, "strokeColor");
-   const [strokeJoin, setStrokeJoin] = nodeHelper.useValueState(nodeId, "strokeJoin");
-   const [fillColor, setFillColor] = nodeHelper.useValueState(nodeId, "fillColor");
-   const [pointCount, setPointCount] = nodeHelper.useValueState(nodeId, "pointCount");
-   const [rScribe, setRScribe] = nodeHelper.useValueState(nodeId, "rScribe");
-   const hasRadius = nodeHelper.useHasLink(nodeId, "radius");
-   const hasPointCount = nodeHelper.useHasLink(nodeId, "pointCount");
-   const hasStrokeWidth = nodeHelper.useHasLink(nodeId, "strokeWidth");
-   const hasStrokeColor = nodeHelper.useHasLink(nodeId, "strokeColor");
-   const hasFillColor = nodeHelper.useHasLink(nodeId, "fillColor");
+   const [radius, setRadius] = nodeHooks.useValueState(nodeId, "radius");
+   const [strokeWidth, setStrokeWidth] = nodeHooks.useValueState(nodeId, "strokeWidth");
+   const [strokeColor, setStrokeColor] = nodeHooks.useValueState(nodeId, "strokeColor");
+   const [strokeJoin, setStrokeJoin] = nodeHooks.useValueState(nodeId, "strokeJoin");
+   const [fillColor, setFillColor] = nodeHooks.useValueState(nodeId, "fillColor");
+   const [pointCount, setPointCount] = nodeHooks.useValueState(nodeId, "pointCount");
+   const [rScribe, setRScribe] = nodeHooks.useValueState(nodeId, "rScribe");
+   const hasRadius = nodeHooks.useHasLink(nodeId, "radius");
+   const hasPointCount = nodeHooks.useHasLink(nodeId, "pointCount");
+   const hasStrokeWidth = nodeHooks.useHasLink(nodeId, "strokeWidth");
+   const hasStrokeColor = nodeHooks.useHasLink(nodeId, "strokeColor");
+   const hasFillColor = nodeHooks.useHasLink(nodeId, "fillColor");
 
    return (
-      <BaseNode<IPolygonNode> nodeId={nodeId} helper={PolygonNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<IPolygonNode> nodeId={nodeId} helper={PolygonNodeHelper} hooks={nodeHooks}>
          <SocketOut<IPolygonNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -135,7 +129,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                </BaseNode.Input>
             </SocketIn>
          </BaseNode.Foldout>
-         <TransformPrefabs.Full<IPolygonNode> nodeId={nodeId} nodeHelper={nodeHelper} />
+         <TransformPrefabs.Full<IPolygonNode> nodeId={nodeId} hooks={nodeHooks} />
          <BaseNode.Foldout panelId={"moreOutputs"} label={"Additional Outputs"} inputs={""} outputs={"rInscribe rCircumscribe rMiddle"} nodeId={nodeId}>
             <SocketOut<IPolygonNode> nodeId={nodeId} socketId={"rInscribe"} type={SocketTypes.LENGTH}>
                Inscribe Radius
@@ -147,27 +141,28 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                Middle Radius
             </SocketOut>
          </BaseNode.Foldout>
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
 
 const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) => {
-   const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius", globals);
-   const pointCount = Math.min(24, Math.max(3, nodeHelper.useCoalesce(nodeId, "pointCount", "pointCount", globals)));
-   const rScribe = nodeHelper.useValue(nodeId, "rScribe");
+   const radius = nodeHooks.useCoalesce(nodeId, "radius", "radius", globals);
+   const pointCount = Math.min(24, Math.max(3, nodeHooks.useCoalesce(nodeId, "pointCount", "pointCount", globals)));
+   const rScribe = nodeHooks.useValue(nodeId, "rScribe");
 
-   const strokeWidth = nodeHelper.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
-   const strokeJoin = nodeHelper.useValue(nodeId, "strokeJoin");
-   const strokeColor = nodeHelper.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
-   const fillColor = nodeHelper.useCoalesce(nodeId, "fillColor", "fillColor", globals);
+   const strokeWidth = nodeHooks.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
+   const strokeJoin = nodeHooks.useValue(nodeId, "strokeJoin");
+   const strokeColor = nodeHooks.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
+   const fillColor = nodeHooks.useCoalesce(nodeId, "fillColor", "fillColor", globals);
 
-   const positionMode = nodeHelper.useValue(nodeId, "positionMode");
-   const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX", globals);
-   const positionY = nodeHelper.useCoalesce(nodeId, "positionY", "positionY", globals);
-   const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
-   const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
-   const rotation = nodeHelper.useCoalesce(nodeId, "rotation", "rotation", globals);
-   const thetaCurve = nodeHelper.useInput(nodeId, "thetaCurve", globals);
+   const positionMode = nodeHooks.useValue(nodeId, "positionMode");
+   const positionX = nodeHooks.useCoalesce(nodeId, "positionX", "positionX", globals);
+   const positionY = nodeHooks.useCoalesce(nodeId, "positionY", "positionY", globals);
+   const positionTheta = nodeHooks.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
+   const positionRadius = nodeHooks.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
+   const rotation = nodeHooks.useCoalesce(nodeId, "rotation", "rotation", globals);
+   const thetaCurve = nodeHooks.useInput(nodeId, "thetaCurve", globals);
 
    const points = useMemo(() => {
       const tR = getTrueRadius(MathHelper.lengthToPx(radius), rScribe, pointCount);
@@ -226,7 +221,6 @@ const PolygonNodeHelper: INodeHelper<IPolygonNode> = {
       }
    },
    initialize: () => ({
-      name: "",
       radius: { value: 100, unit: "px" },
       strokeWidth: { value: 1, unit: "px" },
       pointCount: 3,

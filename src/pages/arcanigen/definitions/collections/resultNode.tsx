@@ -45,7 +45,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const hasOriginOffsetY = nodeHelper.useHasLink(nodeId, "originOffsetY");
 
    return (
-      <BaseNode<IResultNode> nodeId={nodeId} helper={ResultNodeHelper} noRemove>
+      <BaseNode<IResultNode> nodeId={nodeId} helper={ResultNodeHelper} hooks={nodeHelper} noRemove>
          <SocketIn<IResultNode> type={SocketTypes.SHAPE} nodeId={nodeId} socketId={"input"}>
             Input
          </SocketIn>

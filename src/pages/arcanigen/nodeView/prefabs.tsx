@@ -1,24 +1,36 @@
 import AngleInput from "!/components/inputs/AngleInput";
 import LengthInput from "!/components/inputs/LengthInput";
+import TextInput from "!/components/inputs/TextInput";
 import ToggleList from "!/components/selectors/ToggleList";
 import ArcaneGraph from "../definitions/graph";
 import { INodeDefinition, POSITION_MODES, SocketTypes } from "../definitions/types";
 import BaseNode from "./node";
 import { SocketIn } from "./socket";
 
-const TransformFull = <T extends INodeDefinition>({ nodeId, nodeHelper }: { nodeId: string; nodeHelper: ReturnType<typeof ArcaneGraph["nodeHooks"]> }) => {
-   const [positionX, setPositionX] = nodeHelper.useValueState(nodeId, "positionX");
-   const [positionY, setPositionY] = nodeHelper.useValueState(nodeId, "positionY");
-   const [positionTheta, setPositionTheta] = nodeHelper.useValueState(nodeId, "positionTheta");
-   const [positionRadius, setPositionRadius] = nodeHelper.useValueState(nodeId, "positionRadius");
-   const [positionMode, setPositionMode] = nodeHelper.useValueState(nodeId, "positionMode");
-   const [rotation, setRotation] = nodeHelper.useValueState(nodeId, "rotation");
+const Meta = ({ nodeId, hooks }: { nodeId: string; hooks: ReturnType<typeof ArcaneGraph["nodeHooks"]> }) => {
+   const [name, setName] = hooks.useValueState(nodeId, "name");
+   return (
+      <BaseNode.Foldout panelId={"meta"} label={"Meta"} nodeId={nodeId} inputs={""} outputs={""}>
+         <BaseNode.Input label={"Node Label"}>
+            <TextInput className={"slim"} value={name} onCommit={setName} />
+         </BaseNode.Input>
+      </BaseNode.Foldout>
+   );
+};
 
-   const hasPositionX = nodeHelper.useHasLink(nodeId, "positionX");
-   const hasPositionY = nodeHelper.useHasLink(nodeId, "positionY");
-   const hasPositionTheta = nodeHelper.useHasLink(nodeId, "positionTheta");
-   const hasPositionRadius = nodeHelper.useHasLink(nodeId, "positionRadius");
-   const hasRotation = nodeHelper.useHasLink(nodeId, "rotation");
+const TransformFull = <T extends INodeDefinition>({ nodeId, hooks }: { nodeId: string; hooks: ReturnType<typeof ArcaneGraph["nodeHooks"]> }) => {
+   const [positionX, setPositionX] = hooks.useValueState(nodeId, "positionX");
+   const [positionY, setPositionY] = hooks.useValueState(nodeId, "positionY");
+   const [positionTheta, setPositionTheta] = hooks.useValueState(nodeId, "positionTheta");
+   const [positionRadius, setPositionRadius] = hooks.useValueState(nodeId, "positionRadius");
+   const [positionMode, setPositionMode] = hooks.useValueState(nodeId, "positionMode");
+   const [rotation, setRotation] = hooks.useValueState(nodeId, "rotation");
+
+   const hasPositionX = hooks.useHasLink(nodeId, "positionX");
+   const hasPositionY = hooks.useHasLink(nodeId, "positionY");
+   const hasPositionTheta = hooks.useHasLink(nodeId, "positionTheta");
+   const hasPositionRadius = hooks.useHasLink(nodeId, "positionRadius");
+   const hasRotation = hooks.useHasLink(nodeId, "rotation");
 
    return (
       <BaseNode.Foldout
@@ -60,17 +72,17 @@ const TransformFull = <T extends INodeDefinition>({ nodeId, nodeHelper }: { node
    );
 };
 
-const TransformPos = <T extends INodeDefinition>({ nodeId, nodeHelper }: { nodeId: string; nodeHelper: ReturnType<typeof ArcaneGraph["nodeHooks"]> }) => {
-   const [positionX, setPositionX] = nodeHelper.useValueState(nodeId, "positionX");
-   const [positionY, setPositionY] = nodeHelper.useValueState(nodeId, "positionY");
-   const [positionTheta, setPositionTheta] = nodeHelper.useValueState(nodeId, "positionTheta");
-   const [positionRadius, setPositionRadius] = nodeHelper.useValueState(nodeId, "positionRadius");
-   const [positionMode, setPositionMode] = nodeHelper.useValueState(nodeId, "positionMode");
+const TransformPos = <T extends INodeDefinition>({ nodeId, hooks }: { nodeId: string; hooks: ReturnType<typeof ArcaneGraph["nodeHooks"]> }) => {
+   const [positionX, setPositionX] = hooks.useValueState(nodeId, "positionX");
+   const [positionY, setPositionY] = hooks.useValueState(nodeId, "positionY");
+   const [positionTheta, setPositionTheta] = hooks.useValueState(nodeId, "positionTheta");
+   const [positionRadius, setPositionRadius] = hooks.useValueState(nodeId, "positionRadius");
+   const [positionMode, setPositionMode] = hooks.useValueState(nodeId, "positionMode");
 
-   const hasPositionX = nodeHelper.useHasLink(nodeId, "positionX");
-   const hasPositionY = nodeHelper.useHasLink(nodeId, "positionY");
-   const hasPositionTheta = nodeHelper.useHasLink(nodeId, "positionTheta");
-   const hasPositionRadius = nodeHelper.useHasLink(nodeId, "positionRadius");
+   const hasPositionX = hooks.useHasLink(nodeId, "positionX");
+   const hasPositionY = hooks.useHasLink(nodeId, "positionY");
+   const hasPositionTheta = hooks.useHasLink(nodeId, "positionTheta");
+   const hasPositionRadius = hooks.useHasLink(nodeId, "positionRadius");
 
    return (
       <BaseNode.Foldout panelId={"transform"} label={"Transform"} nodeId={nodeId} inputs={"positionX positionY positionTheta positionRadius"} outputs={""}>
@@ -105,3 +117,5 @@ export const TransformPrefabs = {
    Full: TransformFull,
    Position: TransformPos,
 };
+
+export const MetaPrefab = Meta;

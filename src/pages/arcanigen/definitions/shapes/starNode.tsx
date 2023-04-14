@@ -31,9 +31,8 @@ import { Length, Color } from "!/utility/types/units";
 import lodash from "lodash";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
-import { TransformPrefabs } from "../../nodeView/prefabs";
+import { MetaPrefab, TransformPrefabs } from "../../nodeView/prefabs";
 import Dropdown from "!/components/selectors/Dropdown";
-import TextInput from "!/components/inputs/TextInput";
 
 interface IStarNode extends INodeDefinition {
    inputs: {
@@ -72,7 +71,6 @@ interface IStarNode extends INodeDefinition {
       iMiddle: Length;
    };
    values: {
-      name: string;
       radius: Length;
       deviation: Length;
       radialMode: RadialMode;
@@ -100,44 +98,40 @@ interface IStarNode extends INodeDefinition {
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<IStarNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<IStarNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-   const [pointCount, setPointCount] = nodeHelper.useValueState(nodeId, "pointCount");
-   const [radius, setRadius] = nodeHelper.useValueState(nodeId, "radius");
-   const [deviation, setDeviation] = nodeHelper.useValueState(nodeId, "deviation");
-   const [radialMode, setRadialMode] = nodeHelper.useValueState(nodeId, "radialMode");
-   const [minorRadius, setMinorRadius] = nodeHelper.useValueState(nodeId, "minorRadius");
-   const [majorRadius, setMajorRadius] = nodeHelper.useValueState(nodeId, "majorRadius");
-   const [strokeWidth, setStrokeWidth] = nodeHelper.useValueState(nodeId, "strokeWidth");
-   const [strokeColor, setStrokeColor] = nodeHelper.useValueState(nodeId, "strokeColor");
-   const [fillColor, setFillColor] = nodeHelper.useValueState(nodeId, "fillColor");
-   const [strokeJoin, setStrokeJoin] = nodeHelper.useValueState(nodeId, "strokeJoin");
+   const [pointCount, setPointCount] = nodeHooks.useValueState(nodeId, "pointCount");
+   const [radius, setRadius] = nodeHooks.useValueState(nodeId, "radius");
+   const [deviation, setDeviation] = nodeHooks.useValueState(nodeId, "deviation");
+   const [radialMode, setRadialMode] = nodeHooks.useValueState(nodeId, "radialMode");
+   const [minorRadius, setMinorRadius] = nodeHooks.useValueState(nodeId, "minorRadius");
+   const [majorRadius, setMajorRadius] = nodeHooks.useValueState(nodeId, "majorRadius");
+   const [strokeWidth, setStrokeWidth] = nodeHooks.useValueState(nodeId, "strokeWidth");
+   const [strokeColor, setStrokeColor] = nodeHooks.useValueState(nodeId, "strokeColor");
+   const [fillColor, setFillColor] = nodeHooks.useValueState(nodeId, "fillColor");
+   const [strokeJoin, setStrokeJoin] = nodeHooks.useValueState(nodeId, "strokeJoin");
 
-   const [rScribeMode, setRScribeMode] = nodeHelper.useValueState(nodeId, "rScribeMode");
-   const [majorScribeMode, setMajorScribeMode] = nodeHelper.useValueState(nodeId, "majorScribeMode");
-   const [minorScribeMode, setMinorScribeMode] = nodeHelper.useValueState(nodeId, "minorScribeMode");
-   const [smoothing, setSmoothing] = nodeHelper.useValueState(nodeId, "smoothing");
-   const [cusping, setCusping] = nodeHelper.useValueState(nodeId, "cusping");
+   const [rScribeMode, setRScribeMode] = nodeHooks.useValueState(nodeId, "rScribeMode");
+   const [majorScribeMode, setMajorScribeMode] = nodeHooks.useValueState(nodeId, "majorScribeMode");
+   const [minorScribeMode, setMinorScribeMode] = nodeHooks.useValueState(nodeId, "minorScribeMode");
+   const [smoothing, setSmoothing] = nodeHooks.useValueState(nodeId, "smoothing");
+   const [cusping, setCusping] = nodeHooks.useValueState(nodeId, "cusping");
 
-   const hasPointCount = nodeHelper.useHasLink(nodeId, "pointCount");
-   const hasMinorRadius = nodeHelper.useHasLink(nodeId, "minorRadius");
-   const hasMajorRadius = nodeHelper.useHasLink(nodeId, "majorRadius");
-   const hasRadius = nodeHelper.useHasLink(nodeId, "radius");
-   const hasDeviation = nodeHelper.useHasLink(nodeId, "deviation");
-   const hasStrokeWidth = nodeHelper.useHasLink(nodeId, "strokeWidth");
-   const hasStrokeColor = nodeHelper.useHasLink(nodeId, "strokeColor");
-   const hasFillColor = nodeHelper.useHasLink(nodeId, "fillColor");
+   const hasPointCount = nodeHooks.useHasLink(nodeId, "pointCount");
+   const hasMinorRadius = nodeHooks.useHasLink(nodeId, "minorRadius");
+   const hasMajorRadius = nodeHooks.useHasLink(nodeId, "majorRadius");
+   const hasRadius = nodeHooks.useHasLink(nodeId, "radius");
+   const hasDeviation = nodeHooks.useHasLink(nodeId, "deviation");
+   const hasStrokeWidth = nodeHooks.useHasLink(nodeId, "strokeWidth");
+   const hasStrokeColor = nodeHooks.useHasLink(nodeId, "strokeColor");
+   const hasFillColor = nodeHooks.useHasLink(nodeId, "fillColor");
 
-   const hasSmoothing = nodeHelper.useHasLink(nodeId, "smoothing");
-   const hasCusping = nodeHelper.useHasLink(nodeId, "cusping");
+   const hasSmoothing = nodeHooks.useHasLink(nodeId, "smoothing");
+   const hasCusping = nodeHooks.useHasLink(nodeId, "cusping");
 
    return (
-      <BaseNode<IStarNode> nodeId={nodeId} helper={StarNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<IStarNode> nodeId={nodeId} helper={StarNodeHelper} hooks={nodeHooks}>
          <SocketOut<IStarNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -208,7 +202,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                </BaseNode.Input>
             </SocketIn>
          </BaseNode.Foldout>
-         <TransformPrefabs.Full<IStarNode> nodeId={nodeId} nodeHelper={nodeHelper} />
+         <TransformPrefabs.Full<IStarNode> nodeId={nodeId} hooks={nodeHooks} />
          <BaseNode.Foldout
             panelId={"moreOutputs"}
             label={"Additional Outputs"}
@@ -246,36 +240,37 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                Middle Minor
             </SocketOut>
          </BaseNode.Foldout>
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
 
 const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) => {
-   const radialMode = nodeHelper.useValue(nodeId, "radialMode");
-   const rScribeMode = nodeHelper.useValue(nodeId, "rScribeMode");
-   const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius", globals);
-   const deviation = nodeHelper.useCoalesce(nodeId, "deviation", "deviation", globals);
-   const minorRadius = nodeHelper.useCoalesce(nodeId, "minorRadius", "minorRadius", globals);
-   const majorRadius = nodeHelper.useCoalesce(nodeId, "majorRadius", "majorRadius", globals);
-   const minorScribeMode = nodeHelper.useValue(nodeId, "minorScribeMode");
-   const majorScribeMode = nodeHelper.useValue(nodeId, "majorScribeMode");
-   const pointCount = Math.min(24, Math.max(3, nodeHelper.useCoalesce(nodeId, "pointCount", "pointCount", globals)));
+   const radialMode = nodeHooks.useValue(nodeId, "radialMode");
+   const rScribeMode = nodeHooks.useValue(nodeId, "rScribeMode");
+   const radius = nodeHooks.useCoalesce(nodeId, "radius", "radius", globals);
+   const deviation = nodeHooks.useCoalesce(nodeId, "deviation", "deviation", globals);
+   const minorRadius = nodeHooks.useCoalesce(nodeId, "minorRadius", "minorRadius", globals);
+   const majorRadius = nodeHooks.useCoalesce(nodeId, "majorRadius", "majorRadius", globals);
+   const minorScribeMode = nodeHooks.useValue(nodeId, "minorScribeMode");
+   const majorScribeMode = nodeHooks.useValue(nodeId, "majorScribeMode");
+   const pointCount = Math.min(24, Math.max(3, nodeHooks.useCoalesce(nodeId, "pointCount", "pointCount", globals)));
 
-   const strokeWidth = nodeHelper.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
-   const strokeJoin = nodeHelper.useValue(nodeId, "strokeJoin");
-   const strokeColor = nodeHelper.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
-   const fillColor = nodeHelper.useCoalesce(nodeId, "fillColor", "fillColor", globals);
+   const strokeWidth = nodeHooks.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
+   const strokeJoin = nodeHooks.useValue(nodeId, "strokeJoin");
+   const strokeColor = nodeHooks.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
+   const fillColor = nodeHooks.useCoalesce(nodeId, "fillColor", "fillColor", globals);
 
-   const positionMode = nodeHelper.useValue(nodeId, "positionMode");
-   const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX", globals);
-   const positionY = nodeHelper.useCoalesce(nodeId, "positionY", "positionY", globals);
-   const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
-   const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
-   const rotation = nodeHelper.useCoalesce(nodeId, "rotation", "rotation", globals);
-   const thetaCurve = nodeHelper.useInput(nodeId, "thetaCurve", globals);
+   const positionMode = nodeHooks.useValue(nodeId, "positionMode");
+   const positionX = nodeHooks.useCoalesce(nodeId, "positionX", "positionX", globals);
+   const positionY = nodeHooks.useCoalesce(nodeId, "positionY", "positionY", globals);
+   const positionTheta = nodeHooks.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
+   const positionRadius = nodeHooks.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
+   const rotation = nodeHooks.useCoalesce(nodeId, "rotation", "rotation", globals);
+   const thetaCurve = nodeHooks.useInput(nodeId, "thetaCurve", globals);
 
-   const smoothing = nodeHelper.useCoalesce(nodeId, "smoothing", "smoothing", globals);
-   const cusping = nodeHelper.useCoalesce(nodeId, "cusping", "cusping", globals);
+   const smoothing = nodeHooks.useCoalesce(nodeId, "smoothing", "smoothing", globals);
+   const cusping = nodeHooks.useCoalesce(nodeId, "cusping", "cusping", globals);
 
    const points = useMemo(() => {
       const rI =
@@ -436,7 +431,6 @@ const StarNodeHelper: INodeHelper<IStarNode> = {
       }
    },
    initialize: () => ({
-      name: "",
       radius: { value: 110, unit: "px" },
       deviation: { value: 50, unit: "px" },
       radialMode: "majorminor",

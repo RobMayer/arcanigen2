@@ -24,11 +24,10 @@ import BaseNode from "../../nodeView/node";
 import { SocketIn, SocketOut } from "../../nodeView/socket";
 import styled from "styled-components";
 import NumberInput from "!/components/inputs/NumberInput";
-import TextInput from "!/components/inputs/TextInput";
+import { MetaPrefab } from "../../nodeView/prefabs";
 
 interface IPortalOutNode extends INodeDefinition {
    values: {
-      name: string;
       sockets: string[];
       channels: { [key: string]: number };
    };
@@ -41,11 +40,10 @@ interface IPortalOutNode extends INodeDefinition {
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<IPortalOutNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<IPortalOutNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-   const [node, setNode, setGraph] = nodeHelper.useAlterNode(nodeId);
+   const [node, setNode, setGraph] = nodeHooks.useAlterNode(nodeId);
 
    const addChannel = useCallback(() => {
       const sId = uuid();
@@ -117,10 +115,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    );
 
    return (
-      <BaseNode<IPortalOutNode> nodeId={nodeId} helper={PortalOutNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<IPortalOutNode> nodeId={nodeId} helper={PortalOutNodeHelper} hooks={nodeHooks}>
          <SocketIn<IPortalOutNode> nodeId={nodeId} socketId={"portalBus"} type={SocketTypes.PORTAL}>
             Portal Bus
          </SocketIn>
@@ -150,6 +145,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                </SocketOut>
             );
          })}
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
@@ -173,9 +169,9 @@ const PortalOutNodeHelper: INodeHelper<IPortalOutNode> = {
       }
 
       return memo(({ nodeId, depth, globals, overrides }: NodeRendererProps) => {
-         const [Pipeline, cId] = nodeHelper.useInputNode(nodeId, "input", globals);
-         const busRenderer = nodeHelper.useInput(nodeId, "portalBus", globals);
-         const { senderId } = nodeHelper.useInput(nodeId, "portalBus", globals) ?? {};
+         const [Pipeline, cId] = nodeHooks.useInputNode(nodeId, "input", globals);
+         const busRenderer = nodeHooks.useInput(nodeId, "portalBus", globals);
+         const { senderId } = nodeHooks.useInput(nodeId, "portalBus", globals) ?? {};
 
          const newGlobals = useMemo(() => {
             if (senderId && channelId) {
@@ -203,7 +199,6 @@ const PortalOutNodeHelper: INodeHelper<IPortalOutNode> = {
    initialize: () => {
       const socketId = uuid();
       return {
-         name: "",
          sockets: [socketId],
          channels: {
             [socketId]: 1,

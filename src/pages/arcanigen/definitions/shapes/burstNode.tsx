@@ -30,9 +30,8 @@ import { Length, Color } from "!/utility/types/units";
 import lodash from "lodash";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
-import { TransformPrefabs } from "../../nodeView/prefabs";
+import { MetaPrefab, TransformPrefabs } from "../../nodeView/prefabs";
 import AngleInput from "!/components/inputs/AngleInput";
-import TextInput from "!/components/inputs/TextInput";
 
 interface IBurstNode extends INodeDefinition {
    inputs: {
@@ -61,7 +60,6 @@ interface IBurstNode extends INodeDefinition {
       output: NodeRenderer;
    };
    values: {
-      name: string;
       radialMode: RadialMode;
       thetaMode: ThetaMode;
       thetaStart: number;
@@ -88,47 +86,43 @@ interface IBurstNode extends INodeDefinition {
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<IBurstNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<IBurstNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-   const [radius, setRadius] = nodeHelper.useValueState(nodeId, "radius");
-   const [deviation, setDeviation] = nodeHelper.useValueState(nodeId, "deviation");
-   const [radialMode, setRadialMode] = nodeHelper.useValueState(nodeId, "radialMode");
-   const [minorRadius, setMinorRadius] = nodeHelper.useValueState(nodeId, "minorRadius");
-   const [majorRadius, setMajorRadius] = nodeHelper.useValueState(nodeId, "majorRadius");
+   const [radius, setRadius] = nodeHooks.useValueState(nodeId, "radius");
+   const [deviation, setDeviation] = nodeHooks.useValueState(nodeId, "deviation");
+   const [radialMode, setRadialMode] = nodeHooks.useValueState(nodeId, "radialMode");
+   const [minorRadius, setMinorRadius] = nodeHooks.useValueState(nodeId, "minorRadius");
+   const [majorRadius, setMajorRadius] = nodeHooks.useValueState(nodeId, "majorRadius");
 
-   const [thetaMode, setThetaMode] = nodeHelper.useValueState(nodeId, "thetaMode");
-   const [thetaStart, setThetaStart] = nodeHelper.useValueState(nodeId, "thetaStart");
-   const [thetaEnd, setThetaEnd] = nodeHelper.useValueState(nodeId, "thetaEnd");
-   const [thetaSteps, setThetaSteps] = nodeHelper.useValueState(nodeId, "thetaSteps");
-   const [thetaInclusive, setThetaInclusive] = nodeHelper.useValueState(nodeId, "thetaInclusive");
+   const [thetaMode, setThetaMode] = nodeHooks.useValueState(nodeId, "thetaMode");
+   const [thetaStart, setThetaStart] = nodeHooks.useValueState(nodeId, "thetaStart");
+   const [thetaEnd, setThetaEnd] = nodeHooks.useValueState(nodeId, "thetaEnd");
+   const [thetaSteps, setThetaSteps] = nodeHooks.useValueState(nodeId, "thetaSteps");
+   const [thetaInclusive, setThetaInclusive] = nodeHooks.useValueState(nodeId, "thetaInclusive");
 
-   const [spurCount, setSpurCount] = nodeHelper.useValueState(nodeId, "spurCount");
+   const [spurCount, setSpurCount] = nodeHooks.useValueState(nodeId, "spurCount");
 
-   const [strokeWidth, setStrokeWidth] = nodeHelper.useValueState(nodeId, "strokeWidth");
-   const [strokeCap, setStrokeCap] = nodeHelper.useValueState(nodeId, "strokeCap");
-   const [strokeColor, setStrokeColor] = nodeHelper.useValueState(nodeId, "strokeColor");
-   const [strokeMarkAlign, setStrokeMarkAlign] = nodeHelper.useValueState(nodeId, "strokeMarkAlign");
+   const [strokeWidth, setStrokeWidth] = nodeHooks.useValueState(nodeId, "strokeWidth");
+   const [strokeCap, setStrokeCap] = nodeHooks.useValueState(nodeId, "strokeCap");
+   const [strokeColor, setStrokeColor] = nodeHooks.useValueState(nodeId, "strokeColor");
+   const [strokeMarkAlign, setStrokeMarkAlign] = nodeHooks.useValueState(nodeId, "strokeMarkAlign");
 
-   const hasSpurCount = nodeHelper.useHasLink(nodeId, "spurCount");
-   const hasThetaStart = nodeHelper.useHasLink(nodeId, "thetaStart");
-   const hasThetaEnd = nodeHelper.useHasLink(nodeId, "thetaEnd");
-   const hasThetaSteps = nodeHelper.useHasLink(nodeId, "thetaSteps");
+   const hasSpurCount = nodeHooks.useHasLink(nodeId, "spurCount");
+   const hasThetaStart = nodeHooks.useHasLink(nodeId, "thetaStart");
+   const hasThetaEnd = nodeHooks.useHasLink(nodeId, "thetaEnd");
+   const hasThetaSteps = nodeHooks.useHasLink(nodeId, "thetaSteps");
 
-   const hasMinorRadius = nodeHelper.useHasLink(nodeId, "minorRadius");
-   const hasMajorRadius = nodeHelper.useHasLink(nodeId, "majorRadius");
-   const hasRadius = nodeHelper.useHasLink(nodeId, "radius");
-   const hasDeviation = nodeHelper.useHasLink(nodeId, "deviation");
-   const hasStrokeWidth = nodeHelper.useHasLink(nodeId, "strokeWidth");
+   const hasMinorRadius = nodeHooks.useHasLink(nodeId, "minorRadius");
+   const hasMajorRadius = nodeHooks.useHasLink(nodeId, "majorRadius");
+   const hasRadius = nodeHooks.useHasLink(nodeId, "radius");
+   const hasDeviation = nodeHooks.useHasLink(nodeId, "deviation");
+   const hasStrokeWidth = nodeHooks.useHasLink(nodeId, "strokeWidth");
 
-   const hasStrokeColor = nodeHelper.useHasLink(nodeId, "strokeColor");
+   const hasStrokeColor = nodeHooks.useHasLink(nodeId, "strokeColor");
 
    return (
-      <BaseNode<IBurstNode> nodeId={nodeId} helper={BurstNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<IBurstNode> nodeId={nodeId} helper={BurstNodeHelper} hooks={nodeHooks}>
          <SocketOut<IBurstNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -217,40 +211,41 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                Align Markers
             </Checkbox>
          </BaseNode.Foldout>
-         <TransformPrefabs.Full<IBurstNode> nodeId={nodeId} nodeHelper={nodeHelper} />
+         <TransformPrefabs.Full<IBurstNode> nodeId={nodeId} hooks={nodeHooks} />
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
 
 const Renderer = memo(({ nodeId, depth, globals, overrides = {} }: NodeRendererProps) => {
-   const spurCount = Math.max(0, nodeHelper.useCoalesce(nodeId, "spurCount", "spurCount", globals));
-   const radialMode = nodeHelper.useValue(nodeId, "radialMode");
-   const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius", globals);
-   const deviation = nodeHelper.useCoalesce(nodeId, "deviation", "deviation", globals);
-   const minorRadius = nodeHelper.useCoalesce(nodeId, "minorRadius", "minorRadius", globals);
-   const majorRadius = nodeHelper.useCoalesce(nodeId, "majorRadius", "majorRadius", globals);
+   const spurCount = Math.max(0, nodeHooks.useCoalesce(nodeId, "spurCount", "spurCount", globals));
+   const radialMode = nodeHooks.useValue(nodeId, "radialMode");
+   const radius = nodeHooks.useCoalesce(nodeId, "radius", "radius", globals);
+   const deviation = nodeHooks.useCoalesce(nodeId, "deviation", "deviation", globals);
+   const minorRadius = nodeHooks.useCoalesce(nodeId, "minorRadius", "minorRadius", globals);
+   const majorRadius = nodeHooks.useCoalesce(nodeId, "majorRadius", "majorRadius", globals);
 
-   const positionMode = nodeHelper.useValue(nodeId, "positionMode");
-   const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX", globals);
-   const positionY = nodeHelper.useCoalesce(nodeId, "positionY", "positionY", globals);
-   const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
-   const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
-   const rotation = nodeHelper.useCoalesce(nodeId, "rotation", "rotation", globals);
+   const positionMode = nodeHooks.useValue(nodeId, "positionMode");
+   const positionX = nodeHooks.useCoalesce(nodeId, "positionX", "positionX", globals);
+   const positionY = nodeHooks.useCoalesce(nodeId, "positionY", "positionY", globals);
+   const positionTheta = nodeHooks.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
+   const positionRadius = nodeHooks.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
+   const rotation = nodeHooks.useCoalesce(nodeId, "rotation", "rotation", globals);
 
-   const thetaMode = nodeHelper.useValue(nodeId, "thetaMode");
-   const thetaStart = nodeHelper.useCoalesce(nodeId, "thetaStart", "thetaStart", globals);
-   const thetaEnd = nodeHelper.useCoalesce(nodeId, "thetaEnd", "thetaEnd", globals);
-   const thetaSteps = nodeHelper.useCoalesce(nodeId, "thetaSteps", "thetaSteps", globals);
-   const thetaInclusive = nodeHelper.useValue(nodeId, "thetaInclusive");
-   const thetaCurve = nodeHelper.useInput(nodeId, "thetaCurve", globals);
+   const thetaMode = nodeHooks.useValue(nodeId, "thetaMode");
+   const thetaStart = nodeHooks.useCoalesce(nodeId, "thetaStart", "thetaStart", globals);
+   const thetaEnd = nodeHooks.useCoalesce(nodeId, "thetaEnd", "thetaEnd", globals);
+   const thetaSteps = nodeHooks.useCoalesce(nodeId, "thetaSteps", "thetaSteps", globals);
+   const thetaInclusive = nodeHooks.useValue(nodeId, "thetaInclusive");
+   const thetaCurve = nodeHooks.useInput(nodeId, "thetaCurve", globals);
 
-   const strokeWidth = nodeHelper.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
-   const strokeColor = nodeHelper.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
-   const strokeCap = nodeHelper.useValue(nodeId, "strokeCap");
+   const strokeWidth = nodeHooks.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
+   const strokeColor = nodeHooks.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
+   const strokeCap = nodeHooks.useValue(nodeId, "strokeCap");
 
-   const [MarkStart, msId] = nodeHelper.useInputNode(nodeId, "strokeMarkStart", globals);
-   const [MarkEnd, meId] = nodeHelper.useInputNode(nodeId, "strokeMarkEnd", globals);
-   const strokeMarkAlign = nodeHelper.useValue(nodeId, "strokeMarkAlign");
+   const [MarkStart, msId] = nodeHooks.useInputNode(nodeId, "strokeMarkStart", globals);
+   const [MarkEnd, meId] = nodeHooks.useInputNode(nodeId, "strokeMarkEnd", globals);
+   const strokeMarkAlign = nodeHooks.useValue(nodeId, "strokeMarkAlign");
 
    const rI = radialMode === "majorminor" ? MathHelper.lengthToPx(minorRadius) : MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(deviation) / 2;
    const rO = radialMode === "majorminor" ? MathHelper.lengthToPx(majorRadius) : MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(deviation) / 2;
@@ -332,7 +327,6 @@ const BurstNodeHelper: INodeHelper<IBurstNode> = {
    type: NodeTypes.SHAPE_BURST,
    getOutput: () => Renderer,
    initialize: () => ({
-      name: "",
       radius: { value: 150, unit: "px" },
       deviation: { value: 20, unit: "px" },
       radialMode: "majorminor",

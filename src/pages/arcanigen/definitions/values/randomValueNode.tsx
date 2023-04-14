@@ -8,7 +8,7 @@ import { SocketOut } from "../../nodeView/socket";
 import BaseNode from "../../nodeView/node";
 import ActionButton from "!/components/buttons/ActionButton";
 import Icon from "!/components/icons";
-import TextInput from "!/components/inputs/TextInput";
+import { MetaPrefab } from "../../nodeView/prefabs";
 
 interface IRandomValueNode extends INodeDefinition {
    inputs: {};
@@ -16,26 +16,21 @@ interface IRandomValueNode extends INodeDefinition {
       result: number;
    };
    values: {
-      name: string;
       result: number;
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<IRandomValueNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<IRandomValueNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-   const [result, setResult] = nodeHelper.useValueState(nodeId, "result");
+   const [result, setResult] = nodeHooks.useValueState(nodeId, "result");
 
    const doRandom = useCallback(() => {
       setResult(Math.floor(Math.random() * 1000));
    }, [setResult]);
 
    return (
-      <BaseNode<IRandomValueNode> nodeId={nodeId} helper={RandomValueNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<IRandomValueNode> nodeId={nodeId} helper={RandomValueNodeHelper} hooks={nodeHooks}>
          <SocketOut<IRandomValueNode> nodeId={nodeId} socketId={"result"} type={SocketTypes.INTEGER}>
             <BaseNode.Output label={"Result"}>{result}</BaseNode.Output>
          </SocketOut>
@@ -45,6 +40,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                <Icon icon={nodeIcon} /> Roll the Dice
             </ActionButton>
          </BaseNode.Input>
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
@@ -63,7 +59,6 @@ const RandomValueNodeHelper: INodeHelper<IRandomValueNode> = {
    type: NodeTypes.VALUE_RANDOM,
    getOutput,
    initialize: () => ({
-      name: "",
       result: Math.floor(Math.random() * 10000),
    }),
    controls: Controls,

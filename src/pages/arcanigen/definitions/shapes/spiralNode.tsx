@@ -23,13 +23,12 @@ import LengthInput from "!/components/inputs/LengthInput";
 import ToggleList from "!/components/selectors/ToggleList";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
-import { TransformPrefabs } from "../../nodeView/prefabs";
+import { MetaPrefab, TransformPrefabs } from "../../nodeView/prefabs";
 import AngleInput from "!/components/inputs/AngleInput";
 import lodash from "lodash";
 import faSpiral from "!/components/icons/faSpiral";
 import faSpiralLight from "!/components/icons/faSpiralLight";
 import Checkbox from "!/components/buttons/Checkbox";
-import TextInput from "!/components/inputs/TextInput";
 
 interface ISpiralNode extends INodeDefinition {
    inputs: {
@@ -56,7 +55,6 @@ interface ISpiralNode extends INodeDefinition {
       output: NodeRenderer;
    };
    values: {
-      name: string;
       radialMode: SpanMode;
       radius: Length;
       spread: Length;
@@ -80,43 +78,39 @@ interface ISpiralNode extends INodeDefinition {
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<ISpiralNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<ISpiralNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-   const [radius, setRadius] = nodeHelper.useValueState(nodeId, "radius");
-   const [spread, setSpread] = nodeHelper.useValueState(nodeId, "spread");
-   const [radialMode, setRadialMode] = nodeHelper.useValueState(nodeId, "radialMode");
-   const [innerRadius, setInnerRadius] = nodeHelper.useValueState(nodeId, "innerRadius");
-   const [outerRadius, setOuterRadius] = nodeHelper.useValueState(nodeId, "outerRadius");
+   const [radius, setRadius] = nodeHooks.useValueState(nodeId, "radius");
+   const [spread, setSpread] = nodeHooks.useValueState(nodeId, "spread");
+   const [radialMode, setRadialMode] = nodeHooks.useValueState(nodeId, "radialMode");
+   const [innerRadius, setInnerRadius] = nodeHooks.useValueState(nodeId, "innerRadius");
+   const [outerRadius, setOuterRadius] = nodeHooks.useValueState(nodeId, "outerRadius");
 
-   const [thetaStart, setThetaStart] = nodeHelper.useValueState(nodeId, "thetaStart");
-   const [thetaEnd, setThetaEnd] = nodeHelper.useValueState(nodeId, "thetaEnd");
+   const [thetaStart, setThetaStart] = nodeHooks.useValueState(nodeId, "thetaStart");
+   const [thetaEnd, setThetaEnd] = nodeHooks.useValueState(nodeId, "thetaEnd");
 
-   const [strokeWidth, setStrokeWidth] = nodeHelper.useValueState(nodeId, "strokeWidth");
-   const [strokeColor, setStrokeColor] = nodeHelper.useValueState(nodeId, "strokeColor");
-   const [strokeCap, setStrokeCap] = nodeHelper.useValueState(nodeId, "strokeCap");
+   const [strokeWidth, setStrokeWidth] = nodeHooks.useValueState(nodeId, "strokeWidth");
+   const [strokeColor, setStrokeColor] = nodeHooks.useValueState(nodeId, "strokeColor");
+   const [strokeCap, setStrokeCap] = nodeHooks.useValueState(nodeId, "strokeCap");
 
-   const [fillColor, setFillColor] = nodeHelper.useValueState(nodeId, "fillColor");
-   const [strokeMarkAlign, setStrokeMarkAlign] = nodeHelper.useValueState(nodeId, "strokeMarkAlign");
+   const [fillColor, setFillColor] = nodeHooks.useValueState(nodeId, "fillColor");
+   const [strokeMarkAlign, setStrokeMarkAlign] = nodeHooks.useValueState(nodeId, "strokeMarkAlign");
 
-   const hasThetaStart = nodeHelper.useHasLink(nodeId, "thetaStart");
-   const hasThetaEnd = nodeHelper.useHasLink(nodeId, "thetaEnd");
+   const hasThetaStart = nodeHooks.useHasLink(nodeId, "thetaStart");
+   const hasThetaEnd = nodeHooks.useHasLink(nodeId, "thetaEnd");
 
-   const hasInnerRadius = nodeHelper.useHasLink(nodeId, "innerRadius");
-   const hasOuterRadius = nodeHelper.useHasLink(nodeId, "outerRadius");
-   const hasRadius = nodeHelper.useHasLink(nodeId, "radius");
-   const hasSpread = nodeHelper.useHasLink(nodeId, "spread");
+   const hasInnerRadius = nodeHooks.useHasLink(nodeId, "innerRadius");
+   const hasOuterRadius = nodeHooks.useHasLink(nodeId, "outerRadius");
+   const hasRadius = nodeHooks.useHasLink(nodeId, "radius");
+   const hasSpread = nodeHooks.useHasLink(nodeId, "spread");
 
-   const hasStrokeWidth = nodeHelper.useHasLink(nodeId, "strokeWidth");
-   const hasFillColor = nodeHelper.useHasLink(nodeId, "fillColor");
-   const hasStrokeColor = nodeHelper.useHasLink(nodeId, "strokeColor");
+   const hasStrokeWidth = nodeHooks.useHasLink(nodeId, "strokeWidth");
+   const hasFillColor = nodeHooks.useHasLink(nodeId, "fillColor");
+   const hasStrokeColor = nodeHooks.useHasLink(nodeId, "strokeColor");
 
    return (
-      <BaseNode<ISpiralNode> nodeId={nodeId} helper={SpiralNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<ISpiralNode> nodeId={nodeId} helper={SpiralNodeHelper} hooks={nodeHooks}>
          <SocketOut<ISpiralNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -185,35 +179,36 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                </BaseNode.Input>
             </SocketIn>
          </BaseNode.Foldout>
-         <TransformPrefabs.Full<ISpiralNode> nodeId={nodeId} nodeHelper={nodeHelper} />
+         <TransformPrefabs.Full<ISpiralNode> nodeId={nodeId} hooks={nodeHooks} />
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
 
 const Renderer = memo(({ nodeId, depth, globals, overrides = {} }: NodeRendererProps) => {
-   const radialMode = nodeHelper.useValue(nodeId, "radialMode");
-   const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius", globals);
-   const spread = nodeHelper.useCoalesce(nodeId, "spread", "spread", globals);
-   const innerRadius = nodeHelper.useCoalesce(nodeId, "innerRadius", "innerRadius", globals);
-   const outerRadius = nodeHelper.useCoalesce(nodeId, "outerRadius", "outerRadius", globals);
+   const radialMode = nodeHooks.useValue(nodeId, "radialMode");
+   const radius = nodeHooks.useCoalesce(nodeId, "radius", "radius", globals);
+   const spread = nodeHooks.useCoalesce(nodeId, "spread", "spread", globals);
+   const innerRadius = nodeHooks.useCoalesce(nodeId, "innerRadius", "innerRadius", globals);
+   const outerRadius = nodeHooks.useCoalesce(nodeId, "outerRadius", "outerRadius", globals);
 
-   const thetaStart = nodeHelper.useCoalesce(nodeId, "thetaStart", "thetaStart", globals);
-   const thetaEnd = nodeHelper.useCoalesce(nodeId, "thetaEnd", "thetaEnd", globals);
-   const strokeWidth = nodeHelper.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
-   const strokeColor = nodeHelper.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
-   const fillColor = nodeHelper.useCoalesce(nodeId, "fillColor", "fillColor", globals);
-   const strokeCap = nodeHelper.useValue(nodeId, "strokeCap");
+   const thetaStart = nodeHooks.useCoalesce(nodeId, "thetaStart", "thetaStart", globals);
+   const thetaEnd = nodeHooks.useCoalesce(nodeId, "thetaEnd", "thetaEnd", globals);
+   const strokeWidth = nodeHooks.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
+   const strokeColor = nodeHooks.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
+   const fillColor = nodeHooks.useCoalesce(nodeId, "fillColor", "fillColor", globals);
+   const strokeCap = nodeHooks.useValue(nodeId, "strokeCap");
 
-   const [MarkStart, msId] = nodeHelper.useInputNode(nodeId, "strokeMarkStart", globals);
-   const [MarkEnd, meId] = nodeHelper.useInputNode(nodeId, "strokeMarkEnd", globals);
-   const strokeMarkAlign = nodeHelper.useValue(nodeId, "strokeMarkAlign");
+   const [MarkStart, msId] = nodeHooks.useInputNode(nodeId, "strokeMarkStart", globals);
+   const [MarkEnd, meId] = nodeHooks.useInputNode(nodeId, "strokeMarkEnd", globals);
+   const strokeMarkAlign = nodeHooks.useValue(nodeId, "strokeMarkAlign");
 
-   const positionMode = nodeHelper.useValue(nodeId, "positionMode");
-   const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX", globals);
-   const positionY = nodeHelper.useCoalesce(nodeId, "positionY", "positionY", globals);
-   const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
-   const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
-   const rotation = nodeHelper.useCoalesce(nodeId, "rotation", "rotation", globals);
+   const positionMode = nodeHooks.useValue(nodeId, "positionMode");
+   const positionX = nodeHooks.useCoalesce(nodeId, "positionX", "positionX", globals);
+   const positionY = nodeHooks.useCoalesce(nodeId, "positionY", "positionY", globals);
+   const positionTheta = nodeHooks.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
+   const positionRadius = nodeHooks.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
+   const rotation = nodeHooks.useCoalesce(nodeId, "rotation", "rotation", globals);
 
    const rI = radialMode === "inout" ? MathHelper.lengthToPx(innerRadius) : MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(spread) / 2;
    const rO = radialMode === "inout" ? MathHelper.lengthToPx(outerRadius) : MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(spread) / 2;
@@ -295,7 +290,6 @@ const SpiralNodeHelper: INodeHelper<ISpiralNode> = {
    type: NodeTypes.SHAPE_SPIRAL,
    getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof ISpiralNode["outputs"]) => Renderer,
    initialize: () => ({
-      name: "",
       radius: { value: 150, unit: "px" },
       innerRadius: { value: 120, unit: "px" },
       outerRadius: { value: 180, unit: "px" },

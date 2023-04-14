@@ -12,7 +12,7 @@ import SliderInput from "!/components/inputs/SliderInput";
 import styled from "styled-components";
 import MathHelper from "!/utility/mathhelper";
 import AngleInput from "!/components/inputs/AngleInput";
-import TextInput from "!/components/inputs/TextInput";
+import { MetaPrefab } from "../../nodeView/prefabs";
 
 interface IColorHSVNode extends INodeDefinition {
    inputs: {
@@ -25,7 +25,6 @@ interface IColorHSVNode extends INodeDefinition {
       value: Color;
    };
    values: {
-      name: string;
       h: number;
       s: number;
       v: number;
@@ -33,24 +32,23 @@ interface IColorHSVNode extends INodeDefinition {
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<IColorHSVNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<IColorHSVNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-   const [h, setH] = nodeHelper.useValueState(nodeId, "h");
-   const [s, setS] = nodeHelper.useValueState(nodeId, "s");
-   const [v, setV] = nodeHelper.useValueState(nodeId, "v");
-   const [a, setA] = nodeHelper.useValueState(nodeId, "a");
+   const [h, setH] = nodeHooks.useValueState(nodeId, "h");
+   const [s, setS] = nodeHooks.useValueState(nodeId, "s");
+   const [v, setV] = nodeHooks.useValueState(nodeId, "v");
+   const [a, setA] = nodeHooks.useValueState(nodeId, "a");
 
-   const hasHIn = nodeHelper.useHasLink(nodeId, "hIn");
-   const hasSIn = nodeHelper.useHasLink(nodeId, "sIn");
-   const hasVIn = nodeHelper.useHasLink(nodeId, "vIn");
-   const hasAIn = nodeHelper.useHasLink(nodeId, "aIn");
+   const hasHIn = nodeHooks.useHasLink(nodeId, "hIn");
+   const hasSIn = nodeHooks.useHasLink(nodeId, "sIn");
+   const hasVIn = nodeHooks.useHasLink(nodeId, "vIn");
+   const hasAIn = nodeHooks.useHasLink(nodeId, "aIn");
 
-   const actualH = nodeHelper.useCoalesce(nodeId, "hIn", "h", globals);
-   const actualS = nodeHelper.useCoalesce(nodeId, "sIn", "s", globals);
-   const actualV = nodeHelper.useCoalesce(nodeId, "vIn", "v", globals);
-   const actualA = nodeHelper.useCoalesce(nodeId, "aIn", "a", globals);
+   const actualH = nodeHooks.useCoalesce(nodeId, "hIn", "h", globals);
+   const actualS = nodeHooks.useCoalesce(nodeId, "sIn", "s", globals);
+   const actualV = nodeHooks.useCoalesce(nodeId, "vIn", "v", globals);
+   const actualA = nodeHooks.useCoalesce(nodeId, "aIn", "a", globals);
 
    const res = useMemo(() => {
       return MathHelper.colorToHTML(
@@ -64,10 +62,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    }, [actualH, actualS, actualV, actualA]);
 
    return (
-      <BaseNode<IColorHSVNode> nodeId={nodeId} helper={ColorHSVNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<IColorHSVNode> nodeId={nodeId} helper={ColorHSVNodeHelper} hooks={nodeHooks}>
          <SocketOut<IColorHSVNode> nodeId={nodeId} socketId={"value"} type={SocketTypes.COLOR}>
             <Swatch value={res} />
          </SocketOut>
@@ -92,6 +87,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                <SliderInput min={0} max={1} value={a} onValidValue={setA} disabled={hasAIn} />
             </BaseNode.Input>
          </SocketIn>
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
@@ -114,7 +110,6 @@ const ColorHSVNodeHelper: INodeHelper<IColorHSVNode> = {
    type: NodeTypes.COLOR_HSV,
    getOutput,
    initialize: () => ({
-      name: "",
       h: 0,
       s: 1,
       v: 1,

@@ -11,7 +11,7 @@ import SliderInput from "!/components/inputs/SliderInput";
 import { Length } from "!/utility/types/units";
 import LengthInput from "!/components/inputs/LengthInput";
 import Checkbox from "!/components/buttons/Checkbox";
-import TextInput from "!/components/inputs/TextInput";
+import { MetaPrefab } from "../../nodeView/prefabs";
 
 interface ILerpLengthNode extends INodeDefinition {
    inputs: {
@@ -25,7 +25,6 @@ interface ILerpLengthNode extends INodeDefinition {
       value: Length;
    };
    values: {
-      name: string;
       from: Length;
       to: Length;
       percent: number;
@@ -33,22 +32,18 @@ interface ILerpLengthNode extends INodeDefinition {
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<ILerpLengthNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<ILerpLengthNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-   const [from, setFrom] = nodeHelper.useValueState(nodeId, "from");
-   const [to, setTo] = nodeHelper.useValueState(nodeId, "to");
-   const [percent, setPercent] = nodeHelper.useValueState(nodeId, "percent");
-   const [isInclusive, setIsInclusive] = nodeHelper.useValueState(nodeId, "isInclusive");
+   const [from, setFrom] = nodeHooks.useValueState(nodeId, "from");
+   const [to, setTo] = nodeHooks.useValueState(nodeId, "to");
+   const [percent, setPercent] = nodeHooks.useValueState(nodeId, "percent");
+   const [isInclusive, setIsInclusive] = nodeHooks.useValueState(nodeId, "isInclusive");
 
-   const hasSequence = nodeHelper.useHasLink(nodeId, "sequence");
+   const hasSequence = nodeHooks.useHasLink(nodeId, "sequence");
 
    return (
-      <BaseNode<ILerpLengthNode> nodeId={nodeId} helper={LerpLengthNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<ILerpLengthNode> nodeId={nodeId} helper={LerpLengthNodeHelper} hooks={nodeHooks}>
          <SocketOut<ILerpLengthNode> socketId={"value"} nodeId={nodeId} type={SocketTypes.LENGTH}>
             Output
          </SocketOut>
@@ -78,6 +73,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                <SliderInput value={percent} onValidValue={setPercent} disabled={hasSequence} min={0} max={1} />
             </BaseNode.Input>
          </SocketIn>
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
@@ -118,7 +114,6 @@ const LerpLengthNodeHelper: INodeHelper<ILerpLengthNode> = {
    type: NodeTypes.LERP_LENGTH,
    getOutput,
    initialize: () => ({
-      name: "",
       from: { value: 0, unit: "px" },
       to: { value: 1, unit: "px" },
       percent: 0,

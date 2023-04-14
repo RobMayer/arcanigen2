@@ -11,7 +11,7 @@ import { SocketIn, SocketOut } from "../../nodeView/socket";
 import SliderInput from "!/components/inputs/SliderInput";
 import MathHelper from "!/utility/mathhelper";
 import styled from "styled-components";
-import TextInput from "!/components/inputs/TextInput";
+import { MetaPrefab } from "../../nodeView/prefabs";
 
 interface IColorCMYKNode extends INodeDefinition {
    inputs: {
@@ -25,7 +25,6 @@ interface IColorCMYKNode extends INodeDefinition {
       value: Color;
    };
    values: {
-      name: string;
       c: number;
       m: number;
       y: number;
@@ -34,28 +33,26 @@ interface IColorCMYKNode extends INodeDefinition {
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<IColorCMYKNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<IColorCMYKNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
+   const [c, setC] = nodeHooks.useValueState(nodeId, "c");
+   const [m, setM] = nodeHooks.useValueState(nodeId, "m");
+   const [y, setY] = nodeHooks.useValueState(nodeId, "y");
+   const [k, setK] = nodeHooks.useValueState(nodeId, "k");
+   const [a, setA] = nodeHooks.useValueState(nodeId, "a");
 
-   const [c, setC] = nodeHelper.useValueState(nodeId, "c");
-   const [m, setM] = nodeHelper.useValueState(nodeId, "m");
-   const [y, setY] = nodeHelper.useValueState(nodeId, "y");
-   const [k, setK] = nodeHelper.useValueState(nodeId, "k");
-   const [a, setA] = nodeHelper.useValueState(nodeId, "a");
+   const hasCIn = nodeHooks.useHasLink(nodeId, "cIn");
+   const hasMIn = nodeHooks.useHasLink(nodeId, "mIn");
+   const hasYIn = nodeHooks.useHasLink(nodeId, "yIn");
+   const hasKIn = nodeHooks.useHasLink(nodeId, "kIn");
+   const hasAIn = nodeHooks.useHasLink(nodeId, "aIn");
 
-   const hasCIn = nodeHelper.useHasLink(nodeId, "cIn");
-   const hasMIn = nodeHelper.useHasLink(nodeId, "mIn");
-   const hasYIn = nodeHelper.useHasLink(nodeId, "yIn");
-   const hasKIn = nodeHelper.useHasLink(nodeId, "kIn");
-   const hasAIn = nodeHelper.useHasLink(nodeId, "aIn");
-
-   const actualC = nodeHelper.useCoalesce(nodeId, "cIn", "c", globals);
-   const actualM = nodeHelper.useCoalesce(nodeId, "mIn", "m", globals);
-   const actualY = nodeHelper.useCoalesce(nodeId, "yIn", "y", globals);
-   const actualK = nodeHelper.useCoalesce(nodeId, "kIn", "k", globals);
-   const actualA = nodeHelper.useCoalesce(nodeId, "aIn", "a", globals);
+   const actualC = nodeHooks.useCoalesce(nodeId, "cIn", "c", globals);
+   const actualM = nodeHooks.useCoalesce(nodeId, "mIn", "m", globals);
+   const actualY = nodeHooks.useCoalesce(nodeId, "yIn", "y", globals);
+   const actualK = nodeHooks.useCoalesce(nodeId, "kIn", "k", globals);
+   const actualA = nodeHooks.useCoalesce(nodeId, "aIn", "a", globals);
 
    const res = useMemo(() => {
       return MathHelper.colorToHTML(
@@ -70,10 +67,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    }, [actualA, actualC, actualK, actualM, actualY]);
 
    return (
-      <BaseNode<IColorCMYKNode> nodeId={nodeId} helper={ColorCMYKNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<IColorCMYKNode> nodeId={nodeId} helper={ColorCMYKNodeHelper} hooks={nodeHooks}>
          <SocketOut<IColorCMYKNode> nodeId={nodeId} socketId={"value"} type={SocketTypes.COLOR}>
             <Swatch value={res} />
          </SocketOut>
@@ -103,6 +97,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                <SliderInput min={0} max={1} value={a} onValidValue={setA} disabled={hasAIn} />
             </BaseNode.Input>
          </SocketIn>
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
@@ -132,7 +127,6 @@ const ColorCMYKNodeHelper: INodeHelper<IColorCMYKNode> = {
    type: NodeTypes.COLOR_CMYK,
    getOutput,
    initialize: () => ({
-      name: "",
       c: 1,
       m: 1,
       y: 1,

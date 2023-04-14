@@ -30,8 +30,7 @@ import { Length, Color } from "!/utility/types/units";
 import lodash from "lodash";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
-import { TransformPrefabs } from "../../nodeView/prefabs";
-import TextInput from "!/components/inputs/TextInput";
+import { MetaPrefab, TransformPrefabs } from "../../nodeView/prefabs";
 
 interface IPolygramNode extends INodeDefinition {
    inputs: {
@@ -56,7 +55,6 @@ interface IPolygramNode extends INodeDefinition {
       rMiddle: Length;
    };
    values: {
-      name: string;
       radius: Length;
       rScribeMode: ScribeMode;
       strokeWidth: Length;
@@ -75,25 +73,24 @@ interface IPolygramNode extends INodeDefinition {
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<IPolygramNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<IPolygramNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-   const [radius, setRadius] = nodeHelper.useValueState(nodeId, "radius");
-   const [strokeWidth, setStrokeWidth] = nodeHelper.useValueState(nodeId, "strokeWidth");
-   const [strokeColor, setStrokeColor] = nodeHelper.useValueState(nodeId, "strokeColor");
-   const [strokeJoin, setStrokeJoin] = nodeHelper.useValueState(nodeId, "strokeJoin");
-   const [fillColor, setFillColor] = nodeHelper.useValueState(nodeId, "fillColor");
-   const [pointCount, setPointCount] = nodeHelper.useValueState(nodeId, "pointCount");
-   const [skipCount, setSkipCount] = nodeHelper.useValueState(nodeId, "skipCount");
-   const [rScribeMode, setRScribeMode] = nodeHelper.useValueState(nodeId, "rScribeMode");
+   const [radius, setRadius] = nodeHooks.useValueState(nodeId, "radius");
+   const [strokeWidth, setStrokeWidth] = nodeHooks.useValueState(nodeId, "strokeWidth");
+   const [strokeColor, setStrokeColor] = nodeHooks.useValueState(nodeId, "strokeColor");
+   const [strokeJoin, setStrokeJoin] = nodeHooks.useValueState(nodeId, "strokeJoin");
+   const [fillColor, setFillColor] = nodeHooks.useValueState(nodeId, "fillColor");
+   const [pointCount, setPointCount] = nodeHooks.useValueState(nodeId, "pointCount");
+   const [skipCount, setSkipCount] = nodeHooks.useValueState(nodeId, "skipCount");
+   const [rScribeMode, setRScribeMode] = nodeHooks.useValueState(nodeId, "rScribeMode");
 
-   const hasPointCount = nodeHelper.useHasLink(nodeId, "pointCount");
-   const hasSkipCount = nodeHelper.useHasLink(nodeId, "skipCount");
-   const hasRadius = nodeHelper.useHasLink(nodeId, "radius");
-   const hasStrokeWidth = nodeHelper.useHasLink(nodeId, "strokeWidth");
-   const hasStrokeColor = nodeHelper.useHasLink(nodeId, "strokeColor");
-   const hasFillColor = nodeHelper.useHasLink(nodeId, "fillColor");
+   const hasPointCount = nodeHooks.useHasLink(nodeId, "pointCount");
+   const hasSkipCount = nodeHooks.useHasLink(nodeId, "skipCount");
+   const hasRadius = nodeHooks.useHasLink(nodeId, "radius");
+   const hasStrokeWidth = nodeHooks.useHasLink(nodeId, "strokeWidth");
+   const hasStrokeColor = nodeHooks.useHasLink(nodeId, "strokeColor");
+   const hasFillColor = nodeHooks.useHasLink(nodeId, "fillColor");
 
    useEffect(() => {
       setSkipCount((p) => {
@@ -109,10 +106,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    }, [pointCount, setSkipCount]);
 
    return (
-      <BaseNode<IPolygramNode> nodeId={nodeId} helper={PolygramNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<IPolygramNode> nodeId={nodeId} helper={PolygramNodeHelper} hooks={nodeHooks}>
          <SocketOut<IPolygramNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -166,7 +160,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                </BaseNode.Input>
             </SocketIn>
          </BaseNode.Foldout>
-         <TransformPrefabs.Full<IPolygramNode> nodeId={nodeId} nodeHelper={nodeHelper} />
+         <TransformPrefabs.Full<IPolygramNode> nodeId={nodeId} hooks={nodeHooks} />
          <BaseNode.Foldout panelId={"moreOutputs"} label={"Additional Outputs"} inputs={""} outputs={"rTangents rPoints rMiddle"} nodeId={nodeId}>
             <SocketOut<IPolygramNode> nodeId={nodeId} socketId={"rTangents"} type={SocketTypes.LENGTH}>
                Tangents Radius
@@ -178,31 +172,32 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                Middle Radius
             </SocketOut>
          </BaseNode.Foldout>
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
 
 const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) => {
-   const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius", globals);
-   const pointCount = nodeHelper.useCoalesce(nodeId, "pointCount", "pointCount", globals);
-   const rScribeMode = nodeHelper.useValue(nodeId, "rScribeMode");
+   const radius = nodeHooks.useCoalesce(nodeId, "radius", "radius", globals);
+   const pointCount = nodeHooks.useCoalesce(nodeId, "pointCount", "pointCount", globals);
+   const rScribeMode = nodeHooks.useValue(nodeId, "rScribeMode");
 
    const theMax = Math.ceil(pointCount / 2) - 2;
 
-   const skipCount = Math.min(theMax, Math.max(0, nodeHelper.useCoalesce(nodeId, "skipCount", "skipCount", globals)));
+   const skipCount = Math.min(theMax, Math.max(0, nodeHooks.useCoalesce(nodeId, "skipCount", "skipCount", globals)));
 
-   const strokeWidth = nodeHelper.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
-   const strokeJoin = nodeHelper.useValue(nodeId, "strokeJoin");
-   const strokeColor = nodeHelper.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
-   const fillColor = nodeHelper.useCoalesce(nodeId, "fillColor", "fillColor", globals);
+   const strokeWidth = nodeHooks.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
+   const strokeJoin = nodeHooks.useValue(nodeId, "strokeJoin");
+   const strokeColor = nodeHooks.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
+   const fillColor = nodeHooks.useCoalesce(nodeId, "fillColor", "fillColor", globals);
 
-   const positionMode = nodeHelper.useValue(nodeId, "positionMode");
-   const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX", globals);
-   const positionY = nodeHelper.useCoalesce(nodeId, "positionY", "positionY", globals);
-   const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
-   const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
-   const rotation = nodeHelper.useCoalesce(nodeId, "rotation", "rotation", globals);
-   const thetaCurve = nodeHelper.useInput(nodeId, "thetaCurve", globals);
+   const positionMode = nodeHooks.useValue(nodeId, "positionMode");
+   const positionX = nodeHooks.useCoalesce(nodeId, "positionX", "positionX", globals);
+   const positionY = nodeHooks.useCoalesce(nodeId, "positionY", "positionY", globals);
+   const positionTheta = nodeHooks.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
+   const positionRadius = nodeHooks.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
+   const rotation = nodeHooks.useCoalesce(nodeId, "rotation", "rotation", globals);
+   const thetaCurve = nodeHooks.useInput(nodeId, "thetaCurve", globals);
 
    const points = useMemo(() => {
       const tR = getTrueRadius(MathHelper.lengthToPx(radius), rScribeMode, pointCount);
@@ -268,7 +263,6 @@ const PolygramNodeHelper: INodeHelper<IPolygramNode> = {
       }
    },
    initialize: () => ({
-      name: "",
       radius: { value: 100, unit: "px" },
       strokeWidth: { value: 1, unit: "px" },
       pointCount: 5,

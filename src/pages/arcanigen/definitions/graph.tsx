@@ -158,7 +158,7 @@ const useStoreData = () => {
 
    const addNode = useCallback((type: NodeTypes, at?: { x: number; y: number }) => {
       const nodeId = uuid();
-      graphStore.current = GraphHelper.append(graphStore.current, nodeId, type, getNodeHelper(type).initialize());
+      graphStore.current = GraphHelper.append(graphStore.current, nodeId, type, { ...getNodeHelper(type).initialize(), name: "" });
       posStore.current = { ...posStore.current, [nodeId]: at ?? { x: 0, y: 0 } };
       toggleStore.current = { ...toggleStore.current, [nodeId]: { node: true } };
       graphListeners.current.forEach((callback) => callback());

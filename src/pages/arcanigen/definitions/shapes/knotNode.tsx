@@ -36,8 +36,7 @@ import { Length, Color } from "!/utility/types/units";
 import lodash from "lodash";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
-import { TransformPrefabs } from "../../nodeView/prefabs";
-import TextInput from "!/components/inputs/TextInput";
+import { MetaPrefab, TransformPrefabs } from "../../nodeView/prefabs";
 
 interface IKnotNode extends INodeDefinition {
    inputs: {
@@ -65,7 +64,6 @@ interface IKnotNode extends INodeDefinition {
       rMiddle: Length;
    };
    values: {
-      name: string;
       spanMode: SpanMode;
       radius: Length;
       spread: Length;
@@ -93,39 +91,38 @@ interface IKnotNode extends INodeDefinition {
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<IKnotNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<IKnotNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-   const [radius, setRadius] = nodeHelper.useValueState(nodeId, "radius");
-   const [spread, setSpread] = nodeHelper.useValueState(nodeId, "spread");
-   const [spreadAlignMode, setSpreadAlignMode] = nodeHelper.useValueState(nodeId, "spreadAlignMode");
-   const [expandMode, setExpandMode] = nodeHelper.useValueState(nodeId, "expandMode");
-   const [spanMode, setSpanMode] = nodeHelper.useValueState(nodeId, "spanMode");
-   const [innerRadius, setInnerRadius] = nodeHelper.useValueState(nodeId, "innerRadius");
-   const [outerRadius, setOuterRadius] = nodeHelper.useValueState(nodeId, "outerRadius");
+   const [radius, setRadius] = nodeHooks.useValueState(nodeId, "radius");
+   const [spread, setSpread] = nodeHooks.useValueState(nodeId, "spread");
+   const [spreadAlignMode, setSpreadAlignMode] = nodeHooks.useValueState(nodeId, "spreadAlignMode");
+   const [expandMode, setExpandMode] = nodeHooks.useValueState(nodeId, "expandMode");
+   const [spanMode, setSpanMode] = nodeHooks.useValueState(nodeId, "spanMode");
+   const [innerRadius, setInnerRadius] = nodeHooks.useValueState(nodeId, "innerRadius");
+   const [outerRadius, setOuterRadius] = nodeHooks.useValueState(nodeId, "outerRadius");
 
-   const [strokeWidth, setStrokeWidth] = nodeHelper.useValueState(nodeId, "strokeWidth");
-   const [strokeColor, setStrokeColor] = nodeHelper.useValueState(nodeId, "strokeColor");
-   const [strokeJoin, setStrokeJoin] = nodeHelper.useValueState(nodeId, "strokeJoin");
-   const [fillColor, setFillColor] = nodeHelper.useValueState(nodeId, "fillColor");
-   const [pointCount, setPointCount] = nodeHelper.useValueState(nodeId, "pointCount");
-   const [skipCount, setSkipCount] = nodeHelper.useValueState(nodeId, "skipCount");
-   const [rScribeMode, setRScribeMode] = nodeHelper.useValueState(nodeId, "rScribeMode");
-   const [iScribeMode, setIScribeMode] = nodeHelper.useValueState(nodeId, "iScribeMode");
-   const [oScribeMode, setOScribeMode] = nodeHelper.useValueState(nodeId, "oScribeMode");
+   const [strokeWidth, setStrokeWidth] = nodeHooks.useValueState(nodeId, "strokeWidth");
+   const [strokeColor, setStrokeColor] = nodeHooks.useValueState(nodeId, "strokeColor");
+   const [strokeJoin, setStrokeJoin] = nodeHooks.useValueState(nodeId, "strokeJoin");
+   const [fillColor, setFillColor] = nodeHooks.useValueState(nodeId, "fillColor");
+   const [pointCount, setPointCount] = nodeHooks.useValueState(nodeId, "pointCount");
+   const [skipCount, setSkipCount] = nodeHooks.useValueState(nodeId, "skipCount");
+   const [rScribeMode, setRScribeMode] = nodeHooks.useValueState(nodeId, "rScribeMode");
+   const [iScribeMode, setIScribeMode] = nodeHooks.useValueState(nodeId, "iScribeMode");
+   const [oScribeMode, setOScribeMode] = nodeHooks.useValueState(nodeId, "oScribeMode");
 
-   const hasPointCount = nodeHelper.useHasLink(nodeId, "pointCount");
-   const hasSkipCount = nodeHelper.useHasLink(nodeId, "skipCount");
+   const hasPointCount = nodeHooks.useHasLink(nodeId, "pointCount");
+   const hasSkipCount = nodeHooks.useHasLink(nodeId, "skipCount");
 
-   const hasInnerRadius = nodeHelper.useHasLink(nodeId, "innerRadius");
-   const hasOuterRadius = nodeHelper.useHasLink(nodeId, "outerRadius");
-   const hasRadius = nodeHelper.useHasLink(nodeId, "radius");
-   const hasSpread = nodeHelper.useHasLink(nodeId, "spread");
+   const hasInnerRadius = nodeHooks.useHasLink(nodeId, "innerRadius");
+   const hasOuterRadius = nodeHooks.useHasLink(nodeId, "outerRadius");
+   const hasRadius = nodeHooks.useHasLink(nodeId, "radius");
+   const hasSpread = nodeHooks.useHasLink(nodeId, "spread");
 
-   const hasStrokeWidth = nodeHelper.useHasLink(nodeId, "strokeWidth");
-   const hasStrokeColor = nodeHelper.useHasLink(nodeId, "strokeColor");
-   const hasFillColor = nodeHelper.useHasLink(nodeId, "fillColor");
+   const hasStrokeWidth = nodeHooks.useHasLink(nodeId, "strokeWidth");
+   const hasStrokeColor = nodeHooks.useHasLink(nodeId, "strokeColor");
+   const hasFillColor = nodeHooks.useHasLink(nodeId, "fillColor");
 
    useEffect(() => {
       setSkipCount((p) => {
@@ -141,10 +138,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    }, [pointCount, setSkipCount]);
 
    return (
-      <BaseNode<IKnotNode> nodeId={nodeId} helper={KnotNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<IKnotNode> nodeId={nodeId} helper={KnotNodeHelper} hooks={nodeHooks}>
          <SocketOut<IKnotNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -224,7 +218,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                </BaseNode.Input>
             </SocketIn>
          </BaseNode.Foldout>
-         <TransformPrefabs.Full<IKnotNode> nodeId={nodeId} nodeHelper={nodeHelper} />
+         <TransformPrefabs.Full<IKnotNode> nodeId={nodeId} hooks={nodeHooks} />
          <BaseNode.Foldout panelId={"moreOutputs"} label={"Additional Outputs"} inputs={""} outputs={"rTangents rPoints rMiddle"} nodeId={nodeId}>
             <SocketOut<IKnotNode> nodeId={nodeId} socketId={"rTangents"} type={SocketTypes.LENGTH}>
                Tangents Radius
@@ -236,40 +230,41 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                Middle Radius
             </SocketOut>
          </BaseNode.Foldout>
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
 
 const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) => {
-   const spanMode = nodeHelper.useValue(nodeId, "spanMode");
-   const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius", globals);
-   const spread = nodeHelper.useCoalesce(nodeId, "spread", "spread", globals);
-   const innerRadius = nodeHelper.useCoalesce(nodeId, "innerRadius", "innerRadius", globals);
-   const outerRadius = nodeHelper.useCoalesce(nodeId, "outerRadius", "outerRadius", globals);
-   const spreadAlignMode = nodeHelper.useValue(nodeId, "spreadAlignMode");
-   const expandMode = nodeHelper.useValue(nodeId, "expandMode");
+   const spanMode = nodeHooks.useValue(nodeId, "spanMode");
+   const radius = nodeHooks.useCoalesce(nodeId, "radius", "radius", globals);
+   const spread = nodeHooks.useCoalesce(nodeId, "spread", "spread", globals);
+   const innerRadius = nodeHooks.useCoalesce(nodeId, "innerRadius", "innerRadius", globals);
+   const outerRadius = nodeHooks.useCoalesce(nodeId, "outerRadius", "outerRadius", globals);
+   const spreadAlignMode = nodeHooks.useValue(nodeId, "spreadAlignMode");
+   const expandMode = nodeHooks.useValue(nodeId, "expandMode");
 
-   const pointCount = nodeHelper.useCoalesce(nodeId, "pointCount", "pointCount", globals);
-   const rScribeMode = nodeHelper.useValue(nodeId, "rScribeMode");
-   const iScribeMode = nodeHelper.useValue(nodeId, "iScribeMode");
-   const oScribeMode = nodeHelper.useValue(nodeId, "oScribeMode");
+   const pointCount = nodeHooks.useCoalesce(nodeId, "pointCount", "pointCount", globals);
+   const rScribeMode = nodeHooks.useValue(nodeId, "rScribeMode");
+   const iScribeMode = nodeHooks.useValue(nodeId, "iScribeMode");
+   const oScribeMode = nodeHooks.useValue(nodeId, "oScribeMode");
 
    const theMax = Math.ceil(pointCount / 2) - 2;
 
-   const skipCount = Math.min(theMax, Math.max(0, nodeHelper.useCoalesce(nodeId, "skipCount", "skipCount", globals)));
+   const skipCount = Math.min(theMax, Math.max(0, nodeHooks.useCoalesce(nodeId, "skipCount", "skipCount", globals)));
 
-   const strokeWidth = nodeHelper.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
-   const strokeJoin = nodeHelper.useValue(nodeId, "strokeJoin");
-   const strokeColor = nodeHelper.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
-   const fillColor = nodeHelper.useCoalesce(nodeId, "fillColor", "fillColor", globals);
+   const strokeWidth = nodeHooks.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
+   const strokeJoin = nodeHooks.useValue(nodeId, "strokeJoin");
+   const strokeColor = nodeHooks.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
+   const fillColor = nodeHooks.useCoalesce(nodeId, "fillColor", "fillColor", globals);
 
-   const positionMode = nodeHelper.useValue(nodeId, "positionMode");
-   const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX", globals);
-   const positionY = nodeHelper.useCoalesce(nodeId, "positionY", "positionY", globals);
-   const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
-   const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
-   const rotation = nodeHelper.useCoalesce(nodeId, "rotation", "rotation", globals);
-   const thetaCurve = nodeHelper.useInput(nodeId, "thetaCurve", globals);
+   const positionMode = nodeHooks.useValue(nodeId, "positionMode");
+   const positionX = nodeHooks.useCoalesce(nodeId, "positionX", "positionX", globals);
+   const positionY = nodeHooks.useCoalesce(nodeId, "positionY", "positionY", globals);
+   const positionTheta = nodeHooks.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
+   const positionRadius = nodeHooks.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
+   const rotation = nodeHooks.useCoalesce(nodeId, "rotation", "rotation", globals);
+   const thetaCurve = nodeHooks.useInput(nodeId, "thetaCurve", globals);
 
    const points = useMemo(() => {
       //const tR = getTrueRadius(MathHelper.lengthToPx(radius), scribeMode, pointCount);
@@ -372,7 +367,6 @@ const KnotNodeHelper: INodeHelper<IKnotNode> = {
       }
    },
    initialize: () => ({
-      name: "",
       radius: { value: 150, unit: "px" },
       spread: { value: 20, unit: "px" },
       spreadAlignMode: "center",

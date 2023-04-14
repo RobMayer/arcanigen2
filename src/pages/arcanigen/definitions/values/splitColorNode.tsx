@@ -9,7 +9,7 @@ import { Color } from "!/utility/types/units";
 import BaseNode from "../../nodeView/node";
 import { SocketIn, SocketOut } from "../../nodeView/socket";
 import { colorComponents } from "!/utility/colorconvert";
-import TextInput from "!/components/inputs/TextInput";
+import { MetaPrefab } from "../../nodeView/prefabs";
 
 interface ISplitColorNode extends INodeDefinition {
    inputs: {
@@ -36,22 +36,17 @@ interface ISplitColorNode extends INodeDefinition {
       luminance: number;
    };
    values: {
-      name: string;
       value: Color;
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<ISplitColorNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<ISplitColorNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-   const [value, setValue] = nodeHelper.useValueState(nodeId, "value");
-   const hasInput = nodeHelper.useHasLink(nodeId, "input");
+   const [value, setValue] = nodeHooks.useValueState(nodeId, "value");
+   const hasInput = nodeHooks.useHasLink(nodeId, "input");
    return (
-      <BaseNode<ISplitColorNode> nodeId={nodeId} helper={SplitColorNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<ISplitColorNode> nodeId={nodeId} helper={SplitColorNodeHelper} hooks={nodeHooks}>
          <SocketIn<ISplitColorNode> nodeId={nodeId} socketId={"input"} type={SocketTypes.COLOR}>
             <BaseNode.Input label={"Value"}>
                <HexColorInput value={value} onValue={setValue} disabled={hasInput} />
@@ -120,6 +115,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                Alpha (α)
             </SocketOut>
          </BaseNode.Foldout>
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
@@ -139,7 +135,6 @@ const SplitColorNodeHelper: INodeHelper<ISplitColorNode> = {
    type: NodeTypes.SPLIT_COLOR,
    getOutput,
    initialize: () => ({
-      name: "",
       value: { r: 0, g: 0, b: 0, a: 1 },
    }),
    controls: Controls,

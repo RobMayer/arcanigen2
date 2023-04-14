@@ -12,7 +12,7 @@ import AngleInput from "!/components/inputs/AngleInput";
 import LengthInput from "!/components/inputs/LengthInput";
 import ToggleList from "!/components/selectors/ToggleList";
 import NumberInput from "!/components/inputs/NumberInput";
-import TextInput from "!/components/inputs/TextInput";
+import { MetaPrefab } from "../../nodeView/prefabs";
 
 interface ITransformNode extends INodeDefinition {
    inputs: {
@@ -32,7 +32,6 @@ interface ITransformNode extends INodeDefinition {
       output: NodeRenderer;
    };
    values: {
-      name: string;
       positionX: Length;
       positionY: Length;
       positionRadius: Length;
@@ -47,40 +46,36 @@ interface ITransformNode extends INodeDefinition {
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<ITransformNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<ITransformNode>();
 
 const Controls = memo(({ nodeId }: { nodeId: string }) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-   const [positionX, setPositionX] = nodeHelper.useValueState(nodeId, "positionX");
-   const [positionY, setPositionY] = nodeHelper.useValueState(nodeId, "positionY");
-   const [positionTheta, setPositionTheta] = nodeHelper.useValueState(nodeId, "positionTheta");
-   const [positionRadius, setPositionRadius] = nodeHelper.useValueState(nodeId, "positionRadius");
-   const [positionMode, setPositionMode] = nodeHelper.useValueState(nodeId, "positionMode");
-   const [preRotation, setPreRotation] = nodeHelper.useValueState(nodeId, "preRotation");
-   const [postRotation, setPostRotation] = nodeHelper.useValueState(nodeId, "postRotation");
+   const [positionX, setPositionX] = nodeHooks.useValueState(nodeId, "positionX");
+   const [positionY, setPositionY] = nodeHooks.useValueState(nodeId, "positionY");
+   const [positionTheta, setPositionTheta] = nodeHooks.useValueState(nodeId, "positionTheta");
+   const [positionRadius, setPositionRadius] = nodeHooks.useValueState(nodeId, "positionRadius");
+   const [positionMode, setPositionMode] = nodeHooks.useValueState(nodeId, "positionMode");
+   const [preRotation, setPreRotation] = nodeHooks.useValueState(nodeId, "preRotation");
+   const [postRotation, setPostRotation] = nodeHooks.useValueState(nodeId, "postRotation");
 
-   const [scaleX, setScaleX] = nodeHelper.useValueState(nodeId, "scaleX");
-   const [scaleY, setScaleY] = nodeHelper.useValueState(nodeId, "scaleY");
-   const [skewX, setSkewX] = nodeHelper.useValueState(nodeId, "skewX");
-   const [skewY, setSkewY] = nodeHelper.useValueState(nodeId, "skewY");
+   const [scaleX, setScaleX] = nodeHooks.useValueState(nodeId, "scaleX");
+   const [scaleY, setScaleY] = nodeHooks.useValueState(nodeId, "scaleY");
+   const [skewX, setSkewX] = nodeHooks.useValueState(nodeId, "skewX");
+   const [skewY, setSkewY] = nodeHooks.useValueState(nodeId, "skewY");
 
-   const hasPositionX = nodeHelper.useHasLink(nodeId, "positionX");
-   const hasPositionY = nodeHelper.useHasLink(nodeId, "positionY");
-   const hasPositionTheta = nodeHelper.useHasLink(nodeId, "positionTheta");
-   const hasPositionRadius = nodeHelper.useHasLink(nodeId, "positionRadius");
-   const hasPreRotation = nodeHelper.useHasLink(nodeId, "preRotation");
-   const hasPostRotation = nodeHelper.useHasLink(nodeId, "postRotation");
+   const hasPositionX = nodeHooks.useHasLink(nodeId, "positionX");
+   const hasPositionY = nodeHooks.useHasLink(nodeId, "positionY");
+   const hasPositionTheta = nodeHooks.useHasLink(nodeId, "positionTheta");
+   const hasPositionRadius = nodeHooks.useHasLink(nodeId, "positionRadius");
+   const hasPreRotation = nodeHooks.useHasLink(nodeId, "preRotation");
+   const hasPostRotation = nodeHooks.useHasLink(nodeId, "postRotation");
 
-   const hasScaleX = nodeHelper.useHasLink(nodeId, "scaleX");
-   const hasScaleY = nodeHelper.useHasLink(nodeId, "scaleY");
-   const hasSkewX = nodeHelper.useHasLink(nodeId, "skewX");
-   const hasSkewY = nodeHelper.useHasLink(nodeId, "skewY");
+   const hasScaleX = nodeHooks.useHasLink(nodeId, "scaleX");
+   const hasScaleY = nodeHooks.useHasLink(nodeId, "scaleY");
+   const hasSkewX = nodeHooks.useHasLink(nodeId, "skewX");
+   const hasSkewY = nodeHooks.useHasLink(nodeId, "skewY");
 
    return (
-      <BaseNode<ITransformNode> nodeId={nodeId} helper={TransformNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<ITransformNode> nodeId={nodeId} helper={TransformNodeHelper} hooks={nodeHooks}>
          <SocketOut<ITransformNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -144,24 +139,25 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
                <AngleInput value={postRotation} onValidValue={setPostRotation} disabled={hasPostRotation} />
             </BaseNode.Input>
          </SocketIn>
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
 
 const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps) => {
-   const positionMode = nodeHelper.useValue(nodeId, "positionMode");
-   const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX", globals);
-   const positionY = nodeHelper.useCoalesce(nodeId, "positionY", "positionY", globals);
-   const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
-   const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
-   const preRotation = nodeHelper.useCoalesce(nodeId, "preRotation", "preRotation", globals);
-   const postRotation = nodeHelper.useCoalesce(nodeId, "postRotation", "postRotation", globals);
-   const scaleX = nodeHelper.useCoalesce(nodeId, "scaleX", "scaleX", globals);
-   const scaleY = nodeHelper.useCoalesce(nodeId, "scaleY", "scaleY", globals);
-   const skewX = nodeHelper.useCoalesce(nodeId, "skewX", "skewX", globals);
-   const skewY = nodeHelper.useCoalesce(nodeId, "skewY", "skewY", globals);
+   const positionMode = nodeHooks.useValue(nodeId, "positionMode");
+   const positionX = nodeHooks.useCoalesce(nodeId, "positionX", "positionX", globals);
+   const positionY = nodeHooks.useCoalesce(nodeId, "positionY", "positionY", globals);
+   const positionTheta = nodeHooks.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
+   const positionRadius = nodeHooks.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
+   const preRotation = nodeHooks.useCoalesce(nodeId, "preRotation", "preRotation", globals);
+   const postRotation = nodeHooks.useCoalesce(nodeId, "postRotation", "postRotation", globals);
+   const scaleX = nodeHooks.useCoalesce(nodeId, "scaleX", "scaleX", globals);
+   const scaleY = nodeHooks.useCoalesce(nodeId, "scaleY", "scaleY", globals);
+   const skewX = nodeHooks.useCoalesce(nodeId, "skewX", "skewX", globals);
+   const skewY = nodeHooks.useCoalesce(nodeId, "skewY", "skewY", globals);
 
-   const [Output, cid] = nodeHelper.useInputNode(nodeId, "input", globals);
+   const [Output, cid] = nodeHooks.useInputNode(nodeId, "input", globals);
 
    return (
       <g
@@ -185,7 +181,6 @@ const TransformNodeHelper: INodeHelper<ITransformNode> = {
    type: NodeTypes.COL_TRANSFORM,
    getOutput: () => Renderer,
    initialize: () => ({
-      name: "",
       positionX: { value: 0, unit: "px" },
       positionY: { value: 0, unit: "px" },
       positionRadius: { value: 0, unit: "px" },

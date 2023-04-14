@@ -111,6 +111,7 @@
     --bare-button: hsl(210, 0%, 30%);
     --bare-button-highlight: hsl(210, 0%, 37%);
     --bare-button-overlight: hsl(210, 0%, 45%);
+    --bare-slate: hsl(210, 0%, 16%);
 
     --bare-effect-bg-highlight: hsla(210, 0%, 55%, 0.2);
     --bare-effect-bg-overlight: hsla(210, 0%, 55%, 0.4);
@@ -134,6 +135,7 @@
     --accent-button: hsl(210, 13%, 33%);
     --accent-button-highlight: hsl(210, 13%, 48%);
     --accent-button-overlight: hsl(210, 13%, 52%);
+    --accent-slate: hsl(210, 10%, 16%);
 
     --accent-effect-bg-highlight: hsla(210, 13%, 55%, 0.2);
     --accent-effect-bg-overlight: hsla(210, 13%, 55%, 0.4);
@@ -157,6 +159,7 @@
     --emphasis-button: hsl(35, 44%, 33%);
     --emphasis-button-highlight: hsl(35, 44%, 43%);
     --emphasis-button-overlight: hsl(35, 44%, 53%);
+    --emphasis-slate: hsl(35, 43%, 16%);
 
     --emphasis-effect-bg-highlight: hsla(35, 80%, 70%, 0.2);
     --emphasis-effect-bg-overlight: hsla(35, 80%, 70%, 0.4);
@@ -180,6 +183,7 @@
     --danger-button: hsl(4, 44%, 43%);
     --danger-button-highlight: hsl(4, 44%, 53%);
 	  --danger-button-overlight: hsl(4, 44%, 63%);
+    --danger-slate: rgb(65, 39, 37);
 
     --danger-effect-bg-highlight: hsla(4, 40%, 60%, 0.2);
     --danger-effect-bg-overlight: hsla(4, 40%, 60%, 0.4);
@@ -202,7 +206,8 @@
     --confirm-button-muted: hsl(140, 22%, 33%);
     --confirm-button: hsl(140, 22%, 38%);
     --confirm-button-highlight: hsl(140, 22%, 48%);
-	--confirm-button-overlight: hsl(140, 22%, 58%);
+	  --confirm-button-overlight: hsl(140, 22%, 58%);
+    --confirm-slate: hsl(140, 27%, 16%);
 
     --confirm-effect-bg-highlight: hsla(140, 11%, 60%, 0.2);
     --confirm-effect-bg-overlight: hsla(140, 11%, 60%, 0.4);
@@ -225,7 +230,8 @@
     --info-button-muted: hsl(215, 44%, 25%);
     --info-button: hsl(215, 44%, 33%);
     --info-button-highlight: hsl(215, 44%, 43%);
-	--info-button-overlight: hsl(215, 44%, 53%);
+	  --info-button-overlight: hsl(215, 44%, 53%);
+    --info-slate: hsl(215, 33%, 19%);
 
     --info-effect-bg-highlight: hsla(215, 40%, 60%, 0.2);
     --info-effect-bg-overlight: hsla(215, 40%, 60%, 0.4);
@@ -248,7 +254,8 @@
     --help-button-muted: hsl(280, 30%, 25%);
     --help-button: hsl(280, 30%, 33%);
     --help-button-highlight: hsl(280, 30%, 43%);
-	--help-button-overlight: hsl(280, 30%, 53%);
+	  --help-button-overlight: hsl(280, 30%, 53%);
+    --help-slate: hsl(280, 20%, 19%);
 
     --help-effect-bg-highlight: hsla(280, 24%, 55%, 0.2);
     --help-effect-bg-overlight: hsla(280, 24%, 55%, 0.4);

@@ -28,7 +28,7 @@ import HexColorInput from "!/components/inputs/colorHexInput";
 import Dropdown from "!/components/selectors/Dropdown";
 import SliderInput from "!/components/inputs/SliderInput";
 import Checkbox from "!/components/buttons/Checkbox";
-import TextInput from "!/components/inputs/TextInput";
+import { MetaPrefab } from "../../nodeView/prefabs";
 
 interface ILerpColorNode extends INodeDefinition {
    inputs: {
@@ -42,7 +42,6 @@ interface ILerpColorNode extends INodeDefinition {
       value: Color;
    };
    values: {
-      name: string;
       from: Color;
       to: Color;
       percent: number;
@@ -52,27 +51,23 @@ interface ILerpColorNode extends INodeDefinition {
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<ILerpColorNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<ILerpColorNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-   const [from, setFrom] = nodeHelper.useValueState(nodeId, "from");
-   const [to, setTo] = nodeHelper.useValueState(nodeId, "to");
-   const [percent, setPercent] = nodeHelper.useValueState(nodeId, "percent");
-   const [isInclusive, setIsInclusive] = nodeHelper.useValueState(nodeId, "isInclusive");
+   const [from, setFrom] = nodeHooks.useValueState(nodeId, "from");
+   const [to, setTo] = nodeHooks.useValueState(nodeId, "to");
+   const [percent, setPercent] = nodeHooks.useValueState(nodeId, "percent");
+   const [isInclusive, setIsInclusive] = nodeHooks.useValueState(nodeId, "isInclusive");
 
-   const hasSequence = nodeHelper.useHasLink(nodeId, "sequence");
-   const hasFrom = nodeHelper.useHasLink(nodeId, "from");
-   const hasTo = nodeHelper.useHasLink(nodeId, "to");
+   const hasSequence = nodeHooks.useHasLink(nodeId, "sequence");
+   const hasFrom = nodeHooks.useHasLink(nodeId, "from");
+   const hasTo = nodeHooks.useHasLink(nodeId, "to");
 
-   const [colorSpace, setColorSpace] = nodeHelper.useValueState(nodeId, "colorSpace");
-   const [hueMode, setHueMode] = nodeHelper.useValueState(nodeId, "hueMode");
+   const [colorSpace, setColorSpace] = nodeHooks.useValueState(nodeId, "colorSpace");
+   const [hueMode, setHueMode] = nodeHooks.useValueState(nodeId, "hueMode");
 
    return (
-      <BaseNode<ILerpColorNode> nodeId={nodeId} helper={LerpColorNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<ILerpColorNode> nodeId={nodeId} helper={LerpColorNodeHelper} hooks={nodeHooks}>
          <SocketOut<ILerpColorNode> socketId={"value"} nodeId={nodeId} type={SocketTypes.COLOR}>
             <BaseNode.Output label={"Value"}>
                {hasSequence ? (
@@ -118,6 +113,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                <SliderInput value={percent} onValidValue={setPercent} disabled={hasSequence} min={0} max={1} />
             </BaseNode.Input>
          </SocketIn>
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
@@ -156,7 +152,6 @@ const LerpColorNodeHelper: INodeHelper<ILerpColorNode> = {
    type: NodeTypes.LERP_COLOR,
    getOutput,
    initialize: () => ({
-      name: "",
       from: { r: 0, g: 0, b: 0, a: 1 },
       to: { r: 1, g: 1, b: 1, a: 1 },
       percent: 0,

@@ -19,7 +19,7 @@ import SliderInput from "!/components/inputs/SliderInput";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
 import lodash from "lodash";
-import TextInput from "!/components/inputs/TextInput";
+import { MetaPrefab } from "../../nodeView/prefabs";
 
 interface IRepeatArrayNode extends INodeDefinition {
    inputs: {
@@ -31,24 +31,19 @@ interface IRepeatArrayNode extends INodeDefinition {
       sequence: Sequence;
    };
    values: {
-      name: string;
       iterationCount: number;
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<IRepeatArrayNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<IRepeatArrayNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-   const [iterationCount, setIterationCount] = nodeHelper.useValueState(nodeId, "iterationCount");
+   const [iterationCount, setIterationCount] = nodeHooks.useValueState(nodeId, "iterationCount");
 
-   const hasIterationCount = nodeHelper.useHasLink(nodeId, "iterationCount");
+   const hasIterationCount = nodeHooks.useHasLink(nodeId, "iterationCount");
 
    return (
-      <BaseNode<IRepeatArrayNode> nodeId={nodeId} helper={RepeatArrayNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<IRepeatArrayNode> nodeId={nodeId} helper={RepeatArrayNodeHelper} hooks={nodeHooks}>
          <SocketOut<IRepeatArrayNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -66,13 +61,14 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          <SocketOut<IRepeatArrayNode> nodeId={nodeId} socketId={"sequence"} type={SocketTypes.SEQUENCE}>
             Sequence
          </SocketOut>
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
 
 const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps) => {
-   const [output, childNodeId] = nodeHelper.useInputNode(nodeId, "input", globals);
-   const iterationCount = nodeHelper.useCoalesce(nodeId, "iterationCount", "iterationCount", globals);
+   const [output, childNodeId] = nodeHooks.useInputNode(nodeId, "input", globals);
+   const iterationCount = nodeHooks.useCoalesce(nodeId, "iterationCount", "iterationCount", globals);
 
    const children = useMemo(() => {
       return lodash.range(iterationCount).map((n, i) => {
@@ -132,7 +128,6 @@ const RepeatArrayNodeHelper: INodeHelper<IRepeatArrayNode> = {
       }
    },
    initialize: () => ({
-      name: "",
       iterationCount: 1,
    }),
    controls: Controls,

@@ -28,8 +28,7 @@ import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
 import lodash from "lodash";
 import Checkbox from "!/components/buttons/Checkbox";
-import { TransformPrefabs } from "../../nodeView/prefabs";
-import TextInput from "!/components/inputs/TextInput";
+import { MetaPrefab, TransformPrefabs } from "../../nodeView/prefabs";
 
 interface IVertexArrayNode extends INodeDefinition {
    inputs: {
@@ -49,7 +48,6 @@ interface IVertexArrayNode extends INodeDefinition {
       sequence: Sequence;
    };
    values: {
-      name: string;
       radius: Length;
       rScribeMode: ScribeMode;
       pointCount: number;
@@ -64,23 +62,19 @@ interface IVertexArrayNode extends INodeDefinition {
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<IVertexArrayNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<IVertexArrayNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-   const [radius, setRadius] = nodeHelper.useValueState(nodeId, "radius");
-   const [pointCount, setPointCount] = nodeHelper.useValueState(nodeId, "pointCount");
-   const [rScribeMode, setRScribeMode] = nodeHelper.useValueState(nodeId, "rScribeMode");
-   const [isRotating, setIsRotating] = nodeHelper.useValueState(nodeId, "isRotating");
+   const [radius, setRadius] = nodeHooks.useValueState(nodeId, "radius");
+   const [pointCount, setPointCount] = nodeHooks.useValueState(nodeId, "pointCount");
+   const [rScribeMode, setRScribeMode] = nodeHooks.useValueState(nodeId, "rScribeMode");
+   const [isRotating, setIsRotating] = nodeHooks.useValueState(nodeId, "isRotating");
 
-   const hasRadius = nodeHelper.useHasLink(nodeId, "radius");
-   const hasPointCount = nodeHelper.useHasLink(nodeId, "pointCount");
+   const hasRadius = nodeHooks.useHasLink(nodeId, "radius");
+   const hasPointCount = nodeHooks.useHasLink(nodeId, "pointCount");
 
    return (
-      <BaseNode<IVertexArrayNode> nodeId={nodeId} helper={VertexArrayNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<IVertexArrayNode> nodeId={nodeId} helper={VertexArrayNodeHelper} hooks={nodeHooks}>
          <SocketOut<IVertexArrayNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -107,30 +101,31 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             Rotate Iterations
          </Checkbox>
          <hr />
-         <TransformPrefabs.Full<IVertexArrayNode> nodeId={nodeId} nodeHelper={nodeHelper} />
+         <TransformPrefabs.Full<IVertexArrayNode> nodeId={nodeId} hooks={nodeHooks} />
          <hr />
          <SocketOut<IVertexArrayNode> nodeId={nodeId} socketId={"sequence"} type={SocketTypes.SEQUENCE}>
             Sequence
          </SocketOut>
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
 
 const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps) => {
-   const [output, childNodeId] = nodeHelper.useInputNode(nodeId, "input", globals);
-   const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius", globals);
-   const rScribeMode = nodeHelper.useValue(nodeId, "rScribeMode");
-   const pointCount = Math.min(24, Math.max(3, nodeHelper.useCoalesce(nodeId, "pointCount", "pointCount", globals)));
-   const isRotating = nodeHelper.useValue(nodeId, "isRotating");
+   const [output, childNodeId] = nodeHooks.useInputNode(nodeId, "input", globals);
+   const radius = nodeHooks.useCoalesce(nodeId, "radius", "radius", globals);
+   const rScribeMode = nodeHooks.useValue(nodeId, "rScribeMode");
+   const pointCount = Math.min(24, Math.max(3, nodeHooks.useCoalesce(nodeId, "pointCount", "pointCount", globals)));
+   const isRotating = nodeHooks.useValue(nodeId, "isRotating");
    const tR = getTrueRadius(MathHelper.lengthToPx(radius), rScribeMode, pointCount);
 
-   const positionMode = nodeHelper.useValue(nodeId, "positionMode");
-   const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX", globals);
-   const positionY = nodeHelper.useCoalesce(nodeId, "positionY", "positionY", globals);
-   const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
-   const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
-   const rotation = nodeHelper.useCoalesce(nodeId, "rotation", "rotation", globals);
-   const thetaCurve = nodeHelper.useInput(nodeId, "thetaCurve", globals);
+   const positionMode = nodeHooks.useValue(nodeId, "positionMode");
+   const positionX = nodeHooks.useCoalesce(nodeId, "positionX", "positionX", globals);
+   const positionY = nodeHooks.useCoalesce(nodeId, "positionY", "positionY", globals);
+   const positionTheta = nodeHooks.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
+   const positionRadius = nodeHooks.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
+   const rotation = nodeHooks.useCoalesce(nodeId, "rotation", "rotation", globals);
+   const thetaCurve = nodeHooks.useInput(nodeId, "thetaCurve", globals);
 
    const children = useMemo(() => {
       return lodash.range(pointCount).map((n, i) => {
@@ -200,7 +195,6 @@ const VertexArrayNodeHelper: INodeHelper<IVertexArrayNode> = {
       }
    },
    initialize: () => ({
-      name: "",
       radius: { value: 100, unit: "px" },
       rScribeMode: "inscribe",
       pointCount: 5,

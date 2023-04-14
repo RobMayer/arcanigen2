@@ -27,7 +27,7 @@ import { SocketOut, SocketIn } from "../../nodeView/socket";
 import styled from "styled-components";
 import lodash from "lodash";
 import ToggleList from "!/components/selectors/ToggleList";
-import TextInput from "!/components/inputs/TextInput";
+import { MetaPrefab } from "../../nodeView/prefabs";
 
 interface ISequencerNode extends INodeDefinition {
    inputs: {
@@ -39,18 +39,16 @@ interface ISequencerNode extends INodeDefinition {
       output: NodeRenderer;
    };
    values: {
-      name: string;
       sockets: string[];
       mode: SequenceMode;
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<ISequencerNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<ISequencerNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-   const [node, setNode, setGraph] = nodeHelper.useAlterNode(nodeId);
-   const [mode, setMode] = nodeHelper.useValueState(nodeId, "mode");
+   const [node, setNode, setGraph] = nodeHooks.useAlterNode(nodeId);
+   const [mode, setMode] = nodeHooks.useValueState(nodeId, "mode");
 
    const addSocket = useCallback(() => {
       const sId = uuid();
@@ -104,10 +102,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    );
 
    return (
-      <BaseNode<ISequencerNode> nodeId={nodeId} helper={SequencerNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<ISequencerNode> nodeId={nodeId} helper={SequencerNodeHelper} hooks={nodeHooks}>
          <SocketOut<ISequencerNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -140,14 +135,15 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                </SocketIn>
             );
          })}
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
 
 const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps) => {
-   const sequence = nodeHelper.useInput(nodeId, "sequence", globals);
-   const sockets = nodeHelper.useValue(nodeId, "sockets");
-   const mode = nodeHelper.useValue(nodeId, "mode");
+   const sequence = nodeHooks.useInput(nodeId, "sequence", globals);
+   const sockets = nodeHooks.useValue(nodeId, "sockets");
+   const mode = nodeHooks.useValue(nodeId, "mode");
 
    const theRenderSequence = useMemo(() => {
       if (!sockets) {
@@ -180,7 +176,7 @@ const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps)
    }, [mode, sequence, sockets]);
 
    const currentIteration = globals.sequenceData[sequence?.senderId];
-   const [Comp, cId] = nodeHelper.useInputNode(nodeId, theRenderSequence[currentIteration], globals);
+   const [Comp, cId] = nodeHooks.useInputNode(nodeId, theRenderSequence[currentIteration], globals);
 
    if (theRenderSequence.length === 0) {
       return <></>;
@@ -199,7 +195,6 @@ const SequencerNodeHelper: INodeHelper<ISequencerNode> = {
    initialize: () => {
       const socketId = uuid();
       return {
-         name: "",
          sockets: [socketId],
          mode: "wrap",
          in: {

@@ -10,7 +10,7 @@ import { Length } from "!/utility/types/units";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
 import MathHelper from "!/utility/mathhelper";
-import TextInput from "!/components/inputs/TextInput";
+import { MetaPrefab } from "../../nodeView/prefabs";
 
 interface IPenEffectNode extends INodeDefinition {
    inputs: {
@@ -24,7 +24,6 @@ interface IPenEffectNode extends INodeDefinition {
       output: NodeRenderer;
    };
    values: {
-      name: string;
       nib: Length;
       seed: number;
       smudge: number;
@@ -32,25 +31,21 @@ interface IPenEffectNode extends INodeDefinition {
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<IPenEffectNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<IPenEffectNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-   const [nib, setNib] = nodeHelper.useValueState(nodeId, "nib");
-   const [seed, setSeed] = nodeHelper.useValueState(nodeId, "seed");
-   const [smudge, setSmudge] = nodeHelper.useValueState(nodeId, "smudge");
-   const [jitter, setJitter] = nodeHelper.useValueState(nodeId, "jitter");
+   const [nib, setNib] = nodeHooks.useValueState(nodeId, "nib");
+   const [seed, setSeed] = nodeHooks.useValueState(nodeId, "seed");
+   const [smudge, setSmudge] = nodeHooks.useValueState(nodeId, "smudge");
+   const [jitter, setJitter] = nodeHooks.useValueState(nodeId, "jitter");
 
-   const hasNib = nodeHelper.useHasLink(nodeId, "nib");
-   const hasSeed = nodeHelper.useHasLink(nodeId, "seed");
-   const hasSmudge = nodeHelper.useHasLink(nodeId, "smudge");
-   const hasJitter = nodeHelper.useHasLink(nodeId, "jitter");
+   const hasNib = nodeHooks.useHasLink(nodeId, "nib");
+   const hasSeed = nodeHooks.useHasLink(nodeId, "seed");
+   const hasSmudge = nodeHooks.useHasLink(nodeId, "smudge");
+   const hasJitter = nodeHooks.useHasLink(nodeId, "jitter");
 
    return (
-      <BaseNode<IPenEffectNode> nodeId={nodeId} helper={PenEffectNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<IPenEffectNode> nodeId={nodeId} helper={PenEffectNodeHelper} hooks={nodeHooks}>
          <SocketOut<IPenEffectNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -79,16 +74,17 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                <NumberInput value={seed} onValidValue={setSeed} disabled={hasSeed} step={1} min={0} />
             </BaseNode.Input>
          </SocketIn>
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
 
 const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps) => {
-   const seed = nodeHelper.useCoalesce(nodeId, "seed", "seed", globals);
-   const nib = nodeHelper.useCoalesce(nodeId, "nib", "nib", globals);
-   const smudge = nodeHelper.useCoalesce(nodeId, "smudge", "smudge", globals);
-   const jitter = nodeHelper.useCoalesce(nodeId, "jitter", "jitter", globals);
-   const [Content, cId] = nodeHelper.useInputNode(nodeId, "input", globals);
+   const seed = nodeHooks.useCoalesce(nodeId, "seed", "seed", globals);
+   const nib = nodeHooks.useCoalesce(nodeId, "nib", "nib", globals);
+   const smudge = nodeHooks.useCoalesce(nodeId, "smudge", "smudge", globals);
+   const jitter = nodeHooks.useCoalesce(nodeId, "jitter", "jitter", globals);
+   const [Content, cId] = nodeHooks.useInputNode(nodeId, "input", globals);
 
    return (
       <>
@@ -118,7 +114,6 @@ const PenEffectNodeHelper: INodeHelper<IPenEffectNode> = {
    type: NodeTypes.EFFECT_PEN,
    getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IPenEffectNode["outputs"]) => Renderer,
    initialize: () => ({
-      name: "",
       seed: Math.floor(Math.random() * 1000),
       smudge: 0.2,
       jitter: 0.5,

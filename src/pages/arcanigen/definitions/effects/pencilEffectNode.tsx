@@ -7,7 +7,7 @@ import { faPencilAlt as buttonIcon } from "@fortawesome/pro-light-svg-icons";
 import NumberInput from "!/components/inputs/NumberInput";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
-import TextInput from "!/components/inputs/TextInput";
+import { MetaPrefab } from "../../nodeView/prefabs";
 
 interface IPencilEffectNode extends INodeDefinition {
    inputs: {
@@ -18,24 +18,19 @@ interface IPencilEffectNode extends INodeDefinition {
       output: NodeRenderer;
    };
    values: {
-      name: string;
       seed: number;
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<IPencilEffectNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<IPencilEffectNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-   const [seed, setSeed] = nodeHelper.useValueState(nodeId, "seed");
+   const [seed, setSeed] = nodeHooks.useValueState(nodeId, "seed");
 
-   const hasSeed = nodeHelper.useHasLink(nodeId, "seed");
+   const hasSeed = nodeHooks.useHasLink(nodeId, "seed");
 
    return (
-      <BaseNode<IPencilEffectNode> nodeId={nodeId} helper={PencilEffectNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<IPencilEffectNode> nodeId={nodeId} helper={PencilEffectNodeHelper} hooks={nodeHooks}>
          <SocketOut<IPencilEffectNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -49,13 +44,14 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                <NumberInput value={seed} onValidValue={setSeed} disabled={hasSeed} step={1} min={0} />
             </BaseNode.Input>
          </SocketIn>
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
 
 const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps) => {
-   const seed = nodeHelper.useCoalesce(nodeId, "seed", "seed", globals);
-   const [Content, cId] = nodeHelper.useInputNode(nodeId, "input", globals);
+   const seed = nodeHooks.useCoalesce(nodeId, "seed", "seed", globals);
+   const [Content, cId] = nodeHooks.useInputNode(nodeId, "input", globals);
 
    return (
       <>
@@ -83,7 +79,6 @@ const PencilEffectNodeHelper: INodeHelper<IPencilEffectNode> = {
    type: NodeTypes.EFFECT_PENCIL,
    getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IPencilEffectNode["outputs"]) => Renderer,
    initialize: () => ({
-      name: "",
       seed: Math.floor(Math.random() * 1000),
    }),
    controls: Controls,

@@ -22,14 +22,13 @@ import LengthInput from "!/components/inputs/LengthInput";
 import ToggleList from "!/components/selectors/ToggleList";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
-import { TransformPrefabs } from "../../nodeView/prefabs";
+import { MetaPrefab, TransformPrefabs } from "../../nodeView/prefabs";
 import AngleInput from "!/components/inputs/AngleInput";
 
 import { faSlash as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 import { faSlash as buttonIcon } from "@fortawesome/pro-light-svg-icons";
 
 import Checkbox from "!/components/buttons/Checkbox";
-import TextInput from "!/components/inputs/TextInput";
 
 interface ISegmentNode extends INodeDefinition {
    inputs: {
@@ -59,7 +58,6 @@ interface ISegmentNode extends INodeDefinition {
       output: NodeRenderer;
    };
    values: {
-      name: string;
       startMode: PositionMode;
       endMode: PositionMode;
 
@@ -88,48 +86,44 @@ interface ISegmentNode extends INodeDefinition {
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<ISegmentNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<ISegmentNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-   const [startX, setStartX] = nodeHelper.useValueState(nodeId, "startX");
-   const [startY, setStartY] = nodeHelper.useValueState(nodeId, "startY");
-   const [startRadius, setStartRadius] = nodeHelper.useValueState(nodeId, "startRadius");
-   const [startTheta, setStartTheta] = nodeHelper.useValueState(nodeId, "startTheta");
+   const [startX, setStartX] = nodeHooks.useValueState(nodeId, "startX");
+   const [startY, setStartY] = nodeHooks.useValueState(nodeId, "startY");
+   const [startRadius, setStartRadius] = nodeHooks.useValueState(nodeId, "startRadius");
+   const [startTheta, setStartTheta] = nodeHooks.useValueState(nodeId, "startTheta");
 
-   const [endX, setEndX] = nodeHelper.useValueState(nodeId, "endX");
-   const [endY, setEndY] = nodeHelper.useValueState(nodeId, "endY");
-   const [endRadius, setEndRadius] = nodeHelper.useValueState(nodeId, "endRadius");
-   const [endTheta, setEndTheta] = nodeHelper.useValueState(nodeId, "endTheta");
+   const [endX, setEndX] = nodeHooks.useValueState(nodeId, "endX");
+   const [endY, setEndY] = nodeHooks.useValueState(nodeId, "endY");
+   const [endRadius, setEndRadius] = nodeHooks.useValueState(nodeId, "endRadius");
+   const [endTheta, setEndTheta] = nodeHooks.useValueState(nodeId, "endTheta");
 
-   const [startMode, setStartMode] = nodeHelper.useValueState(nodeId, "startMode");
-   const [endMode, setEndMode] = nodeHelper.useValueState(nodeId, "endMode");
+   const [startMode, setStartMode] = nodeHooks.useValueState(nodeId, "startMode");
+   const [endMode, setEndMode] = nodeHooks.useValueState(nodeId, "endMode");
 
-   const [strokeWidth, setStrokeWidth] = nodeHelper.useValueState(nodeId, "strokeWidth");
-   const [strokeColor, setStrokeColor] = nodeHelper.useValueState(nodeId, "strokeColor");
-   const [strokeCap, setStrokeCap] = nodeHelper.useValueState(nodeId, "strokeCap");
+   const [strokeWidth, setStrokeWidth] = nodeHooks.useValueState(nodeId, "strokeWidth");
+   const [strokeColor, setStrokeColor] = nodeHooks.useValueState(nodeId, "strokeColor");
+   const [strokeCap, setStrokeCap] = nodeHooks.useValueState(nodeId, "strokeCap");
 
-   const [fillColor, setFillColor] = nodeHelper.useValueState(nodeId, "fillColor");
-   const [strokeMarkAlign, setStrokeMarkAlign] = nodeHelper.useValueState(nodeId, "strokeMarkAlign");
+   const [fillColor, setFillColor] = nodeHooks.useValueState(nodeId, "fillColor");
+   const [strokeMarkAlign, setStrokeMarkAlign] = nodeHooks.useValueState(nodeId, "strokeMarkAlign");
 
-   const hasStartX = nodeHelper.useHasLink(nodeId, "startX");
-   const hasStartY = nodeHelper.useHasLink(nodeId, "startY");
-   const hasStartRadius = nodeHelper.useHasLink(nodeId, "startRadius");
-   const hasStartTheta = nodeHelper.useHasLink(nodeId, "startTheta");
-   const hasEndX = nodeHelper.useHasLink(nodeId, "endX");
-   const hasEndY = nodeHelper.useHasLink(nodeId, "endY");
-   const hasEndRadius = nodeHelper.useHasLink(nodeId, "endRadius");
-   const hasEndTheta = nodeHelper.useHasLink(nodeId, "endTheta");
+   const hasStartX = nodeHooks.useHasLink(nodeId, "startX");
+   const hasStartY = nodeHooks.useHasLink(nodeId, "startY");
+   const hasStartRadius = nodeHooks.useHasLink(nodeId, "startRadius");
+   const hasStartTheta = nodeHooks.useHasLink(nodeId, "startTheta");
+   const hasEndX = nodeHooks.useHasLink(nodeId, "endX");
+   const hasEndY = nodeHooks.useHasLink(nodeId, "endY");
+   const hasEndRadius = nodeHooks.useHasLink(nodeId, "endRadius");
+   const hasEndTheta = nodeHooks.useHasLink(nodeId, "endTheta");
 
-   const hasStrokeWidth = nodeHelper.useHasLink(nodeId, "strokeWidth");
-   const hasFillColor = nodeHelper.useHasLink(nodeId, "fillColor");
-   const hasStrokeColor = nodeHelper.useHasLink(nodeId, "strokeColor");
+   const hasStrokeWidth = nodeHooks.useHasLink(nodeId, "strokeWidth");
+   const hasFillColor = nodeHooks.useHasLink(nodeId, "fillColor");
+   const hasStrokeColor = nodeHooks.useHasLink(nodeId, "strokeColor");
 
    return (
-      <BaseNode<ISegmentNode> nodeId={nodeId} helper={SegmentNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<ISegmentNode> nodeId={nodeId} helper={SegmentNodeHelper} hooks={nodeHooks}>
          <SocketOut<ISegmentNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -216,40 +210,41 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                </BaseNode.Input>
             </SocketIn>
          </BaseNode.Foldout>
-         <TransformPrefabs.Full<ISegmentNode> nodeId={nodeId} nodeHelper={nodeHelper} />
+         <TransformPrefabs.Full<ISegmentNode> nodeId={nodeId} hooks={nodeHooks} />
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
 
 const Renderer = memo(({ nodeId, depth, globals, overrides = {} }: NodeRendererProps) => {
-   const startMode = nodeHelper.useValue(nodeId, "startMode");
+   const startMode = nodeHooks.useValue(nodeId, "startMode");
 
-   const startX = nodeHelper.useCoalesce(nodeId, "startX", "startX", globals);
-   const startY = nodeHelper.useCoalesce(nodeId, "startY", "startY", globals);
-   const startRadius = nodeHelper.useCoalesce(nodeId, "startRadius", "startRadius", globals);
-   const startTheta = nodeHelper.useCoalesce(nodeId, "startTheta", "startTheta", globals);
+   const startX = nodeHooks.useCoalesce(nodeId, "startX", "startX", globals);
+   const startY = nodeHooks.useCoalesce(nodeId, "startY", "startY", globals);
+   const startRadius = nodeHooks.useCoalesce(nodeId, "startRadius", "startRadius", globals);
+   const startTheta = nodeHooks.useCoalesce(nodeId, "startTheta", "startTheta", globals);
 
-   const endMode = nodeHelper.useValue(nodeId, "endMode");
-   const endX = nodeHelper.useCoalesce(nodeId, "endX", "endX", globals);
-   const endY = nodeHelper.useCoalesce(nodeId, "endY", "endY", globals);
-   const endRadius = nodeHelper.useCoalesce(nodeId, "endRadius", "endRadius", globals);
-   const endTheta = nodeHelper.useCoalesce(nodeId, "endTheta", "endTheta", globals);
+   const endMode = nodeHooks.useValue(nodeId, "endMode");
+   const endX = nodeHooks.useCoalesce(nodeId, "endX", "endX", globals);
+   const endY = nodeHooks.useCoalesce(nodeId, "endY", "endY", globals);
+   const endRadius = nodeHooks.useCoalesce(nodeId, "endRadius", "endRadius", globals);
+   const endTheta = nodeHooks.useCoalesce(nodeId, "endTheta", "endTheta", globals);
 
-   const strokeWidth = nodeHelper.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
-   const strokeColor = nodeHelper.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
-   const fillColor = nodeHelper.useCoalesce(nodeId, "fillColor", "fillColor", globals);
-   const strokeCap = nodeHelper.useValue(nodeId, "strokeCap");
+   const strokeWidth = nodeHooks.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
+   const strokeColor = nodeHooks.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
+   const fillColor = nodeHooks.useCoalesce(nodeId, "fillColor", "fillColor", globals);
+   const strokeCap = nodeHooks.useValue(nodeId, "strokeCap");
 
-   const [MarkStart, msId] = nodeHelper.useInputNode(nodeId, "strokeMarkStart", globals);
-   const [MarkEnd, meId] = nodeHelper.useInputNode(nodeId, "strokeMarkEnd", globals);
-   const strokeMarkAlign = nodeHelper.useValue(nodeId, "strokeMarkAlign");
+   const [MarkStart, msId] = nodeHooks.useInputNode(nodeId, "strokeMarkStart", globals);
+   const [MarkEnd, meId] = nodeHooks.useInputNode(nodeId, "strokeMarkEnd", globals);
+   const strokeMarkAlign = nodeHooks.useValue(nodeId, "strokeMarkAlign");
 
-   const positionMode = nodeHelper.useValue(nodeId, "positionMode");
-   const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX", globals);
-   const positionY = nodeHelper.useCoalesce(nodeId, "positionY", "positionY", globals);
-   const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
-   const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
-   const rotation = nodeHelper.useCoalesce(nodeId, "rotation", "rotation", globals);
+   const positionMode = nodeHooks.useValue(nodeId, "positionMode");
+   const positionX = nodeHooks.useCoalesce(nodeId, "positionX", "positionX", globals);
+   const positionY = nodeHooks.useCoalesce(nodeId, "positionY", "positionY", globals);
+   const positionTheta = nodeHooks.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
+   const positionRadius = nodeHooks.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
+   const rotation = nodeHooks.useCoalesce(nodeId, "rotation", "rotation", globals);
 
    const x1 = useMemo(
       () => (startMode === "cartesian" ? MathHelper.lengthToPx(startX) : MathHelper.lengthToPx(startRadius) * Math.cos(((startTheta - 90) * Math.PI) / 180)),
@@ -327,7 +322,6 @@ const SegmentNodeHelper: INodeHelper<ISegmentNode> = {
    type: NodeTypes.SHAPE_SEGMENT,
    getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof ISegmentNode["outputs"]) => Renderer,
    initialize: () => ({
-      name: "",
       startX: { value: 0, unit: "px" },
       startY: { value: 0, unit: "px" },
       endX: { value: 100, unit: "px" },

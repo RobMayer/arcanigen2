@@ -25,14 +25,13 @@ import { faBezierCurve as buttonIcon } from "@fortawesome/pro-light-svg-icons";
 import LengthInput from "!/components/inputs/LengthInput";
 import SliderInput from "!/components/inputs/SliderInput";
 import { Length } from "!/utility/types/units";
-import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
 import lodash from "lodash";
 import Checkbox from "!/components/buttons/Checkbox";
 import ToggleList from "!/components/selectors/ToggleList";
-import { TransformPrefabs } from "../../nodeView/prefabs";
+import { MetaPrefab, TransformPrefabs } from "../../nodeView/prefabs";
 import AngleInput from "!/components/inputs/AngleInput";
-import TextInput from "!/components/inputs/TextInput";
+import BaseNode from "../../nodeView/node";
 
 interface ISpiralArrayNode extends INodeDefinition {
    inputs: {
@@ -59,7 +58,6 @@ interface ISpiralArrayNode extends INodeDefinition {
       sequence: Sequence;
    };
    values: {
-      name: string;
       pointCount: number;
       isRotating: boolean;
       radialMode: SpanMode;
@@ -82,40 +80,36 @@ interface ISpiralArrayNode extends INodeDefinition {
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<ISpiralArrayNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<ISpiralArrayNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-   const [pointCount, setPointCount] = nodeHelper.useValueState(nodeId, "pointCount");
-   const [isRotating, setIsRotating] = nodeHelper.useValueState(nodeId, "isRotating");
+   const [pointCount, setPointCount] = nodeHooks.useValueState(nodeId, "pointCount");
+   const [isRotating, setIsRotating] = nodeHooks.useValueState(nodeId, "isRotating");
 
-   const [radius, setRadius] = nodeHelper.useValueState(nodeId, "radius");
-   const [spread, setSpread] = nodeHelper.useValueState(nodeId, "spread");
-   const [radialMode, setRadialMode] = nodeHelper.useValueState(nodeId, "radialMode");
-   const [innerRadius, setInnerRadius] = nodeHelper.useValueState(nodeId, "innerRadius");
-   const [outerRadius, setOuterRadius] = nodeHelper.useValueState(nodeId, "outerRadius");
+   const [radius, setRadius] = nodeHooks.useValueState(nodeId, "radius");
+   const [spread, setSpread] = nodeHooks.useValueState(nodeId, "spread");
+   const [radialMode, setRadialMode] = nodeHooks.useValueState(nodeId, "radialMode");
+   const [innerRadius, setInnerRadius] = nodeHooks.useValueState(nodeId, "innerRadius");
+   const [outerRadius, setOuterRadius] = nodeHooks.useValueState(nodeId, "outerRadius");
 
-   const [thetaMode, setThetaMode] = nodeHelper.useValueState(nodeId, "thetaMode");
-   const [thetaStart, setThetaStart] = nodeHelper.useValueState(nodeId, "thetaStart");
-   const [thetaEnd, setThetaEnd] = nodeHelper.useValueState(nodeId, "thetaEnd");
-   const [thetaSteps, setThetaSteps] = nodeHelper.useValueState(nodeId, "thetaSteps");
-   const [thetaInclusive, setThetaInclusive] = nodeHelper.useValueState(nodeId, "thetaInclusive");
+   const [thetaMode, setThetaMode] = nodeHooks.useValueState(nodeId, "thetaMode");
+   const [thetaStart, setThetaStart] = nodeHooks.useValueState(nodeId, "thetaStart");
+   const [thetaEnd, setThetaEnd] = nodeHooks.useValueState(nodeId, "thetaEnd");
+   const [thetaSteps, setThetaSteps] = nodeHooks.useValueState(nodeId, "thetaSteps");
+   const [thetaInclusive, setThetaInclusive] = nodeHooks.useValueState(nodeId, "thetaInclusive");
 
-   const hasPointCount = nodeHelper.useHasLink(nodeId, "pointCount");
-   const hasThetaStart = nodeHelper.useHasLink(nodeId, "thetaStart");
-   const hasThetaEnd = nodeHelper.useHasLink(nodeId, "thetaEnd");
-   const hasThetaSteps = nodeHelper.useHasLink(nodeId, "thetaSteps");
+   const hasPointCount = nodeHooks.useHasLink(nodeId, "pointCount");
+   const hasThetaStart = nodeHooks.useHasLink(nodeId, "thetaStart");
+   const hasThetaEnd = nodeHooks.useHasLink(nodeId, "thetaEnd");
+   const hasThetaSteps = nodeHooks.useHasLink(nodeId, "thetaSteps");
 
-   const hasInnerRadius = nodeHelper.useHasLink(nodeId, "innerRadius");
-   const hasOuterRadius = nodeHelper.useHasLink(nodeId, "outerRadius");
-   const hasRadius = nodeHelper.useHasLink(nodeId, "radius");
-   const hasSpread = nodeHelper.useHasLink(nodeId, "spread");
+   const hasInnerRadius = nodeHooks.useHasLink(nodeId, "innerRadius");
+   const hasOuterRadius = nodeHooks.useHasLink(nodeId, "outerRadius");
+   const hasRadius = nodeHooks.useHasLink(nodeId, "radius");
+   const hasSpread = nodeHooks.useHasLink(nodeId, "spread");
 
    return (
-      <BaseNode<ISpiralArrayNode> nodeId={nodeId} helper={SpiralArrayNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<ISpiralArrayNode> nodeId={nodeId} helper={SpiralArrayNodeHelper} hooks={nodeHooks}>
          <SocketOut<ISpiralArrayNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -184,42 +178,43 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             Rotate Iterations
          </Checkbox>
          <hr />
-         <TransformPrefabs.Full<ISpiralArrayNode> nodeId={nodeId} nodeHelper={nodeHelper} />
+         <TransformPrefabs.Full<ISpiralArrayNode> nodeId={nodeId} hooks={nodeHooks} />
          <hr />
          <SocketOut<ISpiralArrayNode> nodeId={nodeId} socketId={"sequence"} type={SocketTypes.SEQUENCE}>
             Sequence
          </SocketOut>
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
 
 const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps) => {
-   const [output, childNodeId] = nodeHelper.useInputNode(nodeId, "input", globals);
+   const [output, childNodeId] = nodeHooks.useInputNode(nodeId, "input", globals);
 
-   const pointCount = Math.min(24, Math.max(3, nodeHelper.useCoalesce(nodeId, "pointCount", "pointCount", globals)));
-   const isRotating = nodeHelper.useValue(nodeId, "isRotating");
+   const pointCount = Math.min(24, Math.max(3, nodeHooks.useCoalesce(nodeId, "pointCount", "pointCount", globals)));
+   const isRotating = nodeHooks.useValue(nodeId, "isRotating");
 
-   const radialMode = nodeHelper.useValue(nodeId, "radialMode");
-   const radius = nodeHelper.useCoalesce(nodeId, "radius", "radius", globals);
-   const spread = nodeHelper.useCoalesce(nodeId, "spread", "spread", globals);
-   const innerRadius = nodeHelper.useCoalesce(nodeId, "innerRadius", "innerRadius", globals);
-   const outerRadius = nodeHelper.useCoalesce(nodeId, "outerRadius", "outerRadius", globals);
+   const radialMode = nodeHooks.useValue(nodeId, "radialMode");
+   const radius = nodeHooks.useCoalesce(nodeId, "radius", "radius", globals);
+   const spread = nodeHooks.useCoalesce(nodeId, "spread", "spread", globals);
+   const innerRadius = nodeHooks.useCoalesce(nodeId, "innerRadius", "innerRadius", globals);
+   const outerRadius = nodeHooks.useCoalesce(nodeId, "outerRadius", "outerRadius", globals);
 
-   const positionMode = nodeHelper.useValue(nodeId, "positionMode");
-   const positionX = nodeHelper.useCoalesce(nodeId, "positionX", "positionX", globals);
-   const positionY = nodeHelper.useCoalesce(nodeId, "positionY", "positionY", globals);
-   const positionTheta = nodeHelper.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
-   const positionRadius = nodeHelper.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
-   const rotation = nodeHelper.useCoalesce(nodeId, "rotation", "rotation", globals);
+   const positionMode = nodeHooks.useValue(nodeId, "positionMode");
+   const positionX = nodeHooks.useCoalesce(nodeId, "positionX", "positionX", globals);
+   const positionY = nodeHooks.useCoalesce(nodeId, "positionY", "positionY", globals);
+   const positionTheta = nodeHooks.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
+   const positionRadius = nodeHooks.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
+   const rotation = nodeHooks.useCoalesce(nodeId, "rotation", "rotation", globals);
 
-   const thetaMode = nodeHelper.useValue(nodeId, "thetaMode");
-   const thetaStart = nodeHelper.useCoalesce(nodeId, "thetaStart", "thetaStart", globals);
-   const thetaEnd = nodeHelper.useCoalesce(nodeId, "thetaEnd", "thetaEnd", globals);
-   const thetaSteps = nodeHelper.useCoalesce(nodeId, "thetaSteps", "thetaSteps", globals);
-   const thetaInclusive = nodeHelper.useValue(nodeId, "thetaInclusive");
+   const thetaMode = nodeHooks.useValue(nodeId, "thetaMode");
+   const thetaStart = nodeHooks.useCoalesce(nodeId, "thetaStart", "thetaStart", globals);
+   const thetaEnd = nodeHooks.useCoalesce(nodeId, "thetaEnd", "thetaEnd", globals);
+   const thetaSteps = nodeHooks.useCoalesce(nodeId, "thetaSteps", "thetaSteps", globals);
+   const thetaInclusive = nodeHooks.useValue(nodeId, "thetaInclusive");
 
-   const thetaCurve = nodeHelper.useInput(nodeId, "thetaCurve", globals);
-   const radialCurve = nodeHelper.useInput(nodeId, "radialCurve", globals);
+   const thetaCurve = nodeHooks.useInput(nodeId, "thetaCurve", globals);
+   const radialCurve = nodeHooks.useInput(nodeId, "radialCurve", globals);
 
    const rI = radialMode === "inout" ? MathHelper.lengthToPx(innerRadius) : MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(spread) / 2;
    const rO = radialMode === "inout" ? MathHelper.lengthToPx(outerRadius) : MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(spread) / 2;
@@ -327,7 +322,6 @@ const SpiralArrayNodeHelper: INodeHelper<ISpiralArrayNode> = {
       }
    },
    initialize: () => ({
-      name: "",
       pointCount: 5,
       isRotating: true,
       radius: { value: 150, unit: "px" },

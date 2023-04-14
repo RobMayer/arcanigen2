@@ -10,7 +10,7 @@ import NumberInput from "!/components/inputs/NumberInput";
 import { Length } from "!/utility/types/units";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
-import TextInput from "!/components/inputs/TextInput";
+import { MetaPrefab } from "../../nodeView/prefabs";
 
 interface IBrushEffectNode extends INodeDefinition {
    inputs: {
@@ -23,30 +23,25 @@ interface IBrushEffectNode extends INodeDefinition {
       output: NodeRenderer;
    };
    values: {
-      name: string;
       brushTip: Length;
       seed: number;
       shake: number;
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<IBrushEffectNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<IBrushEffectNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-   const [brushTip, setBrushTip] = nodeHelper.useValueState(nodeId, "brushTip");
-   const [seed, setSeed] = nodeHelper.useValueState(nodeId, "seed");
-   const [shake, setShake] = nodeHelper.useValueState(nodeId, "shake");
+   const [brushTip, setBrushTip] = nodeHooks.useValueState(nodeId, "brushTip");
+   const [seed, setSeed] = nodeHooks.useValueState(nodeId, "seed");
+   const [shake, setShake] = nodeHooks.useValueState(nodeId, "shake");
 
-   const hasBrushTip = nodeHelper.useHasLink(nodeId, "brushTip");
-   const hasSeed = nodeHelper.useHasLink(nodeId, "seed");
-   const hasShake = nodeHelper.useHasLink(nodeId, "shake");
+   const hasBrushTip = nodeHooks.useHasLink(nodeId, "brushTip");
+   const hasSeed = nodeHooks.useHasLink(nodeId, "seed");
+   const hasShake = nodeHooks.useHasLink(nodeId, "shake");
 
    return (
-      <BaseNode<IBrushEffectNode> nodeId={nodeId} helper={BrushEffectNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<IBrushEffectNode> nodeId={nodeId} helper={BrushEffectNodeHelper} hooks={nodeHooks}>
          <SocketOut<IBrushEffectNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -70,15 +65,16 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                <NumberInput value={seed} onValidValue={setSeed} disabled={hasSeed} step={1} min={0} />
             </BaseNode.Input>
          </SocketIn>
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
 
 const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps) => {
-   const seed = nodeHelper.useCoalesce(nodeId, "seed", "seed", globals);
-   const brushTip = nodeHelper.useCoalesce(nodeId, "brushTip", "brushTip", globals);
-   const shake = nodeHelper.useCoalesce(nodeId, "shake", "shake", globals);
-   const [Content, cId] = nodeHelper.useInputNode(nodeId, "input", globals);
+   const seed = nodeHooks.useCoalesce(nodeId, "seed", "seed", globals);
+   const brushTip = nodeHooks.useCoalesce(nodeId, "brushTip", "brushTip", globals);
+   const shake = nodeHooks.useCoalesce(nodeId, "shake", "shake", globals);
+   const [Content, cId] = nodeHooks.useInputNode(nodeId, "input", globals);
 
    return (
       <>
@@ -126,7 +122,6 @@ const BrushEffectNodeHelper: INodeHelper<IBrushEffectNode> = {
    type: NodeTypes.EFFECT_BRUSH,
    getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IBrushEffectNode["outputs"]) => Renderer,
    initialize: () => ({
-      name: "",
       seed: Math.floor(Math.random() * 1000),
       shake: 0.2,
       brushTip: { value: 2, unit: "pt" },

@@ -24,14 +24,13 @@ import BaseNode from "../../nodeView/node";
 import { SocketIn, SocketOut } from "../../nodeView/socket";
 import styled from "styled-components";
 import NumberInput from "!/components/inputs/NumberInput";
-import TextInput from "!/components/inputs/TextInput";
+import { MetaPrefab } from "../../nodeView/prefabs";
 
 interface IPortalInNode extends INodeDefinition {
    inputs: {
       [key: string]: NodeRenderer;
    };
    values: {
-      name: string;
       sockets: string[];
       channels: {
          [key: string]: number;
@@ -43,11 +42,10 @@ interface IPortalInNode extends INodeDefinition {
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<IPortalInNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<IPortalInNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-   const [node, setNode, setGraph] = nodeHelper.useAlterNode(nodeId);
+   const [node, setNode, setGraph] = nodeHooks.useAlterNode(nodeId);
 
    const addChannel = useCallback(() => {
       const sId = uuid();
@@ -127,10 +125,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    );
 
    return (
-      <BaseNode<IPortalInNode> nodeId={nodeId} helper={PortalInNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<IPortalInNode> nodeId={nodeId} helper={PortalInNodeHelper} hooks={nodeHooks}>
          <SocketOut<IPortalInNode> nodeId={nodeId} socketId={"portalBus"} type={SocketTypes.PORTAL}>
             Portal Bus
          </SocketOut>
@@ -160,6 +155,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                </SocketIn>
             );
          })}
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
@@ -171,7 +167,7 @@ const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps)
       return [mP, { ...rg, portalData: rp ?? {} }];
    }, [globals, nodeId]);
 
-   const channels = nodeHelper.useValue(nodeId, "channels");
+   const channels = nodeHooks.useValue(nodeId, "channels");
 
    const theChannel = useMemo(() => {
       if (myPortal !== undefined && channels) {
@@ -207,7 +203,7 @@ const Member = ({
    socketId: string;
    host: string;
 }) => {
-   const [Comp, childId] = nodeHelper.useInputNode(nodeId, socketId, globals);
+   const [Comp, childId] = nodeHooks.useInputNode(nodeId, socketId, globals);
    return <g>{Comp && childId && <Comp nodeId={childId} depth={(depth ?? "") + `_${host}.${socketId}`} globals={globals} overrides={overrides} />}</g>;
 };
 
@@ -229,7 +225,6 @@ const PortalInNodeHelper: INodeHelper<IPortalInNode> = {
    initialize: () => {
       const socketId = uuid();
       return {
-         name: "",
          sockets: [socketId],
          in: {
             [socketId]: null,

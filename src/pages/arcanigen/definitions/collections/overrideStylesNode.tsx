@@ -25,7 +25,7 @@ import HexColorInput from "!/components/inputs/colorHexInput";
 import ToggleList from "!/components/selectors/ToggleList";
 import Checkbox from "!/components/buttons/Checkbox";
 import styled from "styled-components";
-import TextInput from "!/components/inputs/TextInput";
+import { MetaPrefab } from "../../nodeView/prefabs";
 
 interface IOverrideStylesNode extends INodeDefinition {
    inputs: {
@@ -38,7 +38,6 @@ interface IOverrideStylesNode extends INodeDefinition {
       output: NodeRenderer;
    };
    values: {
-      name: string;
       strokeColor: Color;
       strokeWidth: Length;
       fillColor: Color;
@@ -53,31 +52,27 @@ interface IOverrideStylesNode extends INodeDefinition {
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<IOverrideStylesNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<IOverrideStylesNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-   const [strokeWidth, setStrokeWidth] = nodeHelper.useValueState(nodeId, "strokeWidth");
-   const [strokeColor, setStrokeColor] = nodeHelper.useValueState(nodeId, "strokeColor");
-   const [strokeCap, setStrokeCap] = nodeHelper.useValueState(nodeId, "strokeCap");
-   const [strokeJoin, setStrokeJoin] = nodeHelper.useValueState(nodeId, "strokeJoin");
-   const [fillColor, setFillColor] = nodeHelper.useValueState(nodeId, "fillColor");
+   const [strokeWidth, setStrokeWidth] = nodeHooks.useValueState(nodeId, "strokeWidth");
+   const [strokeColor, setStrokeColor] = nodeHooks.useValueState(nodeId, "strokeColor");
+   const [strokeCap, setStrokeCap] = nodeHooks.useValueState(nodeId, "strokeCap");
+   const [strokeJoin, setStrokeJoin] = nodeHooks.useValueState(nodeId, "strokeJoin");
+   const [fillColor, setFillColor] = nodeHooks.useValueState(nodeId, "fillColor");
 
-   const [isStrokeWidth, setIsStrokeWidth] = nodeHelper.useValueState(nodeId, "isStrokeWidth");
-   const [isStrokeColor, setIsStrokeColor] = nodeHelper.useValueState(nodeId, "isStrokeColor");
-   const [isStrokeCap, setIsStrokeCap] = nodeHelper.useValueState(nodeId, "isStrokeCap");
-   const [isStrokeJoin, setIsStrokeJoin] = nodeHelper.useValueState(nodeId, "isStrokeJoin");
-   const [isFillColor, setIsFillColor] = nodeHelper.useValueState(nodeId, "isFillColor");
+   const [isStrokeWidth, setIsStrokeWidth] = nodeHooks.useValueState(nodeId, "isStrokeWidth");
+   const [isStrokeColor, setIsStrokeColor] = nodeHooks.useValueState(nodeId, "isStrokeColor");
+   const [isStrokeCap, setIsStrokeCap] = nodeHooks.useValueState(nodeId, "isStrokeCap");
+   const [isStrokeJoin, setIsStrokeJoin] = nodeHooks.useValueState(nodeId, "isStrokeJoin");
+   const [isFillColor, setIsFillColor] = nodeHooks.useValueState(nodeId, "isFillColor");
 
-   const hasStrokeWidth = nodeHelper.useHasLink(nodeId, "strokeWidth");
-   const hasFillColor = nodeHelper.useHasLink(nodeId, "fillColor");
-   const hasStrokeColor = nodeHelper.useHasLink(nodeId, "strokeColor");
+   const hasStrokeWidth = nodeHooks.useHasLink(nodeId, "strokeWidth");
+   const hasFillColor = nodeHooks.useHasLink(nodeId, "fillColor");
+   const hasStrokeColor = nodeHooks.useHasLink(nodeId, "strokeColor");
 
    return (
-      <BaseNode<IOverrideStylesNode> nodeId={nodeId} helper={OverrideStylesNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<IOverrideStylesNode> nodeId={nodeId} helper={OverrideStylesNodeHelper} hooks={nodeHooks}>
          <SocketOut<IOverrideStylesNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -122,23 +117,24 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                </ToggleDiv>
             </BaseNode.Input>
          </SocketIn>
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
 
 const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps) => {
-   const strokeWidth = nodeHelper.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
-   const strokeColor = nodeHelper.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
-   const fillColor = nodeHelper.useCoalesce(nodeId, "fillColor", "fillColor", globals);
-   const strokeCap = nodeHelper.useValue(nodeId, "strokeCap");
-   const strokeJoin = nodeHelper.useValue(nodeId, "strokeJoin");
-   const isStrokeWidth = nodeHelper.useValue(nodeId, "isStrokeWidth");
-   const isStrokeColor = nodeHelper.useValue(nodeId, "isStrokeColor");
-   const isFillColor = nodeHelper.useValue(nodeId, "isFillColor");
-   const isStrokeCap = nodeHelper.useValue(nodeId, "isStrokeCap");
-   const isStrokeJoin = nodeHelper.useValue(nodeId, "isStrokeJoin");
+   const strokeWidth = nodeHooks.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
+   const strokeColor = nodeHooks.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
+   const fillColor = nodeHooks.useCoalesce(nodeId, "fillColor", "fillColor", globals);
+   const strokeCap = nodeHooks.useValue(nodeId, "strokeCap");
+   const strokeJoin = nodeHooks.useValue(nodeId, "strokeJoin");
+   const isStrokeWidth = nodeHooks.useValue(nodeId, "isStrokeWidth");
+   const isStrokeColor = nodeHooks.useValue(nodeId, "isStrokeColor");
+   const isFillColor = nodeHooks.useValue(nodeId, "isFillColor");
+   const isStrokeCap = nodeHooks.useValue(nodeId, "isStrokeCap");
+   const isStrokeJoin = nodeHooks.useValue(nodeId, "isStrokeJoin");
 
-   const [Content, cId] = nodeHelper.useInputNode(nodeId, "input", globals);
+   const [Content, cId] = nodeHooks.useInputNode(nodeId, "input", globals);
 
    const newOverrides = useMemo(() => {
       const r = { ...overrides };
@@ -171,7 +167,6 @@ const OverrideStylesNodeHelper: INodeHelper<IOverrideStylesNode> = {
    type: NodeTypes.COL_RESTYLE,
    getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IOverrideStylesNode["outputs"]) => Renderer,
    initialize: () => ({
-      name: "",
       strokeWidth: { value: 1, unit: "px" },
       strokeCap: "butt",
       strokeJoin: "miter",

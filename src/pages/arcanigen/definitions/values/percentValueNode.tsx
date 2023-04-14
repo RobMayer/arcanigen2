@@ -8,7 +8,7 @@ import { SocketOut } from "../../nodeView/socket";
 import BaseNode from "../../nodeView/node";
 import MathHelper from "!/utility/mathhelper";
 import SliderInput from "!/components/inputs/SliderInput";
-import TextInput from "!/components/inputs/TextInput";
+import { MetaPrefab } from "../../nodeView/prefabs";
 
 interface IPercentValueNode extends INodeDefinition {
    inputs: {};
@@ -18,22 +18,17 @@ interface IPercentValueNode extends INodeDefinition {
       asHectograde: number;
    };
    values: {
-      name: string;
       value: number;
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<IPercentValueNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<IPercentValueNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-   const [value, setValue] = nodeHelper.useValueState(nodeId, "value");
+   const [value, setValue] = nodeHooks.useValueState(nodeId, "value");
 
    return (
-      <BaseNode<IPercentValueNode> nodeId={nodeId} helper={PercentValueNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<IPercentValueNode> nodeId={nodeId} helper={PercentValueNodeHelper} hooks={nodeHooks}>
          <SocketOut<IPercentValueNode> nodeId={nodeId} socketId={"value"} type={SocketTypes.PERCENT}>
             <SliderInput value={value} onValue={setValue} min={0} max={1} />
          </SocketOut>
@@ -46,6 +41,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                as Hectograde (0-100)
             </SocketOut>
          </BaseNode.Foldout>
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
@@ -71,7 +67,6 @@ const PercentValueNodeHelper: INodeHelper<IPercentValueNode> = {
    type: NodeTypes.VALUE_PERCENT,
    getOutput,
    initialize: () => ({
-      name: "",
       value: 0,
    }),
    controls: Controls,

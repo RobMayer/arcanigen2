@@ -8,7 +8,7 @@ import Checkbox from "!/components/buttons/Checkbox";
 import ToggleList from "!/components/selectors/ToggleList";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
-import TextInput from "!/components/inputs/TextInput";
+import { MetaPrefab } from "../../nodeView/prefabs";
 
 interface IMaskNode extends INodeDefinition {
    inputs: {
@@ -19,26 +19,21 @@ interface IMaskNode extends INodeDefinition {
       output: NodeRenderer;
    };
    values: {
-      name: string;
       mode: "alpha" | "luminance";
       display: boolean;
       invert: boolean;
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<IMaskNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<IMaskNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-   const [display, setDisplay] = nodeHelper.useValueState(nodeId, "display");
-   const [invert, setInvert] = nodeHelper.useValueState(nodeId, "invert");
-   const [mode, setMode] = nodeHelper.useValueState(nodeId, "mode");
+   const [display, setDisplay] = nodeHooks.useValueState(nodeId, "display");
+   const [invert, setInvert] = nodeHooks.useValueState(nodeId, "invert");
+   const [mode, setMode] = nodeHooks.useValueState(nodeId, "mode");
 
    return (
-      <BaseNode<IMaskNode> nodeId={nodeId} helper={MaskNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<IMaskNode> nodeId={nodeId} helper={MaskNodeHelper} hooks={nodeHooks}>
          <SocketOut<IMaskNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -59,16 +54,17 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          <Checkbox checked={invert} onToggle={setInvert} disabled={mode !== "luminance"}>
             Invert Luminance
          </Checkbox>
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
 
 const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps) => {
-   const [Content, cId] = nodeHelper.useInputNode(nodeId, "content", globals);
-   const [Mask, mId] = nodeHelper.useInputNode(nodeId, "mask", globals);
-   const invert = nodeHelper.useValue(nodeId, "invert");
-   const mode = nodeHelper.useValue(nodeId, "mode");
-   const display = nodeHelper.useValue(nodeId, "display");
+   const [Content, cId] = nodeHooks.useInputNode(nodeId, "content", globals);
+   const [Mask, mId] = nodeHooks.useInputNode(nodeId, "mask", globals);
+   const invert = nodeHooks.useValue(nodeId, "invert");
+   const mode = nodeHooks.useValue(nodeId, "mode");
+   const display = nodeHooks.useValue(nodeId, "display");
 
    return (
       <>
@@ -105,7 +101,6 @@ const MaskNodeHelper: INodeHelper<IMaskNode> = {
    type: NodeTypes.COL_MASK,
    getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IMaskNode["outputs"]) => Renderer,
    initialize: () => ({
-      name: "",
       display: false,
       mode: "luminance",
       invert: false,

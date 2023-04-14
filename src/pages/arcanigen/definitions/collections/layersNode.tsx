@@ -23,14 +23,13 @@ import Dropdown from "!/components/selectors/Dropdown";
 import BaseNode from "../../nodeView/node";
 import { SocketIn, SocketOut } from "../../nodeView/socket";
 import styled from "styled-components";
-import TextInput from "!/components/inputs/TextInput";
+import { MetaPrefab } from "../../nodeView/prefabs";
 
 interface ILayersNode extends INodeDefinition {
    inputs: {
       [key: string]: NodeRenderer;
    };
    values: {
-      name: string;
       sockets: string[];
       modes: { [key: string]: BlendMode };
    };
@@ -39,12 +38,10 @@ interface ILayersNode extends INodeDefinition {
    };
 }
 
-const nodeHelper = ArcaneGraph.nodeHooks<ILayersNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<ILayersNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
-   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
-
-   const [node, setNode, setGraph] = nodeHelper.useAlterNode(nodeId);
+   const [node, setNode, setGraph] = nodeHooks.useAlterNode(nodeId);
 
    const addLayer = useCallback(() => {
       const sId = uuid();
@@ -119,10 +116,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    );
 
    return (
-      <BaseNode<ILayersNode> nodeId={nodeId} helper={LayersNodeHelper} name={name}>
-         <BaseNode.Input>
-            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
-         </BaseNode.Input>
+      <BaseNode<ILayersNode> nodeId={nodeId} helper={LayersNodeHelper} hooks={nodeHooks}>
          <SocketOut<ILayersNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -154,13 +148,15 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                </SocketIn>
             );
          })}
+         <hr />
+         <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
 
 const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps) => {
-   const sockets = nodeHelper.useValue(nodeId, "sockets") ?? [];
-   const modes = nodeHelper.useValue(nodeId, "modes") ?? {};
+   const sockets = nodeHooks.useValue(nodeId, "sockets") ?? [];
+   const modes = nodeHooks.useValue(nodeId, "modes") ?? {};
    return (
       <g>
          {sockets.map((sId, i) => {
@@ -208,7 +204,7 @@ const Each = ({
       [globals, host, index]
    );
 
-   const [Comp, childId] = nodeHelper.useInputNode(nodeId, socketId, newGlobalsglobals);
+   const [Comp, childId] = nodeHooks.useInputNode(nodeId, socketId, newGlobalsglobals);
    const styles = useMemo(
       () => ({
          mixBlendMode: blendMode ?? "normal",
@@ -233,7 +229,6 @@ const LayersNodeHelper: INodeHelper<ILayersNode> = {
    initialize: () => {
       const socketId = uuid();
       return {
-         name: "",
          sockets: [socketId],
          modes: { [socketId]: "normal" },
          in: {
