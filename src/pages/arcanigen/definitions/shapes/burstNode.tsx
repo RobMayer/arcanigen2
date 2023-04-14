@@ -32,6 +32,7 @@ import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
 import { MetaPrefab, TransformPrefabs } from "../../nodeView/prefabs";
 import AngleInput from "!/components/inputs/AngleInput";
+import TextInput from "!/components/inputs/TextInput";
 
 interface IBurstNode extends INodeDefinition {
    inputs: {
@@ -46,6 +47,7 @@ interface IBurstNode extends INodeDefinition {
       thetaCurve: Curve;
 
       strokeColor: Color;
+      strokeOffset: Length;
       strokeWidth: Length;
       strokeMarkStart: NodeRenderer;
       strokeMarkEnd: NodeRenderer;
@@ -73,7 +75,9 @@ interface IBurstNode extends INodeDefinition {
       spurCount: number;
 
       strokeWidth: Length;
+      strokeDash: string;
       strokeCap: StrokeCapMode;
+      strokeOffset: Length;
       strokeColor: Color;
       strokeMarkAlign: boolean;
 
@@ -105,6 +109,8 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
 
    const [strokeWidth, setStrokeWidth] = nodeHooks.useValueState(nodeId, "strokeWidth");
    const [strokeCap, setStrokeCap] = nodeHooks.useValueState(nodeId, "strokeCap");
+   const [strokeDash, setStrokeDash] = nodeHooks.useValueState(nodeId, "strokeDash");
+   const [strokeOffset, setStrokeOffset] = nodeHooks.useValueState(nodeId, "strokeOffset");
    const [strokeColor, setStrokeColor] = nodeHooks.useValueState(nodeId, "strokeColor");
    const [strokeMarkAlign, setStrokeMarkAlign] = nodeHooks.useValueState(nodeId, "strokeMarkAlign");
 
@@ -117,9 +123,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const hasMajorRadius = nodeHooks.useHasLink(nodeId, "majorRadius");
    const hasRadius = nodeHooks.useHasLink(nodeId, "radius");
    const hasDeviation = nodeHooks.useHasLink(nodeId, "deviation");
-   const hasStrokeWidth = nodeHooks.useHasLink(nodeId, "strokeWidth");
 
+   const hasStrokeWidth = nodeHooks.useHasLink(nodeId, "strokeWidth");
    const hasStrokeColor = nodeHooks.useHasLink(nodeId, "strokeColor");
+   const hasStrokeOffset = nodeHooks.useHasLink(nodeId, "strokeOffset");
 
    return (
       <BaseNode<IBurstNode> nodeId={nodeId} helper={BurstNodeHelper} hooks={nodeHooks}>
@@ -193,12 +200,20 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                   <LengthInput value={strokeWidth} onValidValue={setStrokeWidth} disabled={hasStrokeWidth} min={0} />
                </BaseNode.Input>
             </SocketIn>
-            <BaseNode.Input label={"Stroke Cap"}>
-               <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODES} />
-            </BaseNode.Input>
             <SocketIn<IBurstNode> nodeId={nodeId} socketId={"strokeColor"} type={SocketTypes.COLOR}>
                <BaseNode.Input label={"Stroke Color"}>
                   <HexColorInput value={strokeColor} onValue={setStrokeColor} disabled={hasStrokeColor} />
+               </BaseNode.Input>
+            </SocketIn>
+            <BaseNode.Input label={"Stroke Cap"}>
+               <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODES} />
+            </BaseNode.Input>
+            <BaseNode.Input label={"Stroke Dash"}>
+               <TextInput value={strokeDash} onValidValue={setStrokeDash} pattern={MathHelper.LENGTH_LIST_REGEX} />
+            </BaseNode.Input>
+            <SocketIn<IBurstNode> nodeId={nodeId} socketId={"strokeOffset"} type={SocketTypes.LENGTH}>
+               <BaseNode.Input label={"Stroke Dash Offset"}>
+                  <LengthInput value={strokeOffset} onValidValue={setStrokeOffset} disabled={hasStrokeOffset} />
                </BaseNode.Input>
             </SocketIn>
             <SocketIn<IBurstNode> nodeId={nodeId} socketId={"strokeMarkStart"} type={SocketTypes.SHAPE}>
@@ -241,7 +256,9 @@ const Renderer = memo(({ nodeId, depth, globals, overrides = {} }: NodeRendererP
 
    const strokeWidth = nodeHooks.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
    const strokeColor = nodeHooks.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
+   const strokeDash = nodeHooks.useValue(nodeId, "strokeDash");
    const strokeCap = nodeHooks.useValue(nodeId, "strokeCap");
+   const strokeOffset = nodeHooks.useCoalesce(nodeId, "strokeOffset", "strokeOffset", globals);
 
    const [MarkStart, msId] = nodeHooks.useInputNode(nodeId, "strokeMarkStart", globals);
    const [MarkEnd, meId] = nodeHooks.useInputNode(nodeId, "strokeMarkEnd", globals);
@@ -310,6 +327,10 @@ const Renderer = memo(({ nodeId, depth, globals, overrides = {} }: NodeRendererP
             strokeOpacity={MathHelper.colorToOpacity("strokeColor" in overrides ? overrides.strokeColor : strokeColor)}
             strokeWidth={Math.max(0, MathHelper.lengthToPx("strokeWidth" in overrides ? overrides.strokeWidth : strokeWidth))}
             strokeLinecap={"strokeCap" in overrides ? overrides.strokeCap : strokeCap}
+            strokeDashoffset={MathHelper.lengthToPx("strokeOffset" in overrides ? overrides.strokeOffset : strokeOffset)}
+            strokeDasharray={MathHelper.listToLengths("strokeDash" in overrides ? overrides.strokeDash : strokeDash)
+               .map(MathHelper.lengthToPx)
+               .join(" ")}
             markerStart={msId ? `url('#markstart_${nodeId}_lyr-${depth ?? ""}')` : undefined}
             markerEnd={meId ? `url('#markend_${nodeId}_lyr-${depth ?? ""}')` : undefined}
          >
@@ -340,6 +361,8 @@ const BurstNodeHelper: INodeHelper<IBurstNode> = {
       thetaInclusive: true,
 
       strokeWidth: { value: 1, unit: "px" },
+      strokeDash: "",
+      strokeOffset: { value: 0, unit: "px" },
       strokeCap: "butt",
       strokeColor: { r: 0, g: 0, b: 0, a: 1 },
       strokeMarkAlign: true,

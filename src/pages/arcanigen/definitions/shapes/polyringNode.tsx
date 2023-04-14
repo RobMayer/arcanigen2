@@ -22,6 +22,8 @@ import {
    SPREAD_ALIGN_MODES,
    ExpandMode,
    EXPAND_MODES,
+   STROKECAP_MODES,
+   StrokeCapMode,
 } from "../types";
 import MathHelper from "!/utility/mathhelper";
 
@@ -37,6 +39,7 @@ import lodash from "lodash";
 import { MetaPrefab, TransformPrefabs } from "../../nodeView/prefabs";
 import faTriangleRing from "!/components/icons/faTriangleRing";
 import faTriangleRingLight from "!/components/icons/faTriangleRingLight";
+import TextInput from "!/components/inputs/TextInput";
 
 interface IPolyringNode extends INodeDefinition {
    inputs: {
@@ -49,6 +52,7 @@ interface IPolyringNode extends INodeDefinition {
 
       strokeWidth: Length;
       strokeColor: Color;
+      strokeOffset: Length;
       fillColor: Color;
 
       positionX: Length;
@@ -86,6 +90,9 @@ interface IPolyringNode extends INodeDefinition {
       iScribeMode: ScribeMode;
       oScribeMode: ScribeMode;
       strokeJoin: StrokeJoinMode;
+      strokeDash: string;
+      strokeCap: StrokeCapMode;
+      strokeOffset: Length;
       strokeColor: Color;
       fillColor: Color;
 
@@ -101,6 +108,7 @@ interface IPolyringNode extends INodeDefinition {
 const nodeHooks = ArcaneGraph.nodeHooks<IPolyringNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [pointCount, setPointCount] = nodeHooks.useValueState(nodeId, "pointCount");
    const [radius, setRadius] = nodeHooks.useValueState(nodeId, "radius");
    const [rScribeMode, setRScribeMode] = nodeHooks.useValueState(nodeId, "rScribeMode");
    const [spread, setSpread] = nodeHooks.useValueState(nodeId, "spread");
@@ -115,8 +123,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [strokeWidth, setStrokeWidth] = nodeHooks.useValueState(nodeId, "strokeWidth");
    const [strokeColor, setStrokeColor] = nodeHooks.useValueState(nodeId, "strokeColor");
    const [strokeJoin, setStrokeJoin] = nodeHooks.useValueState(nodeId, "strokeJoin");
+   const [strokeCap, setStrokeCap] = nodeHooks.useValueState(nodeId, "strokeCap");
+   const [strokeDash, setStrokeDash] = nodeHooks.useValueState(nodeId, "strokeDash");
+   const [strokeOffset, setStrokeOffset] = nodeHooks.useValueState(nodeId, "strokeOffset");
    const [fillColor, setFillColor] = nodeHooks.useValueState(nodeId, "fillColor");
-   const [pointCount, setPointCount] = nodeHooks.useValueState(nodeId, "pointCount");
 
    const hasInnerRadius = nodeHooks.useHasLink(nodeId, "innerRadius");
    const hasOuterRadius = nodeHooks.useHasLink(nodeId, "outerRadius");
@@ -126,6 +136,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const hasPointCount = nodeHooks.useHasLink(nodeId, "pointCount");
    const hasStrokeWidth = nodeHooks.useHasLink(nodeId, "strokeWidth");
    const hasStrokeColor = nodeHooks.useHasLink(nodeId, "strokeColor");
+   const hasStrokeOffset = nodeHooks.useHasLink(nodeId, "strokeOffset");
    const hasFillColor = nodeHooks.useHasLink(nodeId, "fillColor");
 
    return (
@@ -142,16 +153,16 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          <BaseNode.Input label={"Span Mode"}>
             <ToggleList value={spanMode} onValue={setSpanMode} options={SPAN_MODES} />
          </BaseNode.Input>
-         <SocketIn<IPolyringNode> nodeId={nodeId} socketId={"innerRadius"} type={SocketTypes.LENGTH}>
-            <BaseNode.Input label={"Inner Radius"}>
-               <LengthInput value={innerRadius} onValidValue={setInnerRadius} disabled={hasInnerRadius || spanMode === "spread"} />
-               <Dropdown value={iScribeMode} onValue={setIScribeMode} options={SCRIBE_MODES} disabled={spanMode === "spread"} />
-            </BaseNode.Input>
-         </SocketIn>
          <SocketIn<IPolyringNode> nodeId={nodeId} socketId={"outerRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Outer Radius"}>
                <LengthInput value={outerRadius} onValidValue={setOuterRadius} disabled={hasOuterRadius || spanMode === "spread"} />
                <Dropdown value={oScribeMode} onValue={setOScribeMode} options={SCRIBE_MODES} disabled={spanMode === "spread"} />
+            </BaseNode.Input>
+         </SocketIn>
+         <SocketIn<IPolyringNode> nodeId={nodeId} socketId={"innerRadius"} type={SocketTypes.LENGTH}>
+            <BaseNode.Input label={"Inner Radius"}>
+               <LengthInput value={innerRadius} onValidValue={setInnerRadius} disabled={hasInnerRadius || spanMode === "spread"} />
+               <Dropdown value={iScribeMode} onValue={setIScribeMode} options={SCRIBE_MODES} disabled={spanMode === "spread"} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IPolyringNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
@@ -181,12 +192,23 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                   <LengthInput value={strokeWidth} onValidValue={setStrokeWidth} disabled={hasStrokeWidth} min={0} />
                </BaseNode.Input>
             </SocketIn>
-            <BaseNode.Input label={"Stroke Join"}>
-               <ToggleList value={strokeJoin} onValue={setStrokeJoin} options={STROKEJOIN_MODES} />
-            </BaseNode.Input>
             <SocketIn<IPolyringNode> nodeId={nodeId} socketId={"strokeColor"} type={SocketTypes.COLOR}>
                <BaseNode.Input label={"Stroke Color"}>
                   <HexColorInput value={strokeColor} onValue={setStrokeColor} disabled={hasStrokeColor} />
+               </BaseNode.Input>
+            </SocketIn>
+            <BaseNode.Input label={"Stroke Join"}>
+               <ToggleList value={strokeJoin} onValue={setStrokeJoin} options={STROKEJOIN_MODES} />
+            </BaseNode.Input>
+            <BaseNode.Input label={"Stroke Cap"}>
+               <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODES} />
+            </BaseNode.Input>
+            <BaseNode.Input label={"Stroke Dash"}>
+               <TextInput value={strokeDash} onValidValue={setStrokeDash} pattern={MathHelper.LENGTH_LIST_REGEX} />
+            </BaseNode.Input>
+            <SocketIn<IPolyringNode> nodeId={nodeId} socketId={"strokeOffset"} type={SocketTypes.LENGTH}>
+               <BaseNode.Input label={"Stroke Dash Offset"}>
+                  <LengthInput value={strokeOffset} onValidValue={setStrokeOffset} disabled={hasStrokeOffset} />
                </BaseNode.Input>
             </SocketIn>
             <SocketIn<IPolyringNode> nodeId={nodeId} socketId={"fillColor"} type={SocketTypes.COLOR}>
@@ -255,6 +277,9 @@ const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) =
    const strokeWidth = nodeHooks.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
    const strokeJoin = nodeHooks.useValue(nodeId, "strokeJoin");
    const strokeColor = nodeHooks.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
+   const strokeDash = nodeHooks.useValue(nodeId, "strokeDash");
+   const strokeCap = nodeHooks.useValue(nodeId, "strokeCap");
+   const strokeOffset = nodeHooks.useCoalesce(nodeId, "strokeOffset", "strokeOffset", globals);
    const fillColor = nodeHooks.useCoalesce(nodeId, "fillColor", "fillColor", globals);
 
    const positionMode = nodeHooks.useValue(nodeId, "positionMode");
@@ -323,6 +348,11 @@ const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) =
             fillOpacity={MathHelper.colorToOpacity("fillColor" in overrides ? overrides.fillColor : fillColor)}
             strokeWidth={Math.max(0, MathHelper.lengthToPx("strokeWidth" in overrides ? overrides.strokeWidth : strokeWidth))}
             strokeLinejoin={"strokeJoin" in overrides ? overrides.strokeJoin : strokeJoin}
+            strokeLinecap={"strokeCap" in overrides ? overrides.strokeCap : strokeCap}
+            strokeDashoffset={MathHelper.lengthToPx("strokeOffset" in overrides ? overrides.strokeOffset : strokeOffset)}
+            strokeDasharray={MathHelper.listToLengths("strokeDash" in overrides ? overrides.strokeDash : strokeDash)
+               .map(MathHelper.lengthToPx)
+               .join(" ")}
          >
             <path d={points} vectorEffect={"non-scaling-stroke"} />
          </g>
@@ -408,6 +438,9 @@ const PolyringNodeHelper: INodeHelper<IPolyringNode> = {
       iScribeMode: "inscribe",
       oScribeMode: "inscribe",
       strokeColor: { r: 0, g: 0, b: 0, a: 1 },
+      strokeDash: "",
+      strokeOffset: { value: 0, unit: "px" },
+      strokeCap: "butt",
       fillColor: null as Color,
 
       positionX: { value: 0, unit: "px" },

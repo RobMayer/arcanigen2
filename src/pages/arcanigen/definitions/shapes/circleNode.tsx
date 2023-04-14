@@ -44,8 +44,8 @@ interface ICircleNode extends INodeDefinition {
       radius: Length;
       strokeWidth: Length;
       strokeColor: Color;
-      strokeDash: string;
       strokeCap: StrokeCapMode;
+      strokeDash: string;
       strokeOffset: Length;
       fillColor: Color;
 
@@ -97,11 +97,6 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                   <HexColorInput value={strokeColor} onValue={setStrokeColor} disabled={hasStrokeColor} />
                </BaseNode.Input>
             </SocketIn>
-            <SocketIn<ICircleNode> nodeId={nodeId} socketId={"fillColor"} type={SocketTypes.COLOR}>
-               <BaseNode.Input label={"Fill Color"}>
-                  <HexColorInput value={fillColor} onValue={setFillColor} disabled={hasFillColor} />
-               </BaseNode.Input>
-            </SocketIn>
             <BaseNode.Input label={"Stroke Cap"}>
                <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODES} disabled={strokeDash === ""} />
             </BaseNode.Input>
@@ -111,6 +106,11 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             <SocketIn<ICircleNode> nodeId={nodeId} socketId={"strokeOffset"} type={SocketTypes.LENGTH}>
                <BaseNode.Input label={"Stroke Dash Offset"}>
                   <LengthInput value={strokeOffset} onValidValue={setStrokeOffset} disabled={hasStrokeOffset} />
+               </BaseNode.Input>
+            </SocketIn>
+            <SocketIn<ICircleNode> nodeId={nodeId} socketId={"fillColor"} type={SocketTypes.COLOR}>
+               <BaseNode.Input label={"Fill Color"}>
+                  <HexColorInput value={fillColor} onValue={setFillColor} disabled={hasFillColor} />
                </BaseNode.Input>
             </SocketIn>
          </BaseNode.Foldout>
@@ -143,8 +143,8 @@ const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) =
             fill={MathHelper.colorToSVG("fillColor" in overrides ? overrides.fillColor : fillColor)}
             strokeOpacity={MathHelper.colorToOpacity("strokeColor" in overrides ? overrides.strokeColor : strokeColor)}
             fillOpacity={MathHelper.colorToOpacity("fillColor" in overrides ? overrides.fillColor : fillColor)}
-            strokeLinecap={"strokeCap" in overrides ? overrides.strokeCap : strokeCap}
             strokeWidth={Math.max(0, MathHelper.lengthToPx("strokeWidth" in overrides ? overrides.strokeWidth : strokeWidth))}
+            strokeLinecap={"strokeCap" in overrides ? overrides.strokeCap : strokeCap}
             strokeDashoffset={MathHelper.lengthToPx("strokeOffset" in overrides ? overrides.strokeOffset : strokeOffset)}
             strokeDasharray={MathHelper.listToLengths("strokeDash" in overrides ? overrides.strokeDash : strokeDash)
                .map(MathHelper.lengthToPx)

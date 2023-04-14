@@ -28,11 +28,13 @@ import ToggleList from "!/components/selectors/ToggleList";
 import TextArea from "!/components/inputs/TextArea";
 import styled from "styled-components";
 import { MetaPrefab, TransformPrefabs } from "../../nodeView/prefabs";
+import TextInput from "!/components/inputs/TextInput";
 
 interface IGlyphNode extends INodeDefinition {
    inputs: {
       strokeWidth: Length;
       strokeColor: Color;
+      strokeOffset: Length;
       fillColor: Color;
       radius: Length;
 
@@ -52,6 +54,9 @@ interface IGlyphNode extends INodeDefinition {
       strokeColor: Color;
       strokeJoin: StrokeJoinMode;
       strokeCap: StrokeCapMode;
+      strokeDash: string;
+      strokeOffset: Length;
+
       fillColor: Color;
 
       positionX: Length;
@@ -72,11 +77,14 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [strokeColor, setStrokeColor] = nodeHooks.useValueState(nodeId, "strokeColor");
    const [strokeJoin, setStrokeJoin] = nodeHooks.useValueState(nodeId, "strokeJoin");
    const [strokeCap, setStrokeCap] = nodeHooks.useValueState(nodeId, "strokeCap");
+   const [strokeDash, setStrokeDash] = nodeHooks.useValueState(nodeId, "strokeDash");
+   const [strokeOffset, setStrokeOffset] = nodeHooks.useValueState(nodeId, "strokeOffset");
    const [fillColor, setFillColor] = nodeHooks.useValueState(nodeId, "fillColor");
 
    const hasRadius = nodeHooks.useHasLink(nodeId, "radius");
    const hasStrokeWidth = nodeHooks.useHasLink(nodeId, "strokeWidth");
    const hasStrokeColor = nodeHooks.useHasLink(nodeId, "strokeColor");
+   const hasStrokeOffset = nodeHooks.useHasLink(nodeId, "strokeOffset");
    const hasFillColor = nodeHooks.useHasLink(nodeId, "fillColor");
 
    return (
@@ -108,15 +116,23 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                   <LengthInput value={strokeWidth} onValidValue={setStrokeWidth} disabled={hasStrokeWidth} min={0} />
                </BaseNode.Input>
             </SocketIn>
+            <SocketIn<IGlyphNode> nodeId={nodeId} socketId={"strokeColor"} type={SocketTypes.COLOR}>
+               <BaseNode.Input label={"Stroke Color"}>
+                  <HexColorInput value={strokeColor} onValue={setStrokeColor} disabled={hasStrokeColor} />
+               </BaseNode.Input>
+            </SocketIn>
             <BaseNode.Input label={"Stroke Join"}>
                <ToggleList value={strokeJoin} onValue={setStrokeJoin} options={STROKEJOIN_MODES} />
             </BaseNode.Input>
             <BaseNode.Input label={"Stroke Cap"}>
                <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODES} />
             </BaseNode.Input>
-            <SocketIn<IGlyphNode> nodeId={nodeId} socketId={"strokeColor"} type={SocketTypes.COLOR}>
-               <BaseNode.Input label={"Stroke Color"}>
-                  <HexColorInput value={strokeColor} onValue={setStrokeColor} disabled={hasStrokeColor} />
+            <BaseNode.Input label={"Stroke Dash"}>
+               <TextInput value={strokeDash} onValidValue={setStrokeDash} pattern={MathHelper.LENGTH_LIST_REGEX} />
+            </BaseNode.Input>
+            <SocketIn<IGlyphNode> nodeId={nodeId} socketId={"strokeOffset"} type={SocketTypes.LENGTH}>
+               <BaseNode.Input label={"Stroke Dash Offset"}>
+                  <LengthInput value={strokeOffset} onValidValue={setStrokeOffset} disabled={hasStrokeOffset} />
                </BaseNode.Input>
             </SocketIn>
             <SocketIn<IGlyphNode> nodeId={nodeId} socketId={"fillColor"} type={SocketTypes.COLOR}>
@@ -185,6 +201,8 @@ const GlyphNodeHelper: INodeHelper<IGlyphNode> = {
       path: "",
       radius: { value: 100, unit: "px" },
       strokeWidth: { value: 0, unit: "px" },
+      strokeDash: "",
+      strokeOffset: { value: 0, unit: "px" },
       fillColor: { r: 0, g: 0, b: 0, a: 1 },
       strokeColor: null as Color,
       strokeJoin: "bevel",

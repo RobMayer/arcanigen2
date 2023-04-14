@@ -13,6 +13,8 @@ import {
    SocketTypes,
    SPREAD_ALIGN_MODES,
    SpreadAlignMode,
+   STROKECAP_MODES,
+   StrokeCapMode,
 } from "../types";
 import MathHelper from "!/utility/mathhelper";
 import { faCircleDot as nodeIcon } from "@fortawesome/pro-regular-svg-icons";
@@ -24,6 +26,7 @@ import { Length, Color } from "!/utility/types/units";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
 import { MetaPrefab, TransformPrefabs } from "../../nodeView/prefabs";
+import TextInput from "!/components/inputs/TextInput";
 
 interface IRingNode extends INodeDefinition {
    inputs: {
@@ -33,6 +36,7 @@ interface IRingNode extends INodeDefinition {
       outerRadius: Length;
       strokeWidth: Length;
       strokeColor: Color;
+      strokeOffset: Length;
       fillColor: Color;
 
       positionX: Length;
@@ -52,6 +56,9 @@ interface IRingNode extends INodeDefinition {
       outerRadius: Length;
       strokeWidth: Length;
       strokeColor: Color;
+      strokeDash: string;
+      strokeCap: StrokeCapMode;
+      strokeOffset: Length;
       fillColor: Color;
 
       positionX: Length;
@@ -71,15 +78,21 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [spanMode, setSpanMode] = nodeHooks.useValueState(nodeId, "spanMode");
    const [innerRadius, setInnerRadius] = nodeHooks.useValueState(nodeId, "innerRadius");
    const [outerRadius, setOuterRadius] = nodeHooks.useValueState(nodeId, "outerRadius");
+
    const [strokeWidth, setStrokeWidth] = nodeHooks.useValueState(nodeId, "strokeWidth");
    const [strokeColor, setStrokeColor] = nodeHooks.useValueState(nodeId, "strokeColor");
+   const [strokeCap, setStrokeCap] = nodeHooks.useValueState(nodeId, "strokeCap");
+   const [strokeDash, setStrokeDash] = nodeHooks.useValueState(nodeId, "strokeDash");
+   const [strokeOffset, setStrokeOffset] = nodeHooks.useValueState(nodeId, "strokeOffset");
    const [fillColor, setFillColor] = nodeHooks.useValueState(nodeId, "fillColor");
+
    const hasInnerRadius = nodeHooks.useHasLink(nodeId, "innerRadius");
    const hasOuterRadius = nodeHooks.useHasLink(nodeId, "outerRadius");
    const hasRadius = nodeHooks.useHasLink(nodeId, "radius");
    const hasSpread = nodeHooks.useHasLink(nodeId, "spread");
    const hasStrokeWidth = nodeHooks.useHasLink(nodeId, "strokeWidth");
    const hasStrokeColor = nodeHooks.useHasLink(nodeId, "strokeColor");
+   const hasStrokeOffset = nodeHooks.useHasLink(nodeId, "strokeOffset");
    const hasFillColor = nodeHooks.useHasLink(nodeId, "fillColor");
 
    return (
@@ -91,14 +104,14 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          <BaseNode.Input label={"Span Mode"}>
             <ToggleList value={spanMode} onValue={setSpanMode} options={SPAN_MODES} />
          </BaseNode.Input>
-         <SocketIn<IRingNode> nodeId={nodeId} socketId={"innerRadius"} type={SocketTypes.LENGTH}>
-            <BaseNode.Input label={"Inner Radius"}>
-               <LengthInput value={innerRadius} onValidValue={setInnerRadius} disabled={hasInnerRadius || spanMode === "spread"} />
-            </BaseNode.Input>
-         </SocketIn>
          <SocketIn<IRingNode> nodeId={nodeId} socketId={"outerRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Outer Radius"}>
                <LengthInput value={outerRadius} onValidValue={setOuterRadius} disabled={hasOuterRadius || spanMode === "spread"} />
+            </BaseNode.Input>
+         </SocketIn>
+         <SocketIn<IRingNode> nodeId={nodeId} socketId={"innerRadius"} type={SocketTypes.LENGTH}>
+            <BaseNode.Input label={"Inner Radius"}>
+               <LengthInput value={innerRadius} onValidValue={setInnerRadius} disabled={hasInnerRadius || spanMode === "spread"} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IRingNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
@@ -126,6 +139,17 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                   <HexColorInput value={strokeColor} onValue={setStrokeColor} disabled={hasStrokeColor} />
                </BaseNode.Input>
             </SocketIn>
+            <BaseNode.Input label={"Stroke Cap"}>
+               <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODES} />
+            </BaseNode.Input>
+            <BaseNode.Input label={"Stroke Dash"}>
+               <TextInput value={strokeDash} onValidValue={setStrokeDash} pattern={MathHelper.LENGTH_LIST_REGEX} />
+            </BaseNode.Input>
+            <SocketIn<IRingNode> nodeId={nodeId} socketId={"strokeOffset"} type={SocketTypes.LENGTH}>
+               <BaseNode.Input label={"Stroke Dash Offset"}>
+                  <LengthInput value={strokeOffset} onValidValue={setStrokeOffset} disabled={hasStrokeOffset} />
+               </BaseNode.Input>
+            </SocketIn>
             <SocketIn<IRingNode> nodeId={nodeId} socketId={"fillColor"} type={SocketTypes.COLOR}>
                <BaseNode.Input label={"Fill Color"}>
                   <HexColorInput value={fillColor} onValue={setFillColor} disabled={hasFillColor} />
@@ -148,6 +172,9 @@ const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) =
 
    const strokeColor = nodeHooks.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
    const strokeWidth = nodeHooks.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
+   const strokeDash = nodeHooks.useValue(nodeId, "strokeDash");
+   const strokeCap = nodeHooks.useValue(nodeId, "strokeCap");
+   const strokeOffset = nodeHooks.useCoalesce(nodeId, "strokeOffset", "strokeOffset", globals);
    const fillColor = nodeHooks.useCoalesce(nodeId, "fillColor", "fillColor", globals);
 
    const positionMode = nodeHooks.useValue(nodeId, "positionMode");
@@ -184,6 +211,11 @@ const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) =
             strokeOpacity={MathHelper.colorToOpacity("strokeColor" in overrides ? overrides.strokeColor : strokeColor)}
             fillOpacity={MathHelper.colorToOpacity("fillColor" in overrides ? overrides.fillColor : fillColor)}
             strokeWidth={Math.max(0, MathHelper.lengthToPx("strokeWidth" in overrides ? overrides.strokeWidth : strokeWidth))}
+            strokeLinecap={"strokeCap" in overrides ? overrides.strokeCap : strokeCap}
+            strokeDashoffset={MathHelper.lengthToPx("strokeOffset" in overrides ? overrides.strokeOffset : strokeOffset)}
+            strokeDasharray={MathHelper.listToLengths("strokeDash" in overrides ? overrides.strokeDash : strokeDash)
+               .map(MathHelper.lengthToPx)
+               .join(" ")}
          >
             <path
                d={`M ${rO},0 A 1,1 0 0,0 ${-rO},0 A 1,1 0 0,0 ${rO},0 M ${rI},0 A 1,1 0 0,1 ${-rI},0 A 1,1 0 0,1 ${rI},0`}
@@ -210,6 +242,9 @@ const RingNodeHelper: INodeHelper<IRingNode> = {
       outerRadius: { value: 160, unit: "px" },
       strokeWidth: { value: 1, unit: "px" },
       strokeColor: { r: 0, g: 0, b: 0, a: 1 },
+      strokeDash: "",
+      strokeOffset: { value: 0, unit: "px" },
+      strokeCap: "butt",
       fillColor: null as Color,
 
       positionX: { value: 0, unit: "px" },

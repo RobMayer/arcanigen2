@@ -29,6 +29,7 @@ import { faSlash as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 import { faSlash as buttonIcon } from "@fortawesome/pro-light-svg-icons";
 
 import Checkbox from "!/components/buttons/Checkbox";
+import TextInput from "!/components/inputs/TextInput";
 
 interface ISegmentNode extends INodeDefinition {
    inputs: {
@@ -44,6 +45,7 @@ interface ISegmentNode extends INodeDefinition {
 
       strokeWidth: Length;
       strokeColor: Color;
+      strokeOffset: Length;
       fillColor: Color;
       strokeMarkStart: NodeRenderer;
       strokeMarkEnd: NodeRenderer;
@@ -74,7 +76,9 @@ interface ISegmentNode extends INodeDefinition {
       strokeColor: Color;
       strokeWidth: Length;
       fillColor: Color;
+      strokeDash: string;
       strokeCap: StrokeCapMode;
+      strokeOffset: Length;
       strokeMarkAlign: boolean;
 
       positionX: Length;
@@ -105,6 +109,8 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [strokeWidth, setStrokeWidth] = nodeHooks.useValueState(nodeId, "strokeWidth");
    const [strokeColor, setStrokeColor] = nodeHooks.useValueState(nodeId, "strokeColor");
    const [strokeCap, setStrokeCap] = nodeHooks.useValueState(nodeId, "strokeCap");
+   const [strokeDash, setStrokeDash] = nodeHooks.useValueState(nodeId, "strokeDash");
+   const [strokeOffset, setStrokeOffset] = nodeHooks.useValueState(nodeId, "strokeOffset");
 
    const [fillColor, setFillColor] = nodeHooks.useValueState(nodeId, "fillColor");
    const [strokeMarkAlign, setStrokeMarkAlign] = nodeHooks.useValueState(nodeId, "strokeMarkAlign");
@@ -119,8 +125,9 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const hasEndTheta = nodeHooks.useHasLink(nodeId, "endTheta");
 
    const hasStrokeWidth = nodeHooks.useHasLink(nodeId, "strokeWidth");
-   const hasFillColor = nodeHooks.useHasLink(nodeId, "fillColor");
+   const hasStrokeOffset = nodeHooks.useHasLink(nodeId, "strokeOffset");
    const hasStrokeColor = nodeHooks.useHasLink(nodeId, "strokeColor");
+   const hasFillColor = nodeHooks.useHasLink(nodeId, "fillColor");
 
    return (
       <BaseNode<ISegmentNode> nodeId={nodeId} helper={SegmentNodeHelper} hooks={nodeHooks}>
@@ -129,7 +136,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          </SocketOut>
          <hr />
 
-         <BaseNode.Foldout panelId={"startPoint"} label={"Start Point"} nodeId={nodeId} inputs={"startX startY startTheta startRadius"} outputs={""}>
+         <BaseNode.Foldout panelId={"startPoint"} label={"Start Point"} nodeId={nodeId} inputs={"startX startY startTheta startRadius"} outputs={""} startOpen>
             <BaseNode.Input label={"Position Mode"}>
                <ToggleList value={startMode} onValue={setStartMode} options={POSITION_MODES} />
             </BaseNode.Input>
@@ -155,7 +162,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             </SocketIn>
          </BaseNode.Foldout>
 
-         <BaseNode.Foldout panelId={"endPoint"} label={"End Point"} nodeId={nodeId} inputs={"endX endY endTheta endRadius"} outputs={""}>
+         <BaseNode.Foldout panelId={"endPoint"} label={"End Point"} nodeId={nodeId} inputs={"endX endY endTheta endRadius"} outputs={""} startOpen>
             <BaseNode.Input label={"Position Mode"}>
                <ToggleList value={endMode} onValue={setEndMode} options={POSITION_MODES} />
             </BaseNode.Input>
@@ -187,9 +194,22 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                   <LengthInput value={strokeWidth} onValidValue={setStrokeWidth} disabled={hasStrokeWidth} min={0} />
                </BaseNode.Input>
             </SocketIn>
+            <SocketIn<ISegmentNode> nodeId={nodeId} socketId={"strokeColor"} type={SocketTypes.COLOR}>
+               <BaseNode.Input label={"Stroke Color"}>
+                  <HexColorInput value={strokeColor} onValue={setStrokeColor} disabled={hasStrokeColor} />
+               </BaseNode.Input>
+            </SocketIn>
             <BaseNode.Input label={"Stroke Cap"}>
                <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODES} />
             </BaseNode.Input>
+            <BaseNode.Input label={"Stroke Dash"}>
+               <TextInput value={strokeDash} onValidValue={setStrokeDash} pattern={MathHelper.LENGTH_LIST_REGEX} />
+            </BaseNode.Input>
+            <SocketIn<ISegmentNode> nodeId={nodeId} socketId={"strokeOffset"} type={SocketTypes.LENGTH}>
+               <BaseNode.Input label={"Stroke Dash Offset"}>
+                  <LengthInput value={strokeOffset} onValidValue={setStrokeOffset} disabled={hasStrokeOffset} />
+               </BaseNode.Input>
+            </SocketIn>
             <SocketIn<ISegmentNode> nodeId={nodeId} socketId={"strokeMarkStart"} type={SocketTypes.SHAPE}>
                Marker Start
             </SocketIn>
@@ -199,11 +219,6 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             <Checkbox checked={strokeMarkAlign} onToggle={setStrokeMarkAlign}>
                Align Markers
             </Checkbox>
-            <SocketIn<ISegmentNode> nodeId={nodeId} socketId={"strokeColor"} type={SocketTypes.COLOR}>
-               <BaseNode.Input label={"Stroke Color"}>
-                  <HexColorInput value={strokeColor} onValue={setStrokeColor} disabled={hasStrokeColor} />
-               </BaseNode.Input>
-            </SocketIn>
             <SocketIn<ISegmentNode> nodeId={nodeId} socketId={"fillColor"} type={SocketTypes.COLOR}>
                <BaseNode.Input label={"Fill Color"}>
                   <HexColorInput value={fillColor} onValue={setFillColor} disabled={hasFillColor} />
@@ -233,7 +248,9 @@ const Renderer = memo(({ nodeId, depth, globals, overrides = {} }: NodeRendererP
    const strokeWidth = nodeHooks.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
    const strokeColor = nodeHooks.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
    const fillColor = nodeHooks.useCoalesce(nodeId, "fillColor", "fillColor", globals);
+   const strokeDash = nodeHooks.useValue(nodeId, "strokeDash");
    const strokeCap = nodeHooks.useValue(nodeId, "strokeCap");
+   const strokeOffset = nodeHooks.useCoalesce(nodeId, "strokeOffset", "strokeOffset", globals);
 
    const [MarkStart, msId] = nodeHooks.useInputNode(nodeId, "strokeMarkStart", globals);
    const [MarkEnd, meId] = nodeHooks.useInputNode(nodeId, "strokeMarkEnd", globals);
@@ -305,6 +322,10 @@ const Renderer = memo(({ nodeId, depth, globals, overrides = {} }: NodeRendererP
             fillOpacity={MathHelper.colorToOpacity("fillColor" in overrides ? overrides.fillColor : fillColor)}
             strokeWidth={Math.max(0, MathHelper.lengthToPx("strokeWidth" in overrides ? overrides.strokeWidth : strokeWidth))}
             strokeLinecap={"strokeCap" in overrides ? overrides.strokeCap : strokeCap}
+            strokeDashoffset={MathHelper.lengthToPx("strokeOffset" in overrides ? overrides.strokeOffset : strokeOffset)}
+            strokeDasharray={MathHelper.listToLengths("strokeDash" in overrides ? overrides.strokeDash : strokeDash)
+               .map(MathHelper.lengthToPx)
+               .join(" ")}
             markerStart={MarkStart && msId ? `url('#markstart_${nodeId}_lyr-${depth ?? ""}')` : undefined}
             markerEnd={MarkEnd && meId ? `url('#markend_${nodeId}_lyr-${depth ?? ""}')` : undefined}
          >
@@ -336,6 +357,8 @@ const SegmentNodeHelper: INodeHelper<ISegmentNode> = {
       endMode: "cartesian",
 
       strokeWidth: { value: 1, unit: "px" },
+      strokeDash: "",
+      strokeOffset: { value: 0, unit: "px" },
       strokeCap: "butt",
       strokeColor: { r: 0, g: 0, b: 0, a: 1 },
       fillColor: null as Color,

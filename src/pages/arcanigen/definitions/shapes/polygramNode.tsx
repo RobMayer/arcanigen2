@@ -16,6 +16,8 @@ import {
    SocketTypes,
    StrokeJoinMode,
    STROKEJOIN_MODES,
+   STROKECAP_MODES,
+   StrokeCapMode,
 } from "../types";
 import MathHelper from "!/utility/mathhelper";
 
@@ -31,6 +33,7 @@ import lodash from "lodash";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
 import { MetaPrefab, TransformPrefabs } from "../../nodeView/prefabs";
+import TextInput from "!/components/inputs/TextInput";
 
 interface IPolygramNode extends INodeDefinition {
    inputs: {
@@ -40,6 +43,7 @@ interface IPolygramNode extends INodeDefinition {
       thetaCurve: Curve;
       strokeWidth: Length;
       strokeColor: Color;
+      strokeOffset: Length;
       fillColor: Color;
 
       positionX: Length;
@@ -62,6 +66,9 @@ interface IPolygramNode extends INodeDefinition {
       pointCount: number;
       skipCount: number;
       strokeColor: Color;
+      strokeDash: string;
+      strokeCap: StrokeCapMode;
+      strokeOffset: Length;
       fillColor: Color;
 
       positionX: Length;
@@ -77,19 +84,24 @@ const nodeHooks = ArcaneGraph.nodeHooks<IPolygramNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [radius, setRadius] = nodeHooks.useValueState(nodeId, "radius");
-   const [strokeWidth, setStrokeWidth] = nodeHooks.useValueState(nodeId, "strokeWidth");
-   const [strokeColor, setStrokeColor] = nodeHooks.useValueState(nodeId, "strokeColor");
-   const [strokeJoin, setStrokeJoin] = nodeHooks.useValueState(nodeId, "strokeJoin");
-   const [fillColor, setFillColor] = nodeHooks.useValueState(nodeId, "fillColor");
    const [pointCount, setPointCount] = nodeHooks.useValueState(nodeId, "pointCount");
    const [skipCount, setSkipCount] = nodeHooks.useValueState(nodeId, "skipCount");
    const [rScribeMode, setRScribeMode] = nodeHooks.useValueState(nodeId, "rScribeMode");
+
+   const [strokeWidth, setStrokeWidth] = nodeHooks.useValueState(nodeId, "strokeWidth");
+   const [strokeColor, setStrokeColor] = nodeHooks.useValueState(nodeId, "strokeColor");
+   const [strokeJoin, setStrokeJoin] = nodeHooks.useValueState(nodeId, "strokeJoin");
+   const [strokeCap, setStrokeCap] = nodeHooks.useValueState(nodeId, "strokeCap");
+   const [strokeDash, setStrokeDash] = nodeHooks.useValueState(nodeId, "strokeDash");
+   const [strokeOffset, setStrokeOffset] = nodeHooks.useValueState(nodeId, "strokeOffset");
+   const [fillColor, setFillColor] = nodeHooks.useValueState(nodeId, "fillColor");
 
    const hasPointCount = nodeHooks.useHasLink(nodeId, "pointCount");
    const hasSkipCount = nodeHooks.useHasLink(nodeId, "skipCount");
    const hasRadius = nodeHooks.useHasLink(nodeId, "radius");
    const hasStrokeWidth = nodeHooks.useHasLink(nodeId, "strokeWidth");
    const hasStrokeColor = nodeHooks.useHasLink(nodeId, "strokeColor");
+   const hasStrokeOffset = nodeHooks.useHasLink(nodeId, "strokeOffset");
    const hasFillColor = nodeHooks.useHasLink(nodeId, "fillColor");
 
    useEffect(() => {
@@ -146,12 +158,23 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                   <LengthInput value={strokeWidth} onValidValue={setStrokeWidth} disabled={hasStrokeWidth} min={0} />
                </BaseNode.Input>
             </SocketIn>
-            <BaseNode.Input label={"Stroke Join"}>
-               <ToggleList value={strokeJoin} onValue={setStrokeJoin} options={STROKEJOIN_MODES} />
-            </BaseNode.Input>
             <SocketIn<IPolygramNode> nodeId={nodeId} socketId={"strokeColor"} type={SocketTypes.COLOR}>
                <BaseNode.Input label={"Stroke Color"}>
                   <HexColorInput value={strokeColor} onValue={setStrokeColor} disabled={hasStrokeColor} />
+               </BaseNode.Input>
+            </SocketIn>
+            <BaseNode.Input label={"Stroke Join"}>
+               <ToggleList value={strokeJoin} onValue={setStrokeJoin} options={STROKEJOIN_MODES} />
+            </BaseNode.Input>
+            <BaseNode.Input label={"Stroke Cap"}>
+               <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODES} />
+            </BaseNode.Input>
+            <BaseNode.Input label={"Stroke Dash"}>
+               <TextInput value={strokeDash} onValidValue={setStrokeDash} pattern={MathHelper.LENGTH_LIST_REGEX} />
+            </BaseNode.Input>
+            <SocketIn<IPolygramNode> nodeId={nodeId} socketId={"strokeOffset"} type={SocketTypes.LENGTH}>
+               <BaseNode.Input label={"Stroke Dash Offset"}>
+                  <LengthInput value={strokeOffset} onValidValue={setStrokeOffset} disabled={hasStrokeOffset} />
                </BaseNode.Input>
             </SocketIn>
             <SocketIn<IPolygramNode> nodeId={nodeId} socketId={"fillColor"} type={SocketTypes.COLOR}>
@@ -189,6 +212,9 @@ const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) =
    const strokeWidth = nodeHooks.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
    const strokeJoin = nodeHooks.useValue(nodeId, "strokeJoin");
    const strokeColor = nodeHooks.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
+   const strokeDash = nodeHooks.useValue(nodeId, "strokeDash");
+   const strokeCap = nodeHooks.useValue(nodeId, "strokeCap");
+   const strokeOffset = nodeHooks.useCoalesce(nodeId, "strokeOffset", "strokeOffset", globals);
    const fillColor = nodeHooks.useCoalesce(nodeId, "fillColor", "fillColor", globals);
 
    const positionMode = nodeHooks.useValue(nodeId, "positionMode");
@@ -227,6 +253,11 @@ const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) =
             fillOpacity={MathHelper.colorToOpacity("fillColor" in overrides ? overrides.fillColor : fillColor)}
             strokeWidth={Math.max(0, MathHelper.lengthToPx("strokeWidth" in overrides ? overrides.strokeWidth : strokeWidth))}
             strokeLinejoin={"strokeJoin" in overrides ? overrides.strokeJoin : strokeJoin}
+            strokeLinecap={"strokeCap" in overrides ? overrides.strokeCap : strokeCap}
+            strokeDashoffset={MathHelper.lengthToPx("strokeOffset" in overrides ? overrides.strokeOffset : strokeOffset)}
+            strokeDasharray={MathHelper.listToLengths("strokeDash" in overrides ? overrides.strokeDash : strokeDash)
+               .map(MathHelper.lengthToPx)
+               .join(" ")}
          >
             <polygon points={points} vectorEffect={"non-scaling-stroke"} />
          </g>
@@ -270,6 +301,9 @@ const PolygramNodeHelper: INodeHelper<IPolygramNode> = {
       strokeJoin: "miter",
       rScribeMode: "inscribe",
       strokeColor: { r: 0, g: 0, b: 0, a: 1 },
+      strokeDash: "",
+      strokeOffset: { value: 0, unit: "px" },
+      strokeCap: "butt",
       fillColor: null as Color,
 
       positionX: { value: 0, unit: "px" },

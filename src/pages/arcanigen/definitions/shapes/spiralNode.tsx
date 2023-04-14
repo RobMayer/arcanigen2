@@ -9,11 +9,11 @@ import {
    NodeRendererProps,
    NodeTypes,
    PositionMode,
-   SpanMode,
-   SPAN_MODES,
    SocketTypes,
    StrokeCapMode,
    STROKECAP_MODES,
+   RadialMode,
+   RADIAL_MODES,
 } from "../types";
 import MathHelper from "!/utility/mathhelper";
 
@@ -29,18 +29,20 @@ import lodash from "lodash";
 import faSpiral from "!/components/icons/faSpiral";
 import faSpiralLight from "!/components/icons/faSpiralLight";
 import Checkbox from "!/components/buttons/Checkbox";
+import TextInput from "!/components/inputs/TextInput";
 
 interface ISpiralNode extends INodeDefinition {
    inputs: {
       radius: Length;
-      spread: Length;
-      innerRadius: Length;
-      outerRadius: Length;
+      deviation: Length;
+      minorRadius: Length;
+      majorRadius: Length;
       thetaStart: number;
       thetaEnd: number;
 
       strokeWidth: Length;
       strokeColor: Color;
+      strokeOffset: Length;
       fillColor: Color;
       strokeMarkStart: NodeRenderer;
       strokeMarkEnd: NodeRenderer;
@@ -55,18 +57,20 @@ interface ISpiralNode extends INodeDefinition {
       output: NodeRenderer;
    };
    values: {
-      radialMode: SpanMode;
+      radialMode: RadialMode;
       radius: Length;
-      spread: Length;
-      innerRadius: Length;
-      outerRadius: Length;
+      deviation: Length;
+      minorRadius: Length;
+      majorRadius: Length;
       thetaStart: number;
       thetaEnd: number;
 
       strokeColor: Color;
       strokeWidth: Length;
       fillColor: Color;
+      strokeDash: string;
       strokeCap: StrokeCapMode;
+      strokeOffset: Length;
       strokeMarkAlign: boolean;
 
       positionX: Length;
@@ -82,10 +86,10 @@ const nodeHooks = ArcaneGraph.nodeHooks<ISpiralNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [radius, setRadius] = nodeHooks.useValueState(nodeId, "radius");
-   const [spread, setSpread] = nodeHooks.useValueState(nodeId, "spread");
+   const [deviation, setDeviation] = nodeHooks.useValueState(nodeId, "deviation");
    const [radialMode, setRadialMode] = nodeHooks.useValueState(nodeId, "radialMode");
-   const [innerRadius, setInnerRadius] = nodeHooks.useValueState(nodeId, "innerRadius");
-   const [outerRadius, setOuterRadius] = nodeHooks.useValueState(nodeId, "outerRadius");
+   const [minorRadius, setMinorRadius] = nodeHooks.useValueState(nodeId, "minorRadius");
+   const [majorRadius, setMajorRadius] = nodeHooks.useValueState(nodeId, "majorRadius");
 
    const [thetaStart, setThetaStart] = nodeHooks.useValueState(nodeId, "thetaStart");
    const [thetaEnd, setThetaEnd] = nodeHooks.useValueState(nodeId, "thetaEnd");
@@ -93,21 +97,24 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [strokeWidth, setStrokeWidth] = nodeHooks.useValueState(nodeId, "strokeWidth");
    const [strokeColor, setStrokeColor] = nodeHooks.useValueState(nodeId, "strokeColor");
    const [strokeCap, setStrokeCap] = nodeHooks.useValueState(nodeId, "strokeCap");
-
+   const [strokeDash, setStrokeDash] = nodeHooks.useValueState(nodeId, "strokeDash");
+   const [strokeOffset, setStrokeOffset] = nodeHooks.useValueState(nodeId, "strokeOffset");
    const [fillColor, setFillColor] = nodeHooks.useValueState(nodeId, "fillColor");
+
    const [strokeMarkAlign, setStrokeMarkAlign] = nodeHooks.useValueState(nodeId, "strokeMarkAlign");
 
    const hasThetaStart = nodeHooks.useHasLink(nodeId, "thetaStart");
    const hasThetaEnd = nodeHooks.useHasLink(nodeId, "thetaEnd");
 
-   const hasInnerRadius = nodeHooks.useHasLink(nodeId, "innerRadius");
-   const hasOuterRadius = nodeHooks.useHasLink(nodeId, "outerRadius");
+   const hasMinorRadius = nodeHooks.useHasLink(nodeId, "minorRadius");
+   const hasMajorRadius = nodeHooks.useHasLink(nodeId, "majorRadius");
    const hasRadius = nodeHooks.useHasLink(nodeId, "radius");
-   const hasSpread = nodeHooks.useHasLink(nodeId, "spread");
+   const hasDeviation = nodeHooks.useHasLink(nodeId, "deviation");
 
    const hasStrokeWidth = nodeHooks.useHasLink(nodeId, "strokeWidth");
-   const hasFillColor = nodeHooks.useHasLink(nodeId, "fillColor");
    const hasStrokeColor = nodeHooks.useHasLink(nodeId, "strokeColor");
+   const hasStrokeOffset = nodeHooks.useHasLink(nodeId, "strokeOffset");
+   const hasFillColor = nodeHooks.useHasLink(nodeId, "fillColor");
 
    return (
       <BaseNode<ISpiralNode> nodeId={nodeId} helper={SpiralNodeHelper} hooks={nodeHooks}>
@@ -116,26 +123,26 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          </SocketOut>
          <hr />
          <BaseNode.Input label={"Radial Mode"}>
-            <ToggleList value={radialMode} onValue={setRadialMode} options={SPAN_MODES} />
+            <ToggleList value={radialMode} onValue={setRadialMode} options={RADIAL_MODES} />
          </BaseNode.Input>
-         <SocketIn<ISpiralNode> nodeId={nodeId} socketId={"innerRadius"} type={SocketTypes.LENGTH}>
-            <BaseNode.Input label={"Inner Radius"}>
-               <LengthInput value={innerRadius} onValidValue={setInnerRadius} disabled={hasInnerRadius || radialMode === "spread"} />
+         <SocketIn<ISpiralNode> nodeId={nodeId} socketId={"majorRadius"} type={SocketTypes.LENGTH}>
+            <BaseNode.Input label={"Major Radius"}>
+               <LengthInput value={majorRadius} onValidValue={setMajorRadius} disabled={hasMajorRadius || radialMode === "deviation"} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<ISpiralNode> nodeId={nodeId} socketId={"outerRadius"} type={SocketTypes.LENGTH}>
-            <BaseNode.Input label={"Outer Radius"}>
-               <LengthInput value={outerRadius} onValidValue={setOuterRadius} disabled={hasOuterRadius || radialMode === "spread"} />
+         <SocketIn<ISpiralNode> nodeId={nodeId} socketId={"minorRadius"} type={SocketTypes.LENGTH}>
+            <BaseNode.Input label={"Minor Radius"}>
+               <LengthInput value={minorRadius} onValidValue={setMinorRadius} disabled={hasMinorRadius || radialMode === "deviation"} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<ISpiralNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
-               <LengthInput value={radius} onValidValue={setRadius} disabled={hasRadius || radialMode === "inout"} />
+               <LengthInput value={radius} onValidValue={setRadius} disabled={hasRadius || radialMode === "majorminor"} />
             </BaseNode.Input>
          </SocketIn>
-         <SocketIn<ISpiralNode> nodeId={nodeId} socketId={"spread"} type={SocketTypes.LENGTH}>
-            <BaseNode.Input label={"Spread"}>
-               <LengthInput value={spread} onValidValue={setSpread} disabled={hasSpread || radialMode === "inout"} />
+         <SocketIn<ISpiralNode> nodeId={nodeId} socketId={"deviation"} type={SocketTypes.LENGTH}>
+            <BaseNode.Input label={"Deviation"}>
+               <LengthInput value={deviation} onValidValue={setDeviation} disabled={hasDeviation || radialMode === "majorminor"} />
             </BaseNode.Input>
          </SocketIn>
          <hr />
@@ -156,9 +163,22 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                   <LengthInput value={strokeWidth} onValidValue={setStrokeWidth} disabled={hasStrokeWidth} min={0} />
                </BaseNode.Input>
             </SocketIn>
+            <SocketIn<ISpiralNode> nodeId={nodeId} socketId={"strokeColor"} type={SocketTypes.COLOR}>
+               <BaseNode.Input label={"Stroke Color"}>
+                  <HexColorInput value={strokeColor} onValue={setStrokeColor} disabled={hasStrokeColor} />
+               </BaseNode.Input>
+            </SocketIn>
             <BaseNode.Input label={"Stroke Cap"}>
                <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODES} />
             </BaseNode.Input>
+            <BaseNode.Input label={"Stroke Dash"}>
+               <TextInput value={strokeDash} onValidValue={setStrokeDash} pattern={MathHelper.LENGTH_LIST_REGEX} />
+            </BaseNode.Input>
+            <SocketIn<ISpiralNode> nodeId={nodeId} socketId={"strokeOffset"} type={SocketTypes.LENGTH}>
+               <BaseNode.Input label={"Stroke Dash Offset"}>
+                  <LengthInput value={strokeOffset} onValidValue={setStrokeOffset} disabled={hasStrokeOffset} />
+               </BaseNode.Input>
+            </SocketIn>
             <SocketIn<ISpiralNode> nodeId={nodeId} socketId={"strokeMarkStart"} type={SocketTypes.SHAPE}>
                Marker Start
             </SocketIn>
@@ -168,11 +188,6 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             <Checkbox checked={strokeMarkAlign} onToggle={setStrokeMarkAlign}>
                Align Markers
             </Checkbox>
-            <SocketIn<ISpiralNode> nodeId={nodeId} socketId={"strokeColor"} type={SocketTypes.COLOR}>
-               <BaseNode.Input label={"Stroke Color"}>
-                  <HexColorInput value={strokeColor} onValue={setStrokeColor} disabled={hasStrokeColor} />
-               </BaseNode.Input>
-            </SocketIn>
             <SocketIn<ISpiralNode> nodeId={nodeId} socketId={"fillColor"} type={SocketTypes.COLOR}>
                <BaseNode.Input label={"Fill Color"}>
                   <HexColorInput value={fillColor} onValue={setFillColor} disabled={hasFillColor} />
@@ -188,19 +203,21 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
 const Renderer = memo(({ nodeId, depth, globals, overrides = {} }: NodeRendererProps) => {
    const radialMode = nodeHooks.useValue(nodeId, "radialMode");
    const radius = nodeHooks.useCoalesce(nodeId, "radius", "radius", globals);
-   const spread = nodeHooks.useCoalesce(nodeId, "spread", "spread", globals);
-   const innerRadius = nodeHooks.useCoalesce(nodeId, "innerRadius", "innerRadius", globals);
-   const outerRadius = nodeHooks.useCoalesce(nodeId, "outerRadius", "outerRadius", globals);
+   const deviation = nodeHooks.useCoalesce(nodeId, "deviation", "deviation", globals);
+   const minorRadius = nodeHooks.useCoalesce(nodeId, "minorRadius", "minorRadius", globals);
+   const majorRadius = nodeHooks.useCoalesce(nodeId, "majorRadius", "majorRadius", globals);
 
    const thetaStart = nodeHooks.useCoalesce(nodeId, "thetaStart", "thetaStart", globals);
    const thetaEnd = nodeHooks.useCoalesce(nodeId, "thetaEnd", "thetaEnd", globals);
    const strokeWidth = nodeHooks.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
    const strokeColor = nodeHooks.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
    const fillColor = nodeHooks.useCoalesce(nodeId, "fillColor", "fillColor", globals);
-   const strokeCap = nodeHooks.useValue(nodeId, "strokeCap");
 
    const [MarkStart, msId] = nodeHooks.useInputNode(nodeId, "strokeMarkStart", globals);
    const [MarkEnd, meId] = nodeHooks.useInputNode(nodeId, "strokeMarkEnd", globals);
+   const strokeDash = nodeHooks.useValue(nodeId, "strokeDash");
+   const strokeCap = nodeHooks.useValue(nodeId, "strokeCap");
+   const strokeOffset = nodeHooks.useCoalesce(nodeId, "strokeOffset", "strokeOffset", globals);
    const strokeMarkAlign = nodeHooks.useValue(nodeId, "strokeMarkAlign");
 
    const positionMode = nodeHooks.useValue(nodeId, "positionMode");
@@ -210,8 +227,8 @@ const Renderer = memo(({ nodeId, depth, globals, overrides = {} }: NodeRendererP
    const positionRadius = nodeHooks.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
    const rotation = nodeHooks.useCoalesce(nodeId, "rotation", "rotation", globals);
 
-   const rI = radialMode === "inout" ? MathHelper.lengthToPx(innerRadius) : MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(spread) / 2;
-   const rO = radialMode === "inout" ? MathHelper.lengthToPx(outerRadius) : MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(spread) / 2;
+   const rI = radialMode === "majorminor" ? MathHelper.lengthToPx(minorRadius) : MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(deviation) / 2;
+   const rO = radialMode === "majorminor" ? MathHelper.lengthToPx(majorRadius) : MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(deviation) / 2;
 
    const pathD = useMemo(() => {
       const c = 2 + Math.floor(Math.abs(thetaEnd - thetaStart) / 10);
@@ -273,6 +290,10 @@ const Renderer = memo(({ nodeId, depth, globals, overrides = {} }: NodeRendererP
             fillOpacity={MathHelper.colorToOpacity("fillColor" in overrides ? overrides.fillColor : fillColor)}
             strokeWidth={Math.max(0, MathHelper.lengthToPx("strokeWidth" in overrides ? overrides.strokeWidth : strokeWidth))}
             strokeLinecap={"strokeCap" in overrides ? overrides.strokeCap : strokeCap}
+            strokeDashoffset={MathHelper.lengthToPx("strokeOffset" in overrides ? overrides.strokeOffset : strokeOffset)}
+            strokeDasharray={MathHelper.listToLengths("strokeDash" in overrides ? overrides.strokeDash : strokeDash)
+               .map(MathHelper.lengthToPx)
+               .join(" ")}
             markerStart={MarkStart && msId ? `url('#markstart_${nodeId}_lyr-${depth ?? ""}')` : undefined}
             markerEnd={MarkEnd && meId ? `url('#markend_${nodeId}_lyr-${depth ?? ""}')` : undefined}
          >
@@ -291,11 +312,13 @@ const SpiralNodeHelper: INodeHelper<ISpiralNode> = {
    getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof ISpiralNode["outputs"]) => Renderer,
    initialize: () => ({
       radius: { value: 150, unit: "px" },
-      innerRadius: { value: 120, unit: "px" },
-      outerRadius: { value: 180, unit: "px" },
-      spread: { value: 20, unit: "px" },
-      radialMode: "inout",
+      minorRadius: { value: 120, unit: "px" },
+      majorRadius: { value: 180, unit: "px" },
+      deviation: { value: 20, unit: "px" },
+      radialMode: "majorminor",
       strokeWidth: { value: 1, unit: "px" },
+      strokeDash: "",
+      strokeOffset: { value: 0, unit: "px" },
       strokeCap: "butt",
       strokeColor: { r: 0, g: 0, b: 0, a: 1 },
       fillColor: null as Color,
