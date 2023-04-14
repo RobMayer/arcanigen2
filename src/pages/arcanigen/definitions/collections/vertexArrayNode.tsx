@@ -29,6 +29,7 @@ import { SocketOut, SocketIn } from "../../nodeView/socket";
 import lodash from "lodash";
 import Checkbox from "!/components/buttons/Checkbox";
 import { TransformPrefabs } from "../../nodeView/prefabs";
+import TextInput from "!/components/inputs/TextInput";
 
 interface IVertexArrayNode extends INodeDefinition {
    inputs: {
@@ -48,6 +49,7 @@ interface IVertexArrayNode extends INodeDefinition {
       sequence: Sequence;
    };
    values: {
+      name: string;
       radius: Length;
       rScribeMode: ScribeMode;
       pointCount: number;
@@ -65,6 +67,7 @@ interface IVertexArrayNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<IVertexArrayNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [radius, setRadius] = nodeHelper.useValueState(nodeId, "radius");
    const [pointCount, setPointCount] = nodeHelper.useValueState(nodeId, "pointCount");
    const [rScribeMode, setRScribeMode] = nodeHelper.useValueState(nodeId, "rScribeMode");
@@ -74,7 +77,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const hasPointCount = nodeHelper.useHasLink(nodeId, "pointCount");
 
    return (
-      <BaseNode<IVertexArrayNode> nodeId={nodeId} helper={VertexArrayNodeHelper}>
+      <BaseNode<IVertexArrayNode> nodeId={nodeId} helper={VertexArrayNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<IVertexArrayNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -194,6 +200,7 @@ const VertexArrayNodeHelper: INodeHelper<IVertexArrayNode> = {
       }
    },
    initialize: () => ({
+      name: "",
       radius: { value: 100, unit: "px" },
       rScribeMode: "inscribe",
       pointCount: 5,

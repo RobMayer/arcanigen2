@@ -7,6 +7,7 @@ import { faPencilAlt as buttonIcon } from "@fortawesome/pro-light-svg-icons";
 import NumberInput from "!/components/inputs/NumberInput";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
+import TextInput from "!/components/inputs/TextInput";
 
 interface IPencilEffectNode extends INodeDefinition {
    inputs: {
@@ -17,6 +18,7 @@ interface IPencilEffectNode extends INodeDefinition {
       output: NodeRenderer;
    };
    values: {
+      name: string;
       seed: number;
    };
 }
@@ -24,12 +26,16 @@ interface IPencilEffectNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<IPencilEffectNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [seed, setSeed] = nodeHelper.useValueState(nodeId, "seed");
 
    const hasSeed = nodeHelper.useHasLink(nodeId, "seed");
 
    return (
-      <BaseNode<IPencilEffectNode> nodeId={nodeId} helper={PencilEffectNodeHelper}>
+      <BaseNode<IPencilEffectNode> nodeId={nodeId} helper={PencilEffectNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<IPencilEffectNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -77,6 +83,7 @@ const PencilEffectNodeHelper: INodeHelper<IPencilEffectNode> = {
    type: NodeTypes.EFFECT_PENCIL,
    getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IPencilEffectNode["outputs"]) => Renderer,
    initialize: () => ({
+      name: "",
       seed: Math.floor(Math.random() * 1000),
    }),
    controls: Controls,

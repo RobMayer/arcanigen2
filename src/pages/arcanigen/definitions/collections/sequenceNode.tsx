@@ -27,6 +27,7 @@ import { SocketOut, SocketIn } from "../../nodeView/socket";
 import styled from "styled-components";
 import lodash from "lodash";
 import ToggleList from "!/components/selectors/ToggleList";
+import TextInput from "!/components/inputs/TextInput";
 
 interface ISequencerNode extends INodeDefinition {
    inputs: {
@@ -38,6 +39,7 @@ interface ISequencerNode extends INodeDefinition {
       output: NodeRenderer;
    };
    values: {
+      name: string;
       sockets: string[];
       mode: SequenceMode;
    };
@@ -46,6 +48,7 @@ interface ISequencerNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<ISequencerNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [node, setNode, setGraph] = nodeHelper.useAlterNode(nodeId);
    const [mode, setMode] = nodeHelper.useValueState(nodeId, "mode");
 
@@ -101,7 +104,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    );
 
    return (
-      <BaseNode<ISequencerNode> nodeId={nodeId} helper={SequencerNodeHelper}>
+      <BaseNode<ISequencerNode> nodeId={nodeId} helper={SequencerNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<ISequencerNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -193,6 +199,7 @@ const SequencerNodeHelper: INodeHelper<ISequencerNode> = {
    initialize: () => {
       const socketId = uuid();
       return {
+         name: "",
          sockets: [socketId],
          mode: "wrap",
          in: {

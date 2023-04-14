@@ -29,6 +29,7 @@ import lodash from "lodash";
 import faSpiral from "!/components/icons/faSpiral";
 import faSpiralLight from "!/components/icons/faSpiralLight";
 import Checkbox from "!/components/buttons/Checkbox";
+import TextInput from "!/components/inputs/TextInput";
 
 interface ISpiralNode extends INodeDefinition {
    inputs: {
@@ -55,6 +56,7 @@ interface ISpiralNode extends INodeDefinition {
       output: NodeRenderer;
    };
    values: {
+      name: string;
       radialMode: SpanMode;
       radius: Length;
       spread: Length;
@@ -81,6 +83,7 @@ interface ISpiralNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<ISpiralNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [radius, setRadius] = nodeHelper.useValueState(nodeId, "radius");
    const [spread, setSpread] = nodeHelper.useValueState(nodeId, "spread");
    const [radialMode, setRadialMode] = nodeHelper.useValueState(nodeId, "radialMode");
@@ -110,7 +113,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const hasStrokeColor = nodeHelper.useHasLink(nodeId, "strokeColor");
 
    return (
-      <BaseNode<ISpiralNode> nodeId={nodeId} helper={SpiralNodeHelper}>
+      <BaseNode<ISpiralNode> nodeId={nodeId} helper={SpiralNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<ISpiralNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -150,7 +156,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             </BaseNode.Input>
          </SocketIn>
          <hr />
-         <BaseNode.Foldout label={"Appearance"} nodeId={nodeId} inputs={"strokeWidth strokeColor fillColor"} outputs={""}>
+         <BaseNode.Foldout panelId={"appearance"} label={"Appearance"} nodeId={nodeId} inputs={"strokeWidth strokeColor fillColor"} outputs={""}>
             <SocketIn<ISpiralNode> nodeId={nodeId} socketId={"strokeWidth"} type={SocketTypes.LENGTH}>
                <BaseNode.Input label={"Stroke Width"}>
                   <LengthInput value={strokeWidth} onValidValue={setStrokeWidth} disabled={hasStrokeWidth} min={0} />
@@ -289,6 +295,7 @@ const SpiralNodeHelper: INodeHelper<ISpiralNode> = {
    type: NodeTypes.SHAPE_SPIRAL,
    getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof ISpiralNode["outputs"]) => Renderer,
    initialize: () => ({
+      name: "",
       radius: { value: 150, unit: "px" },
       innerRadius: { value: 120, unit: "px" },
       outerRadius: { value: 180, unit: "px" },

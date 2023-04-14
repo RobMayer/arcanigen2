@@ -7,6 +7,7 @@ import { faMinus as buttonIcon } from "@fortawesome/pro-light-svg-icons";
 import NumberInput from "!/components/inputs/NumberInput";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
+import TextInput from "!/components/inputs/TextInput";
 
 interface IMathSubNode extends INodeDefinition {
    inputs: {
@@ -17,6 +18,7 @@ interface IMathSubNode extends INodeDefinition {
       result: number;
    };
    values: {
+      name: string;
       a: number;
       b: number;
    };
@@ -25,6 +27,7 @@ interface IMathSubNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<IMathSubNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [a, setA] = nodeHelper.useValueState(nodeId, "a");
    const [b, setB] = nodeHelper.useValueState(nodeId, "b");
    const aIn = nodeHelper.useInput(nodeId, "aIn", globals);
@@ -32,7 +35,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const hasA = nodeHelper.useHasLink(nodeId, "aIn");
    const hasB = nodeHelper.useHasLink(nodeId, "bIn");
    return (
-      <BaseNode<IMathSubNode> nodeId={nodeId} helper={MathSubNodeHelper}>
+      <BaseNode<IMathSubNode> nodeId={nodeId} helper={MathSubNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<IMathSubNode> nodeId={nodeId} socketId={"result"} type={SocketTypes.FLOAT}>
             <BaseNode.Output label={"Result"}>{(hasA ? aIn : a) - (hasB ? bIn : b)}</BaseNode.Output>
          </SocketOut>
@@ -65,6 +71,7 @@ const MathSubNodeHelper: INodeHelper<IMathSubNode> = {
       return a - b;
    },
    initialize: () => ({
+      name: "",
       a: 0,
       b: 0,
    }),

@@ -28,6 +28,7 @@ import ToggleList from "!/components/selectors/ToggleList";
 import TextArea from "!/components/inputs/TextArea";
 import styled from "styled-components";
 import { TransformPrefabs } from "../../nodeView/prefabs";
+import TextInput from "!/components/inputs/TextInput";
 
 interface IGlyphNode extends INodeDefinition {
    inputs: {
@@ -46,6 +47,7 @@ interface IGlyphNode extends INodeDefinition {
       output: NodeRenderer;
    };
    values: {
+      name: string;
       radius: Length;
       path: string;
       strokeWidth: Length;
@@ -66,6 +68,7 @@ interface IGlyphNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<IGlyphNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [path, setPath] = nodeHelper.useValueState(nodeId, "path");
    const [radius, setRadius] = nodeHelper.useValueState(nodeId, "radius");
    const [strokeWidth, setStrokeWidth] = nodeHelper.useValueState(nodeId, "strokeWidth");
@@ -80,7 +83,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const hasFillColor = nodeHelper.useHasLink(nodeId, "fillColor");
 
    return (
-      <BaseNode<IGlyphNode> nodeId={nodeId} helper={GlyphNodeHelper}>
+      <BaseNode<IGlyphNode> nodeId={nodeId} helper={GlyphNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<IGlyphNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -92,7 +98,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                </g>
             </Preview>
          </BaseNode.Input>
-         <BaseNode.Foldout label={"Custom Path"} inputs={""} nodeId={nodeId} outputs={""}>
+         <BaseNode.Foldout panelId={"pathDef"} label={"Custom Path"} inputs={""} nodeId={nodeId} outputs={""}>
             <div>Expected value is the 'd' attribute of an SVG Path with a vewbox of 512x512.</div>
             <TextArea className={"auto tall"} value={path} onValidCommit={setPath} />
          </BaseNode.Foldout>
@@ -102,7 +108,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             </BaseNode.Input>
          </SocketIn>
          <hr />
-         <BaseNode.Foldout label={"Appearance"} inputs={"strokeWidth strokeColor fillColor"} nodeId={nodeId} outputs={""}>
+         <BaseNode.Foldout panelId={"appearance"} label={"Appearance"} inputs={"strokeWidth strokeColor fillColor"} nodeId={nodeId} outputs={""}>
             <SocketIn<IGlyphNode> nodeId={nodeId} socketId={"strokeWidth"} type={SocketTypes.LENGTH}>
                <BaseNode.Input label={"Stroke Width"}>
                   <LengthInput value={strokeWidth} onValidValue={setStrokeWidth} disabled={hasStrokeWidth} min={0} />
@@ -181,6 +187,7 @@ const GlyphNodeHelper: INodeHelper<IGlyphNode> = {
    type: NodeTypes.SHAPE_GLYPH,
    getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IGlyphNode["outputs"]) => Renderer,
    initialize: () => ({
+      name: "",
       path: "",
       radius: { value: 100, unit: "px" },
       strokeWidth: { value: 0, unit: "px" },

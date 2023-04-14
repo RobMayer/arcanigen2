@@ -32,6 +32,7 @@ import Checkbox from "!/components/buttons/Checkbox";
 import ToggleList from "!/components/selectors/ToggleList";
 import { TransformPrefabs } from "../../nodeView/prefabs";
 import AngleInput from "!/components/inputs/AngleInput";
+import TextInput from "!/components/inputs/TextInput";
 
 interface ISpiralArrayNode extends INodeDefinition {
    inputs: {
@@ -58,6 +59,7 @@ interface ISpiralArrayNode extends INodeDefinition {
       sequence: Sequence;
    };
    values: {
+      name: string;
       pointCount: number;
       isRotating: boolean;
       radialMode: SpanMode;
@@ -83,6 +85,7 @@ interface ISpiralArrayNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<ISpiralArrayNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [pointCount, setPointCount] = nodeHelper.useValueState(nodeId, "pointCount");
    const [isRotating, setIsRotating] = nodeHelper.useValueState(nodeId, "isRotating");
 
@@ -109,7 +112,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const hasSpread = nodeHelper.useHasLink(nodeId, "spread");
 
    return (
-      <BaseNode<ISpiralArrayNode> nodeId={nodeId} helper={SpiralArrayNodeHelper}>
+      <BaseNode<ISpiralArrayNode> nodeId={nodeId} helper={SpiralArrayNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<ISpiralArrayNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -321,6 +327,7 @@ const SpiralArrayNodeHelper: INodeHelper<ISpiralArrayNode> = {
       }
    },
    initialize: () => ({
+      name: "",
       pointCount: 5,
       isRotating: true,
       radius: { value: 150, unit: "px" },

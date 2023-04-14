@@ -31,6 +31,7 @@ import lodash from "lodash";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
 import { TransformPrefabs } from "../../nodeView/prefabs";
+import TextInput from "!/components/inputs/TextInput";
 
 interface IPolygramNode extends INodeDefinition {
    inputs: {
@@ -55,6 +56,7 @@ interface IPolygramNode extends INodeDefinition {
       rMiddle: Length;
    };
    values: {
+      name: string;
       radius: Length;
       rScribeMode: ScribeMode;
       strokeWidth: Length;
@@ -76,6 +78,7 @@ interface IPolygramNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<IPolygramNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [radius, setRadius] = nodeHelper.useValueState(nodeId, "radius");
    const [strokeWidth, setStrokeWidth] = nodeHelper.useValueState(nodeId, "strokeWidth");
    const [strokeColor, setStrokeColor] = nodeHelper.useValueState(nodeId, "strokeColor");
@@ -106,7 +109,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    }, [pointCount, setSkipCount]);
 
    return (
-      <BaseNode<IPolygramNode> nodeId={nodeId} helper={PolygramNodeHelper}>
+      <BaseNode<IPolygramNode> nodeId={nodeId} helper={PolygramNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<IPolygramNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -140,7 +146,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          </SocketIn>
 
          <hr />
-         <BaseNode.Foldout label={"Appearance"} inputs={"strokeWidth strokeColor fillColor"} nodeId={nodeId} outputs={""}>
+         <BaseNode.Foldout panelId={"appearance"} label={"Appearance"} inputs={"strokeWidth strokeColor fillColor"} nodeId={nodeId} outputs={""}>
             <SocketIn<IPolygramNode> nodeId={nodeId} socketId={"strokeWidth"} type={SocketTypes.LENGTH}>
                <BaseNode.Input label={"Stroke Width"}>
                   <LengthInput value={strokeWidth} onValidValue={setStrokeWidth} disabled={hasStrokeWidth} min={0} />
@@ -161,7 +167,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             </SocketIn>
          </BaseNode.Foldout>
          <TransformPrefabs.Full<IPolygramNode> nodeId={nodeId} nodeHelper={nodeHelper} />
-         <BaseNode.Foldout label={"Additional Outputs"} inputs={""} outputs={"rTangents rPoints rMiddle"} nodeId={nodeId}>
+         <BaseNode.Foldout panelId={"moreOutputs"} label={"Additional Outputs"} inputs={""} outputs={"rTangents rPoints rMiddle"} nodeId={nodeId}>
             <SocketOut<IPolygramNode> nodeId={nodeId} socketId={"rTangents"} type={SocketTypes.LENGTH}>
                Tangents Radius
             </SocketOut>
@@ -262,6 +268,7 @@ const PolygramNodeHelper: INodeHelper<IPolygramNode> = {
       }
    },
    initialize: () => ({
+      name: "",
       radius: { value: 100, unit: "px" },
       strokeWidth: { value: 1, unit: "px" },
       pointCount: 5,

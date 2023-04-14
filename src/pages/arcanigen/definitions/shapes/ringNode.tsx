@@ -24,6 +24,7 @@ import { Length, Color } from "!/utility/types/units";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
 import { TransformPrefabs } from "../../nodeView/prefabs";
+import TextInput from "!/components/inputs/TextInput";
 
 interface IRingNode extends INodeDefinition {
    inputs: {
@@ -44,6 +45,7 @@ interface IRingNode extends INodeDefinition {
       output: NodeRenderer;
    };
    values: {
+      name: string;
       spanMode: SpanMode;
       radius: Length;
       spread: Length;
@@ -65,6 +67,7 @@ interface IRingNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<IRingNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [radius, setRadius] = nodeHelper.useValueState(nodeId, "radius");
    const [spread, setSpread] = nodeHelper.useValueState(nodeId, "spread");
    const [spreadAlignMode, setSpreadAlignMode] = nodeHelper.useValueState(nodeId, "spreadAlignMode");
@@ -83,7 +86,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const hasFillColor = nodeHelper.useHasLink(nodeId, "fillColor");
 
    return (
-      <BaseNode<IRingNode> nodeId={nodeId} helper={RingNodeHelper}>
+      <BaseNode<IRingNode> nodeId={nodeId} helper={RingNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<IRingNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -115,7 +121,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             <ToggleList value={spreadAlignMode} onValue={setSpreadAlignMode} options={SPREAD_ALIGN_MODES} disabled={spanMode === "inout"} />
          </BaseNode.Input>
          <hr />
-         <BaseNode.Foldout label={"Appearance"} nodeId={nodeId} inputs={"strokeWidth strokeColor fillColor"} outputs={""}>
+         <BaseNode.Foldout panelId={"appearance"} label={"Appearance"} nodeId={nodeId} inputs={"strokeWidth strokeColor fillColor"} outputs={""}>
             <SocketIn<IRingNode> nodeId={nodeId} socketId={"strokeWidth"} type={SocketTypes.LENGTH}>
                <BaseNode.Input label={"Stroke Width"}>
                   <LengthInput value={strokeWidth} onValidValue={setStrokeWidth} disabled={hasStrokeWidth} min={0} />
@@ -201,6 +207,7 @@ const RingNodeHelper: INodeHelper<IRingNode> = {
    type: NodeTypes.SHAPE_RING,
    getOutput: () => Renderer,
    initialize: () => ({
+      name: "",
       radius: { value: 150, unit: "px" },
       spread: { value: 20, unit: "px" },
       spreadAlignMode: "center",

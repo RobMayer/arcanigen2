@@ -4,9 +4,7 @@ import {
    NodeRenderer,
    INodeHelper,
    NodeTypes,
-   BlendMode,
    INodeInstance,
-   BLEND_MODES,
    SocketTypes,
    NodeRendererProps,
    ControlRendererProps,
@@ -22,17 +20,18 @@ import ObjHelper from "!/utility/objHelper";
 import ActionButton from "!/components/buttons/ActionButton";
 import IconButton from "!/components/buttons/IconButton";
 import Icon from "!/components/icons";
-import Dropdown from "!/components/selectors/Dropdown";
 import BaseNode from "../../nodeView/node";
 import { SocketIn, SocketOut } from "../../nodeView/socket";
 import styled from "styled-components";
 import NumberInput from "!/components/inputs/NumberInput";
+import TextInput from "!/components/inputs/TextInput";
 
 interface IPortalInNode extends INodeDefinition {
    inputs: {
       [key: string]: NodeRenderer;
    };
    values: {
+      name: string;
       sockets: string[];
       channels: {
          [key: string]: number;
@@ -47,6 +46,7 @@ interface IPortalInNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<IPortalInNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [node, setNode, setGraph] = nodeHelper.useAlterNode(nodeId);
 
    const addChannel = useCallback(() => {
@@ -127,7 +127,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    );
 
    return (
-      <BaseNode<IPortalInNode> nodeId={nodeId} helper={PortalInNodeHelper}>
+      <BaseNode<IPortalInNode> nodeId={nodeId} helper={PortalInNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<IPortalInNode> nodeId={nodeId} socketId={"portalBus"} type={SocketTypes.PORTAL}>
             Portal Bus
          </SocketOut>
@@ -226,6 +229,7 @@ const PortalInNodeHelper: INodeHelper<IPortalInNode> = {
    initialize: () => {
       const socketId = uuid();
       return {
+         name: "",
          sockets: [socketId],
          in: {
             [socketId]: null,

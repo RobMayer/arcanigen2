@@ -7,6 +7,7 @@ import { faValueAbsolute as buttonIcon } from "@fortawesome/pro-light-svg-icons"
 import NumberInput from "!/components/inputs/NumberInput";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
+import TextInput from "!/components/inputs/TextInput";
 
 interface IMathAbsNode extends INodeDefinition {
    inputs: {
@@ -16,6 +17,7 @@ interface IMathAbsNode extends INodeDefinition {
       result: number;
    };
    values: {
+      name: string;
       a: number;
    };
 }
@@ -23,11 +25,15 @@ interface IMathAbsNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<IMathAbsNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [a, setA] = nodeHelper.useValueState(nodeId, "a");
    const aIn = nodeHelper.useInput(nodeId, "aIn", globals);
    const hasA = nodeHelper.useHasLink(nodeId, "aIn");
    return (
       <BaseNode<IMathAbsNode> nodeId={nodeId} helper={MathAbsNodeHelper}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<IMathAbsNode> nodeId={nodeId} socketId={"result"} type={SocketTypes.FLOAT}>
             <BaseNode.Output label={"Result"}>{hasA ? aIn : a}</BaseNode.Output>
          </SocketOut>
@@ -54,6 +60,7 @@ const MathAbsNodeHelper: INodeHelper<IMathAbsNode> = {
       return Math.abs(a);
    },
    initialize: () => ({
+      name: "",
       a: 0,
    }),
    controls: Controls,

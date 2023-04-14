@@ -28,6 +28,7 @@ import HexColorInput from "!/components/inputs/colorHexInput";
 import Dropdown from "!/components/selectors/Dropdown";
 import SliderInput from "!/components/inputs/SliderInput";
 import Checkbox from "!/components/buttons/Checkbox";
+import TextInput from "!/components/inputs/TextInput";
 
 interface ILerpColorNode extends INodeDefinition {
    inputs: {
@@ -41,6 +42,7 @@ interface ILerpColorNode extends INodeDefinition {
       value: Color;
    };
    values: {
+      name: string;
       from: Color;
       to: Color;
       percent: number;
@@ -53,6 +55,7 @@ interface ILerpColorNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<ILerpColorNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [from, setFrom] = nodeHelper.useValueState(nodeId, "from");
    const [to, setTo] = nodeHelper.useValueState(nodeId, "to");
    const [percent, setPercent] = nodeHelper.useValueState(nodeId, "percent");
@@ -66,7 +69,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [hueMode, setHueMode] = nodeHelper.useValueState(nodeId, "hueMode");
 
    return (
-      <BaseNode<ILerpColorNode> nodeId={nodeId} helper={LerpColorNodeHelper}>
+      <BaseNode<ILerpColorNode> nodeId={nodeId} helper={LerpColorNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<ILerpColorNode> socketId={"value"} nodeId={nodeId} type={SocketTypes.COLOR}>
             <BaseNode.Output label={"Value"}>
                {hasSequence ? (
@@ -150,6 +156,7 @@ const LerpColorNodeHelper: INodeHelper<ILerpColorNode> = {
    type: NodeTypes.LERP_COLOR,
    getOutput,
    initialize: () => ({
+      name: "",
       from: { r: 0, g: 0, b: 0, a: 1 },
       to: { r: 1, g: 1, b: 1, a: 1 },
       percent: 0,

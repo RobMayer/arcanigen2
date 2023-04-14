@@ -32,6 +32,7 @@ import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
 import { TransformPrefabs } from "../../nodeView/prefabs";
 import AngleInput from "!/components/inputs/AngleInput";
+import TextInput from "!/components/inputs/TextInput";
 
 interface IBurstNode extends INodeDefinition {
    inputs: {
@@ -60,6 +61,7 @@ interface IBurstNode extends INodeDefinition {
       output: NodeRenderer;
    };
    values: {
+      name: string;
       radialMode: RadialMode;
       thetaMode: ThetaMode;
       thetaStart: number;
@@ -89,6 +91,7 @@ interface IBurstNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<IBurstNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [radius, setRadius] = nodeHelper.useValueState(nodeId, "radius");
    const [deviation, setDeviation] = nodeHelper.useValueState(nodeId, "deviation");
    const [radialMode, setRadialMode] = nodeHelper.useValueState(nodeId, "radialMode");
@@ -122,7 +125,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const hasStrokeColor = nodeHelper.useHasLink(nodeId, "strokeColor");
 
    return (
-      <BaseNode<IBurstNode> nodeId={nodeId} helper={BurstNodeHelper}>
+      <BaseNode<IBurstNode> nodeId={nodeId} helper={BurstNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<IBurstNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -181,7 +187,13 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             θ Distribution
          </SocketIn>
          <hr />
-         <BaseNode.Foldout label={"Appearance"} nodeId={nodeId} inputs={"strokeWidth strokeColor fillColor strokeMarkStart strokeMarkEnd"} outputs={""}>
+         <BaseNode.Foldout
+            panelId={"appearance"}
+            label={"Appearance"}
+            nodeId={nodeId}
+            inputs={"strokeWidth strokeColor fillColor strokeMarkStart strokeMarkEnd"}
+            outputs={""}
+         >
             <SocketIn<IBurstNode> nodeId={nodeId} socketId={"strokeWidth"} type={SocketTypes.LENGTH}>
                <BaseNode.Input label={"Stroke Width"}>
                   <LengthInput value={strokeWidth} onValidValue={setStrokeWidth} disabled={hasStrokeWidth} min={0} />
@@ -320,6 +332,7 @@ const BurstNodeHelper: INodeHelper<IBurstNode> = {
    type: NodeTypes.SHAPE_BURST,
    getOutput: () => Renderer,
    initialize: () => ({
+      name: "",
       radius: { value: 150, unit: "px" },
       deviation: { value: 20, unit: "px" },
       radialMode: "majorminor",

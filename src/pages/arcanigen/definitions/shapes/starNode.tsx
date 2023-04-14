@@ -33,6 +33,7 @@ import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
 import { TransformPrefabs } from "../../nodeView/prefabs";
 import Dropdown from "!/components/selectors/Dropdown";
+import TextInput from "!/components/inputs/TextInput";
 
 interface IStarNode extends INodeDefinition {
    inputs: {
@@ -71,6 +72,7 @@ interface IStarNode extends INodeDefinition {
       iMiddle: Length;
    };
    values: {
+      name: string;
       radius: Length;
       deviation: Length;
       radialMode: RadialMode;
@@ -101,6 +103,7 @@ interface IStarNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<IStarNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [pointCount, setPointCount] = nodeHelper.useValueState(nodeId, "pointCount");
    const [radius, setRadius] = nodeHelper.useValueState(nodeId, "radius");
    const [deviation, setDeviation] = nodeHelper.useValueState(nodeId, "deviation");
@@ -131,7 +134,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const hasCusping = nodeHelper.useHasLink(nodeId, "cusping");
 
    return (
-      <BaseNode<IStarNode> nodeId={nodeId} helper={StarNodeHelper}>
+      <BaseNode<IStarNode> nodeId={nodeId} helper={StarNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<IStarNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -182,7 +188,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          </SocketIn>
 
          <hr />
-         <BaseNode.Foldout label={"Appearance"} nodeId={nodeId} inputs={"strokeWidth strokeColor fillColor"} outputs={""}>
+         <BaseNode.Foldout panelId={"appearance"} label={"Appearance"} nodeId={nodeId} inputs={"strokeWidth strokeColor fillColor"} outputs={""}>
             <SocketIn<IStarNode> nodeId={nodeId} socketId={"strokeWidth"} type={SocketTypes.LENGTH}>
                <BaseNode.Input label={"Stroke Width"}>
                   <LengthInput value={strokeWidth} onValidValue={setStrokeWidth} disabled={hasStrokeWidth} min={0} />
@@ -204,6 +210,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          </BaseNode.Foldout>
          <TransformPrefabs.Full<IStarNode> nodeId={nodeId} nodeHelper={nodeHelper} />
          <BaseNode.Foldout
+            panelId={"moreOutputs"}
             label={"Additional Outputs"}
             inputs={""}
             outputs={"cInscribe cCircumscribe cMiddle oInscribe oCircumscribe oMiddle iInscribe iCircumscribe iMiddle"}
@@ -429,6 +436,7 @@ const StarNodeHelper: INodeHelper<IStarNode> = {
       }
    },
    initialize: () => ({
+      name: "",
       radius: { value: 110, unit: "px" },
       deviation: { value: 50, unit: "px" },
       radialMode: "majorminor",

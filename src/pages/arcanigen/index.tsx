@@ -33,7 +33,13 @@ const ArcanigenPage = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) => {
 
 export default ArcanigenPage;
 
-type UploadJson = { version: string; nodes: IArcaneGraph["nodes"]; links: IArcaneGraph["links"]; positions: { [key: string]: { x: number; y: number } } };
+type UploadJson = {
+   version: string;
+   nodes: IArcaneGraph["nodes"];
+   links: IArcaneGraph["links"];
+   positions: { [key: string]: { x: number; y: number } };
+   toggles: { [key: string]: { node: boolean; [key: string]: boolean } };
+};
 
 const handleUpload = (element: HTMLInputElement, file: File, dispatch: (value: UploadJson) => void) => {
    if (file) {

@@ -19,6 +19,7 @@ import SliderInput from "!/components/inputs/SliderInput";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
 import lodash from "lodash";
+import TextInput from "!/components/inputs/TextInput";
 
 interface IRepeatArrayNode extends INodeDefinition {
    inputs: {
@@ -30,6 +31,7 @@ interface IRepeatArrayNode extends INodeDefinition {
       sequence: Sequence;
    };
    values: {
+      name: string;
       iterationCount: number;
    };
 }
@@ -37,12 +39,16 @@ interface IRepeatArrayNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<IRepeatArrayNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [iterationCount, setIterationCount] = nodeHelper.useValueState(nodeId, "iterationCount");
 
    const hasIterationCount = nodeHelper.useHasLink(nodeId, "iterationCount");
 
    return (
-      <BaseNode<IRepeatArrayNode> nodeId={nodeId} helper={RepeatArrayNodeHelper}>
+      <BaseNode<IRepeatArrayNode> nodeId={nodeId} helper={RepeatArrayNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<IRepeatArrayNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -126,6 +132,7 @@ const RepeatArrayNodeHelper: INodeHelper<IRepeatArrayNode> = {
       }
    },
    initialize: () => ({
+      name: "",
       iterationCount: 1,
    }),
    controls: Controls,

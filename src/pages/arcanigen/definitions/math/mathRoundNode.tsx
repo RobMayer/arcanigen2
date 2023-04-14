@@ -7,6 +7,7 @@ import Dropdown from "!/components/selectors/Dropdown";
 import BaseNode from "../../nodeView/node";
 import { SocketIn, SocketOut } from "../../nodeView/socket";
 import MathHelper from "!/utility/mathhelper";
+import TextInput from "!/components/inputs/TextInput";
 
 interface IMathRndNode extends INodeDefinition {
    inputs: {
@@ -16,6 +17,7 @@ interface IMathRndNode extends INodeDefinition {
       output: number;
    };
    values: {
+      name: string;
       roundingMode: RoundingMode;
    };
 }
@@ -23,10 +25,14 @@ interface IMathRndNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<IMathRndNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [roundingMode, setRoundingMode] = nodeHelper.useValueState(nodeId, "roundingMode");
 
    return (
-      <BaseNode<IMathRndNode> nodeId={nodeId} helper={MathRndNodeHelper}>
+      <BaseNode<IMathRndNode> nodeId={nodeId} helper={MathRndNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketIn<IMathRndNode> nodeId={nodeId} socketId={"input"} type={SocketTypes.NUMBER}>
             Value
          </SocketIn>
@@ -56,6 +62,7 @@ const MathRndNodeHelper: INodeHelper<IMathRndNode> = {
    type: NodeTypes.MATH_RND,
    getOutput,
    initialize: () => ({
+      name: "",
       roundingMode: "nearestUp",
    }),
    controls: Controls,

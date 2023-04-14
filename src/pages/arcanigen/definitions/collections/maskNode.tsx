@@ -8,6 +8,7 @@ import Checkbox from "!/components/buttons/Checkbox";
 import ToggleList from "!/components/selectors/ToggleList";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
+import TextInput from "!/components/inputs/TextInput";
 
 interface IMaskNode extends INodeDefinition {
    inputs: {
@@ -18,6 +19,7 @@ interface IMaskNode extends INodeDefinition {
       output: NodeRenderer;
    };
    values: {
+      name: string;
       mode: "alpha" | "luminance";
       display: boolean;
       invert: boolean;
@@ -27,12 +29,16 @@ interface IMaskNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<IMaskNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [display, setDisplay] = nodeHelper.useValueState(nodeId, "display");
    const [invert, setInvert] = nodeHelper.useValueState(nodeId, "invert");
    const [mode, setMode] = nodeHelper.useValueState(nodeId, "mode");
 
    return (
-      <BaseNode<IMaskNode> nodeId={nodeId} helper={MaskNodeHelper}>
+      <BaseNode<IMaskNode> nodeId={nodeId} helper={MaskNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<IMaskNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -99,6 +105,7 @@ const MaskNodeHelper: INodeHelper<IMaskNode> = {
    type: NodeTypes.COL_MASK,
    getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IMaskNode["outputs"]) => Renderer,
    initialize: () => ({
+      name: "",
       display: false,
       mode: "luminance",
       invert: false,

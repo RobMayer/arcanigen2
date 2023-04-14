@@ -6,6 +6,7 @@ import { faHashtag as buttonIcon } from "@fortawesome/pro-light-svg-icons";
 import BaseNode from "../../nodeView/node";
 import { SocketOut } from "../../nodeView/socket";
 import NumberInput from "!/components/inputs/NumberInput";
+import TextInput from "!/components/inputs/TextInput";
 
 interface INumberValueNode extends INodeDefinition {
    inputs: {};
@@ -13,6 +14,7 @@ interface INumberValueNode extends INodeDefinition {
       value: number;
    };
    values: {
+      name: string;
       value: number;
    };
 }
@@ -20,10 +22,14 @@ interface INumberValueNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<INumberValueNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [value, setValue] = nodeHelper.useValueState(nodeId, "value");
 
    return (
-      <BaseNode<INumberValueNode> nodeId={nodeId} helper={NumberValueNodeHelper}>
+      <BaseNode<INumberValueNode> nodeId={nodeId} helper={NumberValueNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<INumberValueNode> nodeId={nodeId} socketId={"value"} type={SocketTypes.NUMBER}>
             <BaseNode.Input label={"Value"}>
                <NumberInput value={value} onValidValue={setValue} />
@@ -47,6 +53,7 @@ const NumberValueNodeHelper: INodeHelper<INumberValueNode> = {
    type: NodeTypes.VALUE_NUMBER,
    getOutput,
    initialize: () => ({
+      name: "",
       value: 0,
    }),
    controls: Controls,

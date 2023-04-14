@@ -11,6 +11,7 @@ import { SocketIn, SocketOut } from "../../nodeView/socket";
 import SliderInput from "!/components/inputs/SliderInput";
 import styled from "styled-components";
 import MathHelper from "!/utility/mathhelper";
+import TextInput from "!/components/inputs/TextInput";
 
 interface IColorRGBNode extends INodeDefinition {
    inputs: {
@@ -23,6 +24,7 @@ interface IColorRGBNode extends INodeDefinition {
       value: Color;
    };
    values: {
+      name: string;
       r: number;
       g: number;
       b: number;
@@ -33,6 +35,7 @@ interface IColorRGBNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<IColorRGBNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [r, setR] = nodeHelper.useValueState(nodeId, "r");
    const [g, setG] = nodeHelper.useValueState(nodeId, "g");
    const [b, setB] = nodeHelper.useValueState(nodeId, "b");
@@ -60,7 +63,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    }, [actualR, actualG, actualB, actualA]);
 
    return (
-      <BaseNode<IColorRGBNode> nodeId={nodeId} helper={ColorRGBNodeHelper}>
+      <BaseNode<IColorRGBNode> nodeId={nodeId} helper={ColorRGBNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<IColorRGBNode> nodeId={nodeId} socketId={"value"} type={SocketTypes.COLOR}>
             <Swatch value={res} />
          </SocketOut>
@@ -107,6 +113,7 @@ const ColorRGBNodeHelper: INodeHelper<IColorRGBNode> = {
    type: NodeTypes.COLOR_RGB,
    getOutput,
    initialize: () => ({
+      name: "",
       r: 1,
       g: 1,
       b: 1,

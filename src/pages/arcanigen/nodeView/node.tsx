@@ -2,9 +2,9 @@ import IconButton from "!/components/buttons/IconButton";
 import Icon from "!/components/icons";
 import faBlank from "!/components/icons/faBlank";
 import { faCaretDown, faCaretRight, faClose } from "@fortawesome/pro-solid-svg-icons";
-import { HTMLAttributes, memo, ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { HTMLAttributes, memo, ReactNode, useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import styled from "styled-components";
-import ArcaneGraph, { useNodePosition } from "../definitions/graph";
+import ArcaneGraph, { useNodePanelToggle, useNodePosition, useNodeToggle } from "../definitions/graph";
 import { useNodeGraphEventBus } from ".";
 import { useDragCanvasEvents } from "!/components/containers/DragCanvas";
 import { INodeDefinition, INodeHelper } from "../definitions/types";
@@ -19,7 +19,7 @@ type IProps<T extends INodeDefinition> = {
 const BaseNode = <T extends INodeDefinition>({ nodeId, children, helper, name = "", noRemove = false, ...props }: IProps<T>) => {
    const [initialPostion, commitPosition] = useNodePosition(nodeId);
    const { removeNode } = ArcaneGraph.useGraph();
-   const [isOpen, setIsOpen] = useState<boolean>(true);
+   const [isOpen, setIsOpen] = useNodeToggle(nodeId);
    const { eventBus, origin } = useNodeGraphEventBus();
 
    useLayoutEffect(() => {
@@ -128,7 +128,7 @@ const BaseNode = <T extends INodeDefinition>({ nodeId, children, helper, name = 
 
    const handleToggle = useCallback(() => {
       setIsOpen((p) => !p);
-   }, []);
+   }, [setIsOpen]);
 
    useEffect(() => {
       if (mainRef.current) {
@@ -283,15 +283,16 @@ const Foldout = styled(
       outputs,
       children,
       label,
+      panelId,
       startOpen = false,
       ...props
-   }: HTMLAttributes<HTMLDivElement> & { nodeId: string; inputs: string; outputs: string; startOpen?: boolean; label: ReactNode }) => {
-      const [isOpen, setIsOpen] = useState<boolean>(startOpen);
+   }: HTMLAttributes<HTMLDivElement> & { nodeId: string; inputs: string; outputs: string; panelId: string; startOpen?: boolean; label: ReactNode }) => {
+      const [isOpen, setIsOpen] = useNodePanelToggle(nodeId, panelId, startOpen);
       const { eventBus } = useNodeGraphEventBus();
 
       const handleToggle = useCallback(() => {
          setIsOpen((p) => !p);
-      }, []);
+      }, [setIsOpen]);
 
       useLayoutEffect(() => {
          if (eventBus.current) {

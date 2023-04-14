@@ -25,6 +25,7 @@ import HexColorInput from "!/components/inputs/colorHexInput";
 import ToggleList from "!/components/selectors/ToggleList";
 import Checkbox from "!/components/buttons/Checkbox";
 import styled from "styled-components";
+import TextInput from "!/components/inputs/TextInput";
 
 interface IOverrideStylesNode extends INodeDefinition {
    inputs: {
@@ -37,6 +38,7 @@ interface IOverrideStylesNode extends INodeDefinition {
       output: NodeRenderer;
    };
    values: {
+      name: string;
       strokeColor: Color;
       strokeWidth: Length;
       fillColor: Color;
@@ -54,6 +56,7 @@ interface IOverrideStylesNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<IOverrideStylesNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [strokeWidth, setStrokeWidth] = nodeHelper.useValueState(nodeId, "strokeWidth");
    const [strokeColor, setStrokeColor] = nodeHelper.useValueState(nodeId, "strokeColor");
    const [strokeCap, setStrokeCap] = nodeHelper.useValueState(nodeId, "strokeCap");
@@ -71,7 +74,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const hasStrokeColor = nodeHelper.useHasLink(nodeId, "strokeColor");
 
    return (
-      <BaseNode<IOverrideStylesNode> nodeId={nodeId} helper={OverrideStylesNodeHelper}>
+      <BaseNode<IOverrideStylesNode> nodeId={nodeId} helper={OverrideStylesNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<IOverrideStylesNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -165,6 +171,7 @@ const OverrideStylesNodeHelper: INodeHelper<IOverrideStylesNode> = {
    type: NodeTypes.COL_RESTYLE,
    getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IOverrideStylesNode["outputs"]) => Renderer,
    initialize: () => ({
+      name: "",
       strokeWidth: { value: 1, unit: "px" },
       strokeCap: "butt",
       strokeJoin: "miter",

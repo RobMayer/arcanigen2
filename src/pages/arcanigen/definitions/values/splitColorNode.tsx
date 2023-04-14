@@ -9,6 +9,7 @@ import { Color } from "!/utility/types/units";
 import BaseNode from "../../nodeView/node";
 import { SocketIn, SocketOut } from "../../nodeView/socket";
 import { colorComponents } from "!/utility/colorconvert";
+import TextInput from "!/components/inputs/TextInput";
 
 interface ISplitColorNode extends INodeDefinition {
    inputs: {
@@ -35,6 +36,7 @@ interface ISplitColorNode extends INodeDefinition {
       luminance: number;
    };
    values: {
+      name: string;
       value: Color;
    };
 }
@@ -42,10 +44,14 @@ interface ISplitColorNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<ISplitColorNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [value, setValue] = nodeHelper.useValueState(nodeId, "value");
    const hasInput = nodeHelper.useHasLink(nodeId, "input");
    return (
-      <BaseNode<ISplitColorNode> nodeId={nodeId} helper={SplitColorNodeHelper}>
+      <BaseNode<ISplitColorNode> nodeId={nodeId} helper={SplitColorNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketIn<ISplitColorNode> nodeId={nodeId} socketId={"input"} type={SocketTypes.COLOR}>
             <BaseNode.Input label={"Value"}>
                <HexColorInput value={value} onValue={setValue} disabled={hasInput} />
@@ -53,6 +59,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          </SocketIn>
          <hr />
          <BaseNode.Foldout
+            panelId={"channels"}
             outputs={"red green blue cyan magenta yellow hue white black saturationV saturationL sturationI lightness value intensity chroma luminance alpha"}
             inputs={""}
             nodeId={nodeId}
@@ -132,6 +139,7 @@ const SplitColorNodeHelper: INodeHelper<ISplitColorNode> = {
    type: NodeTypes.SPLIT_COLOR,
    getOutput,
    initialize: () => ({
+      name: "",
       value: { r: 0, g: 0, b: 0, a: 1 },
    }),
    controls: Controls,

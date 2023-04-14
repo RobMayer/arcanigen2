@@ -29,6 +29,7 @@ import { faSlash as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 import { faSlash as buttonIcon } from "@fortawesome/pro-light-svg-icons";
 
 import Checkbox from "!/components/buttons/Checkbox";
+import TextInput from "!/components/inputs/TextInput";
 
 interface ISegmentNode extends INodeDefinition {
    inputs: {
@@ -58,6 +59,7 @@ interface ISegmentNode extends INodeDefinition {
       output: NodeRenderer;
    };
    values: {
+      name: string;
       startMode: PositionMode;
       endMode: PositionMode;
 
@@ -89,6 +91,7 @@ interface ISegmentNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<ISegmentNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [startX, setStartX] = nodeHelper.useValueState(nodeId, "startX");
    const [startY, setStartY] = nodeHelper.useValueState(nodeId, "startY");
    const [startRadius, setStartRadius] = nodeHelper.useValueState(nodeId, "startRadius");
@@ -123,13 +126,16 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const hasStrokeColor = nodeHelper.useHasLink(nodeId, "strokeColor");
 
    return (
-      <BaseNode<ISegmentNode> nodeId={nodeId} helper={SegmentNodeHelper}>
+      <BaseNode<ISegmentNode> nodeId={nodeId} helper={SegmentNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<ISegmentNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
          <hr />
 
-         <BaseNode.Foldout label={"Start Point"} nodeId={nodeId} inputs={"startX startY startTheta startRadius"} outputs={""}>
+         <BaseNode.Foldout panelId={"startPoint"} label={"Start Point"} nodeId={nodeId} inputs={"startX startY startTheta startRadius"} outputs={""}>
             <BaseNode.Input label={"Position Mode"}>
                <ToggleList value={startMode} onValue={setStartMode} options={POSITION_MODES} />
             </BaseNode.Input>
@@ -155,7 +161,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             </SocketIn>
          </BaseNode.Foldout>
 
-         <BaseNode.Foldout label={"End Point"} nodeId={nodeId} inputs={"endX endY endTheta endRadius"} outputs={""}>
+         <BaseNode.Foldout panelId={"endPoint"} label={"End Point"} nodeId={nodeId} inputs={"endX endY endTheta endRadius"} outputs={""}>
             <BaseNode.Input label={"Position Mode"}>
                <ToggleList value={endMode} onValue={setEndMode} options={POSITION_MODES} />
             </BaseNode.Input>
@@ -181,7 +187,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             </SocketIn>
          </BaseNode.Foldout>
 
-         <BaseNode.Foldout label={"Appearance"} nodeId={nodeId} inputs={"strokeWidth strokeColor fillColor"} outputs={""}>
+         <BaseNode.Foldout panelId={"appearance"} label={"Appearance"} nodeId={nodeId} inputs={"strokeWidth strokeColor fillColor"} outputs={""}>
             <SocketIn<ISegmentNode> nodeId={nodeId} socketId={"strokeWidth"} type={SocketTypes.LENGTH}>
                <BaseNode.Input label={"Stroke Width"}>
                   <LengthInput value={strokeWidth} onValidValue={setStrokeWidth} disabled={hasStrokeWidth} min={0} />
@@ -321,6 +327,7 @@ const SegmentNodeHelper: INodeHelper<ISegmentNode> = {
    type: NodeTypes.SHAPE_SEGMENT,
    getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof ISegmentNode["outputs"]) => Renderer,
    initialize: () => ({
+      name: "",
       startX: { value: 0, unit: "px" },
       startY: { value: 0, unit: "px" },
       endX: { value: 100, unit: "px" },

@@ -12,6 +12,7 @@ import SliderInput from "!/components/inputs/SliderInput";
 import MathHelper from "!/utility/mathhelper";
 import styled from "styled-components";
 import AngleInput from "!/components/inputs/AngleInput";
+import TextInput from "!/components/inputs/TextInput";
 
 interface IColorHWKNode extends INodeDefinition {
    inputs: {
@@ -24,6 +25,7 @@ interface IColorHWKNode extends INodeDefinition {
       value: Color;
    };
    values: {
+      name: string;
       h: number;
       w: number;
       k: number;
@@ -34,6 +36,7 @@ interface IColorHWKNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<IColorHWKNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [h, setH] = nodeHelper.useValueState(nodeId, "h");
    const [w, setW] = nodeHelper.useValueState(nodeId, "w");
    const [k, setK] = nodeHelper.useValueState(nodeId, "k");
@@ -61,7 +64,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    }, [actualH, actualW, actualK, actualA]);
 
    return (
-      <BaseNode<IColorHWKNode> nodeId={nodeId} helper={ColorHWKNodeHelper}>
+      <BaseNode<IColorHWKNode> nodeId={nodeId} helper={ColorHWKNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<IColorHWKNode> nodeId={nodeId} socketId={"value"} type={SocketTypes.COLOR}>
             <Swatch value={res} />
          </SocketOut>
@@ -108,6 +114,7 @@ const ColorHWKNodeHelper: INodeHelper<IColorHWKNode> = {
    type: NodeTypes.COLOR_HWK,
    getOutput,
    initialize: () => ({
+      name: "",
       h: 0,
       w: 1,
       k: 1,

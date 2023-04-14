@@ -8,6 +8,7 @@ import HexColorInput from "!/components/inputs/colorHexInput";
 import { Color } from "!/utility/types/units";
 import BaseNode from "../../nodeView/node";
 import { SocketOut } from "../../nodeView/socket";
+import TextInput from "!/components/inputs/TextInput";
 
 interface IHexColorNode extends INodeDefinition {
    inputs: {};
@@ -17,6 +18,7 @@ interface IHexColorNode extends INodeDefinition {
       alpha: number;
    };
    values: {
+      name: string;
       value: Color;
    };
 }
@@ -24,9 +26,13 @@ interface IHexColorNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<IHexColorNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [value, setValue] = nodeHelper.useValueState(nodeId, "value");
    return (
-      <BaseNode<IHexColorNode> nodeId={nodeId} helper={HexColorNodeHelper}>
+      <BaseNode<IHexColorNode> nodeId={nodeId} helper={HexColorNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<IHexColorNode> nodeId={nodeId} socketId={"full"} type={SocketTypes.COLOR}>
             <BaseNode.Input label={"Value"}>
                <HexColorInput value={value} onValue={setValue} />
@@ -66,6 +72,7 @@ const HexColorNodeHelper: INodeHelper<IHexColorNode> = {
    type: NodeTypes.VALUE_COLOR,
    getOutput,
    initialize: () => ({
+      name: "",
       value: { r: 0, g: 0, b: 0, a: 1 },
    }),
    controls: Controls,

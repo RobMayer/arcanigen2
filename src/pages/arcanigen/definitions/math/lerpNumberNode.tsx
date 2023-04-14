@@ -10,6 +10,7 @@ import { SocketIn, SocketOut } from "../../nodeView/socket";
 import NumberInput from "!/components/inputs/NumberInput";
 import SliderInput from "!/components/inputs/SliderInput";
 import Checkbox from "!/components/buttons/Checkbox";
+import TextInput from "!/components/inputs/TextInput";
 
 interface ILerpNumberNode extends INodeDefinition {
    inputs: {
@@ -23,6 +24,7 @@ interface ILerpNumberNode extends INodeDefinition {
       value: number;
    };
    values: {
+      name: string;
       from: number;
       to: number;
       percent: number;
@@ -33,6 +35,7 @@ interface ILerpNumberNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<ILerpNumberNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [from, setFrom] = nodeHelper.useValueState(nodeId, "from");
    const [to, setTo] = nodeHelper.useValueState(nodeId, "to");
    const [percent, setPercent] = nodeHelper.useValueState(nodeId, "percent");
@@ -41,7 +44,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const hasSequence = nodeHelper.useHasLink(nodeId, "sequence");
 
    return (
-      <BaseNode<ILerpNumberNode> nodeId={nodeId} helper={LerpNumberNodeHelper}>
+      <BaseNode<ILerpNumberNode> nodeId={nodeId} helper={LerpNumberNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<ILerpNumberNode> socketId={"value"} nodeId={nodeId} type={SocketTypes.NUMBER}>
             Value
          </SocketOut>
@@ -105,6 +111,7 @@ const LerpNumberNodeHelper: INodeHelper<ILerpNumberNode> = {
    type: NodeTypes.LERP_NUMBER,
    getOutput,
    initialize: () => ({
+      name: "",
       from: 0,
       to: 1,
       percent: 0,

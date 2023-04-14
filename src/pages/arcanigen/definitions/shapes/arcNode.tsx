@@ -28,6 +28,7 @@ import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
 import { TransformPrefabs } from "../../nodeView/prefabs";
 import AngleInput from "!/components/inputs/AngleInput";
+import TextInput from "!/components/inputs/TextInput";
 
 interface IArcNode extends INodeDefinition {
    inputs: {
@@ -51,6 +52,7 @@ interface IArcNode extends INodeDefinition {
       output: NodeRenderer;
    };
    values: {
+      name: string;
       radius: Length;
       thetaStart: number;
       thetaEnd: number;
@@ -75,6 +77,8 @@ interface IArcNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<IArcNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
+
    const [radius, setRadius] = nodeHelper.useValueState(nodeId, "radius");
    const [thetaStart, setThetaStart] = nodeHelper.useValueState(nodeId, "thetaStart");
    const [thetaEnd, setThetaEnd] = nodeHelper.useValueState(nodeId, "thetaEnd");
@@ -97,7 +101,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const hasStrokeColor = nodeHelper.useHasLink(nodeId, "strokeColor");
 
    return (
-      <BaseNode<IArcNode> nodeId={nodeId} helper={ArcNodeHelper}>
+      <BaseNode<IArcNode> nodeId={nodeId} helper={ArcNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<IArcNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -121,7 +128,13 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             Pie Slice
          </Checkbox>
          <hr />
-         <BaseNode.Foldout label={"Appearance"} nodeId={nodeId} inputs={"strokeWidth strokeColor fillColor strokeMarkStart strokeMarkEnd"} outputs={""}>
+         <BaseNode.Foldout
+            panelId={"appearance"}
+            label={"Appearance"}
+            nodeId={nodeId}
+            inputs={"strokeWidth strokeColor fillColor strokeMarkStart strokeMarkEnd"}
+            outputs={""}
+         >
             <SocketIn<IArcNode> nodeId={nodeId} socketId={"strokeWidth"} type={SocketTypes.LENGTH}>
                <BaseNode.Input label={"Stroke Width"}>
                   <LengthInput value={strokeWidth} onValidValue={setStrokeWidth} disabled={hasStrokeWidth} min={0} />
@@ -259,6 +272,7 @@ const ArcNodeHelper: INodeHelper<IArcNode> = {
    type: NodeTypes.SHAPE_ARC,
    getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IArcNode["outputs"]) => Renderer,
    initialize: () => ({
+      name: "",
       radius: { value: 150, unit: "px" },
       strokeWidth: { value: 1, unit: "px" },
       strokeCap: "butt",

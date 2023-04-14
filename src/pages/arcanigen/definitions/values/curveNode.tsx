@@ -9,6 +9,7 @@ import { SocketOut } from "../../nodeView/socket";
 import Dropdown from "!/components/selectors/Dropdown";
 import ToggleList from "!/components/selectors/ToggleList";
 import SliderInput from "!/components/inputs/SliderInput";
+import TextInput from "!/components/inputs/TextInput";
 
 interface ICurveNode extends INodeDefinition {
    inputs: {};
@@ -16,6 +17,7 @@ interface ICurveNode extends INodeDefinition {
       output: Curve;
    };
    values: {
+      name: string;
       curveFn: CurveFunction;
       easing: EasingMode;
       intensity: number;
@@ -25,12 +27,16 @@ interface ICurveNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<ICurveNode>();
 
 const Controls = memo(({ nodeId }: { nodeId: string }) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [curveFn, setCurveFn] = nodeHelper.useValueState(nodeId, "curveFn");
    const [easing, setEasing] = nodeHelper.useValueState(nodeId, "easing");
    const [intensity, setIntensity] = nodeHelper.useValueState(nodeId, "intensity");
 
    return (
-      <BaseNode<ICurveNode> nodeId={nodeId} helper={CurveNodeHelper}>
+      <BaseNode<ICurveNode> nodeId={nodeId} helper={CurveNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<ICurveNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.CURVE}>
             Function
          </SocketOut>
@@ -69,6 +75,7 @@ const CurveNodeHelper: INodeHelper<ICurveNode> = {
    type: NodeTypes.VALUE_CURVE,
    getOutput,
    initialize: () => ({
+      name: "",
       curveFn: "linear",
       easing: "in",
       intensity: 1,

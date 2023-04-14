@@ -23,6 +23,7 @@ import SliderInput from "!/components/inputs/SliderInput";
 import AngleInput from "!/components/inputs/AngleInput";
 import Checkbox from "!/components/buttons/Checkbox";
 import Dropdown from "!/components/selectors/Dropdown";
+import TextInput from "!/components/inputs/TextInput";
 
 interface ILerpAngleNode extends INodeDefinition {
    inputs: {
@@ -36,6 +37,7 @@ interface ILerpAngleNode extends INodeDefinition {
       value: number;
    };
    values: {
+      name: string;
       from: number;
       to: number;
       percent: number;
@@ -48,6 +50,7 @@ interface ILerpAngleNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<ILerpAngleNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [from, setFrom] = nodeHelper.useValueState(nodeId, "from");
    const [to, setTo] = nodeHelper.useValueState(nodeId, "to");
    const [percent, setPercent] = nodeHelper.useValueState(nodeId, "percent");
@@ -65,7 +68,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    }, [bounded, setFrom, setTo]);
 
    return (
-      <BaseNode<ILerpAngleNode> nodeId={nodeId} helper={LerpAngleNodeHelper}>
+      <BaseNode<ILerpAngleNode> nodeId={nodeId} helper={LerpAngleNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<ILerpAngleNode> socketId={"value"} nodeId={nodeId} type={SocketTypes.ANGLE}>
             Value
          </SocketOut>
@@ -128,8 +134,6 @@ const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof ILerpAngle
    const t = MathHelper.angleLerp(MathHelper.clamp(percent, 0, 1), from / 360, to / 360, mode, distribution) * 360;
 
    return bounded ? t : MathHelper.lerp(MathHelper.clamp(percent, 0, 1), from, to, distribution);
-
-   //TODO: How do I get sequence data from here?!?
 };
 
 const LerpAngleNodeHelper: INodeHelper<ILerpAngleNode> = {
@@ -140,6 +144,7 @@ const LerpAngleNodeHelper: INodeHelper<ILerpAngleNode> = {
    type: NodeTypes.LERP_ANGLE,
    getOutput,
    initialize: () => ({
+      name: "",
       from: 0,
       to: 180,
       percent: 0,

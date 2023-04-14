@@ -7,6 +7,7 @@ import { faPlusMinus as buttonIcon } from "@fortawesome/pro-light-svg-icons";
 import NumberInput from "!/components/inputs/NumberInput";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
+import TextInput from "!/components/inputs/TextInput";
 
 interface IMathSpreadNode extends INodeDefinition {
    inputs: {
@@ -18,6 +19,7 @@ interface IMathSpreadNode extends INodeDefinition {
       outer: number;
    };
    values: {
+      name: string;
       a: number;
       b: number;
    };
@@ -26,6 +28,7 @@ interface IMathSpreadNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<IMathSpreadNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [a, setA] = nodeHelper.useValueState(nodeId, "a");
    const [b, setB] = nodeHelper.useValueState(nodeId, "b");
    const aIn = nodeHelper.useInput(nodeId, "aIn", globals);
@@ -33,7 +36,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const hasA = nodeHelper.useHasLink(nodeId, "aIn");
    const hasB = nodeHelper.useHasLink(nodeId, "bIn");
    return (
-      <BaseNode<IMathSpreadNode> nodeId={nodeId} helper={MathSpreadNodeHelper}>
+      <BaseNode<IMathSpreadNode> nodeId={nodeId} helper={MathSpreadNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<IMathSpreadNode> nodeId={nodeId} socketId={"inner"} type={SocketTypes.FLOAT}>
             <BaseNode.Output label={"Inner"}>{(hasA ? aIn : a) - (hasB ? bIn : b)}</BaseNode.Output>
          </SocketOut>
@@ -74,6 +80,7 @@ const MathSpreadNodeHelper: INodeHelper<IMathSpreadNode> = {
       }
    },
    initialize: () => ({
+      name: "",
       a: 0,
       b: 0,
    }),

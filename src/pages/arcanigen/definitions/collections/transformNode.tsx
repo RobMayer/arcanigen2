@@ -12,6 +12,7 @@ import AngleInput from "!/components/inputs/AngleInput";
 import LengthInput from "!/components/inputs/LengthInput";
 import ToggleList from "!/components/selectors/ToggleList";
 import NumberInput from "!/components/inputs/NumberInput";
+import TextInput from "!/components/inputs/TextInput";
 
 interface ITransformNode extends INodeDefinition {
    inputs: {
@@ -31,6 +32,7 @@ interface ITransformNode extends INodeDefinition {
       output: NodeRenderer;
    };
    values: {
+      name: string;
       positionX: Length;
       positionY: Length;
       positionRadius: Length;
@@ -48,6 +50,7 @@ interface ITransformNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<ITransformNode>();
 
 const Controls = memo(({ nodeId }: { nodeId: string }) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [positionX, setPositionX] = nodeHelper.useValueState(nodeId, "positionX");
    const [positionY, setPositionY] = nodeHelper.useValueState(nodeId, "positionY");
    const [positionTheta, setPositionTheta] = nodeHelper.useValueState(nodeId, "positionTheta");
@@ -74,7 +77,10 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
    const hasSkewY = nodeHelper.useHasLink(nodeId, "skewY");
 
    return (
-      <BaseNode<ITransformNode> nodeId={nodeId} helper={TransformNodeHelper}>
+      <BaseNode<ITransformNode> nodeId={nodeId} helper={TransformNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<ITransformNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -179,6 +185,7 @@ const TransformNodeHelper: INodeHelper<ITransformNode> = {
    type: NodeTypes.COL_TRANSFORM,
    getOutput: () => Renderer,
    initialize: () => ({
+      name: "",
       positionX: { value: 0, unit: "px" },
       positionY: { value: 0, unit: "px" },
       positionRadius: { value: 0, unit: "px" },

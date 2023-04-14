@@ -9,6 +9,7 @@ import HexColorInput from "!/components/inputs/colorHexInput";
 import { Color } from "!/utility/types/units";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
+import TextInput from "!/components/inputs/TextInput";
 
 interface IFloodFillNode extends INodeDefinition {
    inputs: {
@@ -18,6 +19,7 @@ interface IFloodFillNode extends INodeDefinition {
       output: NodeRenderer;
    };
    values: {
+      name: string;
       floodColor: Color;
    };
 }
@@ -25,11 +27,15 @@ interface IFloodFillNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<IFloodFillNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [floodColor, setFloodColor] = nodeHelper.useValueState(nodeId, "floodColor");
    const hasFloodColor = nodeHelper.useHasLink(nodeId, "floodColor");
 
    return (
-      <BaseNode<IFloodFillNode> nodeId={nodeId} helper={FloodFillNodeHelper}>
+      <BaseNode<IFloodFillNode> nodeId={nodeId} helper={FloodFillNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<IFloodFillNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -65,6 +71,7 @@ const FloodFillNodeHelper: INodeHelper<IFloodFillNode> = {
    type: NodeTypes.SHAPE_FLOODFILL,
    getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IFloodFillNode["outputs"]) => Renderer,
    initialize: () => ({
+      name: "",
       floodColor: { r: 0, g: 0, b: 0, a: 1 },
    }),
    controls: Controls,

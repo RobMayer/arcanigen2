@@ -10,6 +10,7 @@ import { Length } from "!/utility/types/units";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
 import MathHelper from "!/utility/mathhelper";
+import TextInput from "!/components/inputs/TextInput";
 
 interface IPenEffectNode extends INodeDefinition {
    inputs: {
@@ -23,6 +24,7 @@ interface IPenEffectNode extends INodeDefinition {
       output: NodeRenderer;
    };
    values: {
+      name: string;
       nib: Length;
       seed: number;
       smudge: number;
@@ -33,6 +35,7 @@ interface IPenEffectNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<IPenEffectNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [nib, setNib] = nodeHelper.useValueState(nodeId, "nib");
    const [seed, setSeed] = nodeHelper.useValueState(nodeId, "seed");
    const [smudge, setSmudge] = nodeHelper.useValueState(nodeId, "smudge");
@@ -44,7 +47,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const hasJitter = nodeHelper.useHasLink(nodeId, "jitter");
 
    return (
-      <BaseNode<IPenEffectNode> nodeId={nodeId} helper={PenEffectNodeHelper}>
+      <BaseNode<IPenEffectNode> nodeId={nodeId} helper={PenEffectNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<IPenEffectNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -112,6 +118,7 @@ const PenEffectNodeHelper: INodeHelper<IPenEffectNode> = {
    type: NodeTypes.EFFECT_PEN,
    getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IPenEffectNode["outputs"]) => Renderer,
    initialize: () => ({
+      name: "",
       seed: Math.floor(Math.random() * 1000),
       smudge: 0.2,
       jitter: 0.5,

@@ -8,6 +8,7 @@ import { SocketOut } from "../../nodeView/socket";
 import BaseNode from "../../nodeView/node";
 import MathHelper from "!/utility/mathhelper";
 import SliderInput from "!/components/inputs/SliderInput";
+import TextInput from "!/components/inputs/TextInput";
 
 interface IPercentValueNode extends INodeDefinition {
    inputs: {};
@@ -17,6 +18,7 @@ interface IPercentValueNode extends INodeDefinition {
       asHectograde: number;
    };
    values: {
+      name: string;
       value: number;
    };
 }
@@ -24,15 +26,19 @@ interface IPercentValueNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<IPercentValueNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [value, setValue] = nodeHelper.useValueState(nodeId, "value");
 
    return (
-      <BaseNode<IPercentValueNode> nodeId={nodeId} helper={PercentValueNodeHelper}>
+      <BaseNode<IPercentValueNode> nodeId={nodeId} helper={PercentValueNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<IPercentValueNode> nodeId={nodeId} socketId={"value"} type={SocketTypes.PERCENT}>
             <SliderInput value={value} onValue={setValue} min={0} max={1} />
          </SocketOut>
          <hr />
-         <BaseNode.Foldout nodeId={nodeId} inputs={""} outputs={"asCentigrade asHectograde"} label={"Additional Outputs"}>
+         <BaseNode.Foldout panelId={"modeOutputs"} nodeId={nodeId} inputs={""} outputs={"asCentigrade asHectograde"} label={"Additional Outputs"}>
             <SocketOut<IPercentValueNode> nodeId={nodeId} socketId={"asCentigrade"} type={SocketTypes.FLOAT}>
                as Centigrade (0-1)
             </SocketOut>
@@ -65,6 +71,7 @@ const PercentValueNodeHelper: INodeHelper<IPercentValueNode> = {
    type: NodeTypes.VALUE_PERCENT,
    getOutput,
    initialize: () => ({
+      name: "",
       value: 0,
    }),
    controls: Controls,

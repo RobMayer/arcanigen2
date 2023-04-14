@@ -10,6 +10,7 @@ import LengthInput from "!/components/inputs/LengthInput";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
 import { TransformPrefabs } from "../../nodeView/prefabs";
+import TextInput from "!/components/inputs/TextInput";
 
 interface ICircleNode extends INodeDefinition {
    inputs: {
@@ -27,6 +28,7 @@ interface ICircleNode extends INodeDefinition {
       output: NodeRenderer;
    };
    values: {
+      name: string;
       radius: Length;
       strokeWidth: Length;
       strokeColor: Color;
@@ -43,6 +45,7 @@ interface ICircleNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<ICircleNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [radius, setRadius] = nodeHelper.useValueState(nodeId, "radius");
    const [strokeWidth, setStrokeWidth] = nodeHelper.useValueState(nodeId, "strokeWidth");
    const [strokeColor, setStrokeColor] = nodeHelper.useValueState(nodeId, "strokeColor");
@@ -54,7 +57,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const hasFillColor = nodeHelper.useHasLink(nodeId, "fillColor");
 
    return (
-      <BaseNode<ICircleNode> nodeId={nodeId} helper={CircleNodeHelper}>
+      <BaseNode<ICircleNode> nodeId={nodeId} helper={CircleNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<ICircleNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -65,7 +71,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             </BaseNode.Input>
          </SocketIn>
          <hr />
-         <BaseNode.Foldout label={"Appearance"} nodeId={nodeId} inputs={"strokeWidth strokeColor fillColor"} outputs={""}>
+         <BaseNode.Foldout panelId={"appearance"} label={"Appearance"} nodeId={nodeId} inputs={"strokeWidth strokeColor fillColor"} outputs={""}>
             <SocketIn<ICircleNode> nodeId={nodeId} socketId={"strokeWidth"} type={SocketTypes.LENGTH}>
                <BaseNode.Input label={"Stroke Width"}>
                   <LengthInput value={strokeWidth} onValidValue={setStrokeWidth} disabled={hasStrokeWidth} min={0} />
@@ -122,6 +128,7 @@ const CircleNodeHelper: INodeHelper<ICircleNode> = {
    type: NodeTypes.SHAPE_CIRCLE,
    getOutput: () => Renderer,
    initialize: () => ({
+      name: "",
       radius: { value: 100, unit: "px" },
       strokeWidth: { value: 1, unit: "px" },
       strokeColor: { r: 0, g: 0, b: 0, a: 1 },

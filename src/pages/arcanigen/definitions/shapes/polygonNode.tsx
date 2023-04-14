@@ -31,6 +31,7 @@ import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
 import lodash from "lodash";
 import { TransformPrefabs } from "../../nodeView/prefabs";
+import TextInput from "!/components/inputs/TextInput";
 
 interface IPolygonNode extends INodeDefinition {
    inputs: {
@@ -55,6 +56,7 @@ interface IPolygonNode extends INodeDefinition {
       rMiddle: Length;
    };
    values: {
+      name: string;
       radius: Length;
       strokeWidth: Length;
       pointCount: number;
@@ -75,6 +77,7 @@ interface IPolygonNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<IPolygonNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [radius, setRadius] = nodeHelper.useValueState(nodeId, "radius");
    const [strokeWidth, setStrokeWidth] = nodeHelper.useValueState(nodeId, "strokeWidth");
    const [strokeColor, setStrokeColor] = nodeHelper.useValueState(nodeId, "strokeColor");
@@ -89,7 +92,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const hasFillColor = nodeHelper.useHasLink(nodeId, "fillColor");
 
    return (
-      <BaseNode<IPolygonNode> nodeId={nodeId} helper={PolygonNodeHelper}>
+      <BaseNode<IPolygonNode> nodeId={nodeId} helper={PolygonNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<IPolygonNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -109,7 +115,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             θ Distribution
          </SocketIn>
          <hr />
-         <BaseNode.Foldout label={"Appearance"} inputs={"strokeWidth strokeColor fillColor"} nodeId={nodeId} outputs={""}>
+         <BaseNode.Foldout panelId={"appearance"} label={"Appearance"} inputs={"strokeWidth strokeColor fillColor"} nodeId={nodeId} outputs={""}>
             <SocketIn<IPolygonNode> nodeId={nodeId} socketId={"strokeWidth"} type={SocketTypes.LENGTH}>
                <BaseNode.Input label={"Stroke Width"}>
                   <LengthInput value={strokeWidth} onValidValue={setStrokeWidth} disabled={hasStrokeWidth} min={0} />
@@ -130,7 +136,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             </SocketIn>
          </BaseNode.Foldout>
          <TransformPrefabs.Full<IPolygonNode> nodeId={nodeId} nodeHelper={nodeHelper} />
-         <BaseNode.Foldout label={"Additional Outputs"} inputs={""} outputs={"rInscribe rCircumscribe rMiddle"} nodeId={nodeId}>
+         <BaseNode.Foldout panelId={"moreOutputs"} label={"Additional Outputs"} inputs={""} outputs={"rInscribe rCircumscribe rMiddle"} nodeId={nodeId}>
             <SocketOut<IPolygonNode> nodeId={nodeId} socketId={"rInscribe"} type={SocketTypes.LENGTH}>
                Inscribe Radius
             </SocketOut>
@@ -220,6 +226,7 @@ const PolygonNodeHelper: INodeHelper<IPolygonNode> = {
       }
    },
    initialize: () => ({
+      name: "",
       radius: { value: 100, unit: "px" },
       strokeWidth: { value: 1, unit: "px" },
       pointCount: 3,

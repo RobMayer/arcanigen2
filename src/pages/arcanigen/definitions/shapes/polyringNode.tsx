@@ -37,6 +37,7 @@ import lodash from "lodash";
 import { TransformPrefabs } from "../../nodeView/prefabs";
 import faTriangleRing from "!/components/icons/faTriangleRing";
 import faTriangleRingLight from "!/components/icons/faTriangleRingLight";
+import TextInput from "!/components/inputs/TextInput";
 
 interface IPolyringNode extends INodeDefinition {
    inputs: {
@@ -72,6 +73,7 @@ interface IPolyringNode extends INodeDefinition {
       iMiddle: Length;
    };
    values: {
+      name: string;
       spanMode: SpanMode;
       radius: Length;
       spread: Length;
@@ -101,6 +103,7 @@ interface IPolyringNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<IPolyringNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [radius, setRadius] = nodeHelper.useValueState(nodeId, "radius");
    const [rScribeMode, setRScribeMode] = nodeHelper.useValueState(nodeId, "rScribeMode");
    const [spread, setSpread] = nodeHelper.useValueState(nodeId, "spread");
@@ -129,7 +132,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const hasFillColor = nodeHelper.useHasLink(nodeId, "fillColor");
 
    return (
-      <BaseNode<IPolyringNode> nodeId={nodeId} helper={PolyringNodeHelper}>
+      <BaseNode<IPolyringNode> nodeId={nodeId} helper={PolyringNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<IPolyringNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -175,7 +181,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             θ Distribution
          </SocketIn>
          <hr />
-         <BaseNode.Foldout label={"Appearance"} inputs={"strokeWidth strokeColor fillColor"} nodeId={nodeId} outputs={""}>
+         <BaseNode.Foldout panelId={"appearance"} label={"Appearance"} inputs={"strokeWidth strokeColor fillColor"} nodeId={nodeId} outputs={""}>
             <SocketIn<IPolyringNode> nodeId={nodeId} socketId={"strokeWidth"} type={SocketTypes.LENGTH}>
                <BaseNode.Input label={"Stroke Width"}>
                   <LengthInput value={strokeWidth} onValidValue={setStrokeWidth} disabled={hasStrokeWidth} min={0} />
@@ -197,6 +203,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          </BaseNode.Foldout>
          <TransformPrefabs.Full<IPolyringNode> nodeId={nodeId} nodeHelper={nodeHelper} />
          <BaseNode.Foldout
+            panelId={"moreOutputs"}
             label={"Additional Outputs"}
             inputs={""}
             outputs={"cInscribe cCircumscribe cMiddle oInscribe oCircumscribe oMiddle iInscribe iCircumscribe iMiddle"}
@@ -392,6 +399,7 @@ const PolyringNodeHelper: INodeHelper<IPolyringNode> = {
       }
    },
    initialize: () => ({
+      name: "",
       radius: { value: 150, unit: "px" },
       spread: { value: 20, unit: "px" },
       spreadAlignMode: "center",

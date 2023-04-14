@@ -10,6 +10,7 @@ import NumberInput from "!/components/inputs/NumberInput";
 import { Length } from "!/utility/types/units";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
+import TextInput from "!/components/inputs/TextInput";
 
 interface IBrushEffectNode extends INodeDefinition {
    inputs: {
@@ -22,6 +23,7 @@ interface IBrushEffectNode extends INodeDefinition {
       output: NodeRenderer;
    };
    values: {
+      name: string;
       brushTip: Length;
       seed: number;
       shake: number;
@@ -31,6 +33,7 @@ interface IBrushEffectNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<IBrushEffectNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [brushTip, setBrushTip] = nodeHelper.useValueState(nodeId, "brushTip");
    const [seed, setSeed] = nodeHelper.useValueState(nodeId, "seed");
    const [shake, setShake] = nodeHelper.useValueState(nodeId, "shake");
@@ -40,7 +43,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const hasShake = nodeHelper.useHasLink(nodeId, "shake");
 
    return (
-      <BaseNode<IBrushEffectNode> nodeId={nodeId} helper={BrushEffectNodeHelper}>
+      <BaseNode<IBrushEffectNode> nodeId={nodeId} helper={BrushEffectNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<IBrushEffectNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -120,6 +126,7 @@ const BrushEffectNodeHelper: INodeHelper<IBrushEffectNode> = {
    type: NodeTypes.EFFECT_BRUSH,
    getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IBrushEffectNode["outputs"]) => Renderer,
    initialize: () => ({
+      name: "",
       seed: Math.floor(Math.random() * 1000),
       shake: 0.2,
       brushTip: { value: 2, unit: "pt" },

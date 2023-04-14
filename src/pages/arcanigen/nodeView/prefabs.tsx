@@ -21,7 +21,13 @@ const TransformFull = <T extends INodeDefinition>({ nodeId, nodeHelper }: { node
    const hasRotation = nodeHelper.useHasLink(nodeId, "rotation");
 
    return (
-      <BaseNode.Foldout label={"Transform"} nodeId={nodeId} inputs={"positionX positionY positionTheta positionRadius rotation"} outputs={""}>
+      <BaseNode.Foldout
+         panelId={"transform"}
+         label={"Transform"}
+         nodeId={nodeId}
+         inputs={"positionX positionY positionTheta positionRadius rotation"}
+         outputs={""}
+      >
          <BaseNode.Input label={"Position Mode"}>
             <ToggleList value={positionMode} onValue={setPositionMode} options={POSITION_MODES} />
          </BaseNode.Input>
@@ -67,7 +73,7 @@ const TransformPos = <T extends INodeDefinition>({ nodeId, nodeHelper }: { nodeI
    const hasPositionRadius = nodeHelper.useHasLink(nodeId, "positionRadius");
 
    return (
-      <BaseNode.Foldout label={"Transform"} nodeId={nodeId} inputs={"positionX positionY positionTheta positionRadius"} outputs={""}>
+      <BaseNode.Foldout panelId={"transform"} label={"Transform"} nodeId={nodeId} inputs={"positionX positionY positionTheta positionRadius"} outputs={""}>
          <BaseNode.Input label={"Position Mode"}>
             <ToggleList value={positionMode} onValue={setPositionMode} options={POSITION_MODES} />
          </BaseNode.Input>

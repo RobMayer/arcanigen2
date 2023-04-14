@@ -23,12 +23,14 @@ import Dropdown from "!/components/selectors/Dropdown";
 import BaseNode from "../../nodeView/node";
 import { SocketIn, SocketOut } from "../../nodeView/socket";
 import styled from "styled-components";
+import TextInput from "!/components/inputs/TextInput";
 
 interface ILayersNode extends INodeDefinition {
    inputs: {
       [key: string]: NodeRenderer;
    };
    values: {
+      name: string;
       sockets: string[];
       modes: { [key: string]: BlendMode };
    };
@@ -40,6 +42,8 @@ interface ILayersNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<ILayersNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
+
    const [node, setNode, setGraph] = nodeHelper.useAlterNode(nodeId);
 
    const addLayer = useCallback(() => {
@@ -115,7 +119,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    );
 
    return (
-      <BaseNode<ILayersNode> nodeId={nodeId} helper={LayersNodeHelper}>
+      <BaseNode<ILayersNode> nodeId={nodeId} helper={LayersNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<ILayersNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -226,6 +233,7 @@ const LayersNodeHelper: INodeHelper<ILayersNode> = {
    initialize: () => {
       const socketId = uuid();
       return {
+         name: "",
          sockets: [socketId],
          modes: { [socketId]: "normal" },
          in: {

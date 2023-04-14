@@ -10,6 +10,7 @@ import { SocketIn, SocketOut } from "../../nodeView/socket";
 import Checkbox from "!/components/buttons/Checkbox";
 import MathHelper from "!/utility/mathhelper";
 import NumberInput from "!/components/inputs/NumberInput";
+import TextInput from "!/components/inputs/TextInput";
 
 interface IConvertNode extends INodeDefinition {
    inputs: {
@@ -36,6 +37,7 @@ interface IConvertNode extends INodeDefinition {
       lengthToMm: number;
    };
    values: {
+      name: string;
       numberToLengthUnit: Length["unit"];
       numberToAngleBounded: boolean;
       numberToPercentLower: number;
@@ -46,6 +48,7 @@ interface IConvertNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<IConvertNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [numberToLengthUnit, setNumberToLengthUnit] = nodeHelper.useValueState(nodeId, "numberToLengthUnit");
    const [numberToAngleBounded, setNumberToAngleBounded] = nodeHelper.useValueState(nodeId, "numberToAngleBounded");
    const [numberToPercentLower, setNumberToPercentLower] = nodeHelper.useValueState(nodeId, "numberToPercentLower");
@@ -57,8 +60,12 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const actualPercentUpper = nodeHelper.useInput(nodeId, "numberToPercentUpper", globals);
 
    return (
-      <BaseNode<IConvertNode> nodeId={nodeId} helper={ConvertNodeHelper}>
+      <BaseNode<IConvertNode> nodeId={nodeId} helper={ConvertNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <BaseNode.Foldout
+            panelId={"fromNumber"}
             label={"Number"}
             nodeId={nodeId}
             inputs={"inputNumber numberToPercentLower numberToPercentUpper"}
@@ -107,7 +114,14 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                </BaseNode.Input>
             </SocketIn>
          </BaseNode.Foldout>
-         <BaseNode.Foldout label={"Percent"} nodeId={nodeId} inputs={"inputPercent"} outputs={"percentToCentigrade percentToHectograde"} startOpen>
+         <BaseNode.Foldout
+            panelId={"fromPercent"}
+            label={"Percent"}
+            nodeId={nodeId}
+            inputs={"inputPercent"}
+            outputs={"percentToCentigrade percentToHectograde"}
+            startOpen
+         >
             <SocketIn<IConvertNode> nodeId={nodeId} socketId={"inputNumber"} type={SocketTypes.PERCENT}>
                Percent Input
             </SocketIn>
@@ -118,7 +132,14 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                as Hectograde (0-100)
             </SocketOut>
          </BaseNode.Foldout>
-         <BaseNode.Foldout label={"Angle"} nodeId={nodeId} inputs={"inputAngle"} outputs={"angleToDegrees angleToRadians angleToTurns"} startOpen>
+         <BaseNode.Foldout
+            panelId={"fromAngle"}
+            label={"Angle"}
+            nodeId={nodeId}
+            inputs={"inputAngle"}
+            outputs={"angleToDegrees angleToRadians angleToTurns"}
+            startOpen
+         >
             <SocketIn<IConvertNode> nodeId={nodeId} socketId={"inputAngle"} type={SocketTypes.ANGLE}>
                Angle Input
             </SocketIn>
@@ -132,7 +153,14 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                as Turns
             </SocketOut>
          </BaseNode.Foldout>
-         <BaseNode.Foldout label={"Length"} nodeId={nodeId} inputs={"inputLength"} outputs={"lengthToPx lengthToPt lengthToIn lengthToCm lengthToMm"} startOpen>
+         <BaseNode.Foldout
+            panelId={"fromLength"}
+            label={"Length"}
+            nodeId={nodeId}
+            inputs={"inputLength"}
+            outputs={"lengthToPx lengthToPt lengthToIn lengthToCm lengthToMm"}
+            startOpen
+         >
             <SocketIn<IConvertNode> nodeId={nodeId} socketId={"inputLength"} type={SocketTypes.LENGTH}>
                Length Input
             </SocketIn>
@@ -205,6 +233,7 @@ const ConvertNodeHelper: INodeHelper<IConvertNode> = {
    type: NodeTypes.CONVERT_VALUE,
    getOutput,
    initialize: () => ({
+      name: "",
       numberToLengthUnit: "px",
       numberToAngleBounded: true,
       numberToPercentLower: 0,

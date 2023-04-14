@@ -26,18 +26,32 @@ const initState: IArcaneGraph = {
 
 type IArcanePos = { [key: string]: { x: number; y: number } };
 
+type IArcaneToggle = {
+   [key: string]: {
+      node: boolean;
+      [key: string]: boolean;
+   };
+};
+
 const initPos: IArcanePos = {
    ROOT: { x: 0, y: 0 },
+};
+
+const initToggle: IArcaneToggle = {
+   ROOT: { node: true },
 };
 
 const useStoreData = () => {
    const graphStore = useRef<IArcaneGraph>(initState);
    const posStore = useRef<IArcanePos>(initPos);
+   const toggleStore = useRef<IArcaneToggle>(initToggle);
    const getGraph = useCallback(() => graphStore.current, []);
    const getPositions = useCallback(() => posStore.current, []);
+   const getToggles = useCallback(() => toggleStore.current, []);
 
    const graphListeners = useRef(new Set<() => void>());
    const positionListeners = useRef(new Set<() => void>());
+   const toggleListeners = useRef(new Set<() => void>());
 
    const subToGraph = useCallback((cb: () => void) => {
       graphListeners.current.add(cb);
@@ -49,12 +63,41 @@ const useStoreData = () => {
       return () => positionListeners.current.delete(cb);
    }, []);
 
+   const subToToggle = useCallback((cb: () => void) => {
+      toggleListeners.current.add(cb);
+      return () => toggleListeners.current.delete(cb);
+   }, []);
+
    const setPosition = useCallback((nodeId: string, pos: { x: number; y: number }) => {
       posStore.current = {
          ...posStore.current,
          [nodeId]: pos,
       };
       positionListeners.current.forEach((callback) => callback());
+   }, []);
+
+   const setNodeToggle = useCallback((nodeId: string, state: boolean | ((p: boolean) => boolean)) => {
+      const prev = toggleStore.current?.[nodeId]?.node ?? true;
+      toggleStore.current = {
+         ...toggleStore.current,
+         [nodeId]: {
+            ...(toggleStore.current[nodeId] ?? {}),
+            node: typeof state === "function" ? state(prev) : state,
+         },
+      };
+      toggleListeners.current.forEach((callback) => callback());
+   }, []);
+
+   const setNodePanelToggle = useCallback((nodeId: string, panel: string, state: boolean | ((p: boolean) => boolean), def: boolean) => {
+      const prev = toggleStore.current?.[nodeId]?.[panel] ?? def;
+      toggleStore.current = {
+         ...toggleStore.current,
+         [nodeId]: {
+            ...(toggleStore.current[nodeId] ?? {}),
+            [panel]: typeof state === "function" ? state(prev) : state,
+         },
+      };
+      toggleListeners.current.forEach((callback) => callback());
    }, []);
 
    const connect = useCallback((fromNode: string, fromSocket: string, toNode: string, toSocket: string, type: LinkTypes) => {
@@ -100,29 +143,36 @@ const useStoreData = () => {
          nodes: graphStore.current.nodes,
          links: graphStore.current.links,
          positions: posStore.current,
+         toggles: toggleStore.current,
       };
    }, []);
 
-   const load = useCallback(({ nodes, links, positions }: IArcaneGraph & { positions: IArcanePos }) => {
+   const load = useCallback(({ nodes, links, positions, toggles }: IArcaneGraph & { positions: IArcanePos } & { toggles: IArcaneToggle }) => {
       graphStore.current = { nodes, links };
-      posStore.current = positions;
+      posStore.current = positions ?? {};
+      toggleStore.current = toggles ?? {};
       graphListeners.current.forEach((callback) => callback());
       positionListeners.current.forEach((callback) => callback());
+      toggleListeners.current.forEach((callback) => callback());
    }, []);
 
    const addNode = useCallback((type: NodeTypes, at?: { x: number; y: number }) => {
       const nodeId = uuid();
       graphStore.current = GraphHelper.append(graphStore.current, nodeId, type, getNodeHelper(type).initialize());
       posStore.current = { ...posStore.current, [nodeId]: at ?? { x: 0, y: 0 } };
+      toggleStore.current = { ...toggleStore.current, [nodeId]: { node: true } };
       graphListeners.current.forEach((callback) => callback());
       positionListeners.current.forEach((callback) => callback());
+      toggleListeners.current.forEach((callback) => callback());
    }, []);
 
    const removeNode = useCallback((nodeId: string) => {
       graphStore.current = GraphHelper.remove(graphStore.current, nodeId);
       posStore.current = ObjHelper.remove(posStore.current, nodeId);
+      toggleStore.current = ObjHelper.remove(toggleStore.current, nodeId);
       graphListeners.current.forEach((callback) => callback());
       positionListeners.current.forEach((callback) => callback());
+      toggleListeners.current.forEach((callback) => callback());
    }, []);
 
    const setLensed = useCallback(<T,>(lens: string) => {
@@ -156,6 +206,11 @@ const useStoreData = () => {
          setPosition,
          subToPos,
 
+         subToToggle,
+         getToggles,
+         setNodeToggle,
+         setNodePanelToggle,
+
          graphMethods: {
             connect,
             disconnect,
@@ -171,22 +226,26 @@ const useStoreData = () => {
          setPartialLens,
       }),
       [
-         addNode,
+         getGraph,
+         subToGraph,
+         getPositions,
+         setPosition,
+         subToPos,
+         subToToggle,
+         getToggles,
+         setNodeToggle,
+         setNodePanelToggle,
          connect,
          disconnect,
-         getGraph,
-         getPositions,
+         addNode,
          removeNode,
+         debug,
+         save,
+         load,
+         reset,
+         setGraph,
          setLensed,
          setPartialLens,
-         setPosition,
-         subToGraph,
-         subToPos,
-         setGraph,
-         load,
-         save,
-         debug,
-         reset,
       ]
    );
 };
@@ -381,6 +440,26 @@ export const useNodePosition = (nodeId: string) => {
    );
 
    return [state, set] as [typeof state, typeof set];
+};
+
+export const useNodeToggle = (nodeId: string) => {
+   const store = useContext(StoreContext)!;
+
+   const state = useSyncExternalStore(store.subToToggle, () => store.getToggles()?.[nodeId]?.node);
+
+   const set = useCallback((val: boolean | ((p: boolean) => boolean)) => store.setNodeToggle(nodeId, val), [store, nodeId]);
+
+   return [state ?? true, set] as [typeof state, typeof set];
+};
+
+export const useNodePanelToggle = (nodeId: string, panel: string, def: boolean) => {
+   const store = useContext(StoreContext)!;
+
+   const state = useSyncExternalStore(store.subToToggle, () => store.getToggles()?.[nodeId]?.[panel]);
+
+   const set = useCallback((val: boolean | ((p: boolean) => boolean)) => store.setNodePanelToggle(nodeId, panel, val, def), [store, nodeId, panel, def]);
+
+   return [state ?? def, set] as [typeof state, typeof set];
 };
 
 const GraphHelper = {

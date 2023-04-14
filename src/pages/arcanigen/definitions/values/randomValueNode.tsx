@@ -8,6 +8,7 @@ import { SocketOut } from "../../nodeView/socket";
 import BaseNode from "../../nodeView/node";
 import ActionButton from "!/components/buttons/ActionButton";
 import Icon from "!/components/icons";
+import TextInput from "!/components/inputs/TextInput";
 
 interface IRandomValueNode extends INodeDefinition {
    inputs: {};
@@ -15,6 +16,7 @@ interface IRandomValueNode extends INodeDefinition {
       result: number;
    };
    values: {
+      name: string;
       result: number;
    };
 }
@@ -22,6 +24,7 @@ interface IRandomValueNode extends INodeDefinition {
 const nodeHelper = ArcaneGraph.nodeHooks<IRandomValueNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+   const [name, setName] = nodeHelper.useValueState(nodeId, "name");
    const [result, setResult] = nodeHelper.useValueState(nodeId, "result");
 
    const doRandom = useCallback(() => {
@@ -29,7 +32,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    }, [setResult]);
 
    return (
-      <BaseNode<IRandomValueNode> nodeId={nodeId} helper={RandomValueNodeHelper}>
+      <BaseNode<IRandomValueNode> nodeId={nodeId} helper={RandomValueNodeHelper} name={name}>
+         <BaseNode.Input>
+            <TextInput className={"slim"} placeholder={"Label"} value={name} onCommit={setName} />
+         </BaseNode.Input>
          <SocketOut<IRandomValueNode> nodeId={nodeId} socketId={"result"} type={SocketTypes.INTEGER}>
             <BaseNode.Output label={"Result"}>{result}</BaseNode.Output>
          </SocketOut>
@@ -57,6 +63,7 @@ const RandomValueNodeHelper: INodeHelper<IRandomValueNode> = {
    type: NodeTypes.VALUE_RANDOM,
    getOutput,
    initialize: () => ({
+      name: "",
       result: Math.floor(Math.random() * 10000),
    }),
    controls: Controls,
