@@ -45,6 +45,7 @@ interface ISpiralNode extends INodeDefinition {
       strokeOffset: Length;
       fillColor: Color;
       strokeMarkStart: NodeRenderer;
+      strokeMarkMid: NodeRenderer;
       strokeMarkEnd: NodeRenderer;
 
       positionX: Length;
@@ -182,6 +183,9 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             <SocketIn<ISpiralNode> nodeId={nodeId} socketId={"strokeMarkStart"} type={SocketTypes.SHAPE}>
                Marker Start
             </SocketIn>
+            <SocketIn<ISpiralNode> nodeId={nodeId} socketId={"strokeMarkMid"} type={SocketTypes.SHAPE}>
+               Marker Mid
+            </SocketIn>
             <SocketIn<ISpiralNode> nodeId={nodeId} socketId={"strokeMarkEnd"} type={SocketTypes.SHAPE}>
                Marker End
             </SocketIn>
@@ -214,6 +218,7 @@ const Renderer = memo(({ nodeId, depth, globals, overrides = {} }: NodeRendererP
    const fillColor = nodeHooks.useCoalesce(nodeId, "fillColor", "fillColor", globals);
 
    const [MarkStart, msId] = nodeHooks.useInputNode(nodeId, "strokeMarkStart", globals);
+   const [MarkMid, mmId] = nodeHooks.useInputNode(nodeId, "strokeMarkMid", globals);
    const [MarkEnd, meId] = nodeHooks.useInputNode(nodeId, "strokeMarkEnd", globals);
    const strokeDash = nodeHooks.useValue(nodeId, "strokeDash");
    const strokeCap = nodeHooks.useValue(nodeId, "strokeCap");
@@ -283,6 +288,22 @@ const Renderer = memo(({ nodeId, depth, globals, overrides = {} }: NodeRendererP
                </g>
             </marker>
          )}
+         {MarkMid && mmId && (
+            <marker
+               id={`markmid_${nodeId}_lyr-${depth ?? ""}`}
+               markerUnits="userSpaceOnUse"
+               markerWidth={"100%"}
+               markerHeight={"100%"}
+               refX={"center"}
+               refY={"center"}
+               overflow={"visible"}
+               orient={strokeMarkAlign ? "auto-start-reverse" : undefined}
+            >
+               <g transform={strokeMarkAlign ? `rotate(-90)` : ""}>
+                  <MarkMid nodeId={mmId} depth={(depth ?? "") + `_${nodeId}.markMid`} globals={globals} />
+               </g>
+            </marker>
+         )}
          <g
             stroke={MathHelper.colorToSVG("strokeColor" in overrides ? overrides.strokeColor : strokeColor)}
             fill={MathHelper.colorToSVG("fillColor" in overrides ? overrides.fillColor : fillColor)}
@@ -296,6 +317,7 @@ const Renderer = memo(({ nodeId, depth, globals, overrides = {} }: NodeRendererP
                .join(" ")}
             markerStart={MarkStart && msId ? `url('#markstart_${nodeId}_lyr-${depth ?? ""}')` : undefined}
             markerEnd={MarkEnd && meId ? `url('#markend_${nodeId}_lyr-${depth ?? ""}')` : undefined}
+            markerMid={MarkMid && mmId ? `url('#markmid_${nodeId}_lyr-${depth ?? ""}')` : undefined}
          >
             <path d={pathD} vectorEffect={"non-scaling-stroke"} />
          </g>

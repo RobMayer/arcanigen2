@@ -7,6 +7,7 @@ export enum NodeTypes {
    RESULT = "result",
 
    SHAPE_CIRCLE = "shapeCircle",
+   SHAPE_RECTANGLE = "shapeRectangle",
    SHAPE_RING = "shapeRing",
    SHAPE_POLYGON = "shapePolygon",
    SHAPE_POLYGRAM = "shapePolygram",

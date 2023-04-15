@@ -55,6 +55,7 @@ import OverrideStylesNodeHelper from "./collections/overrideStylesNode";
 import PortalOutNodeHelper from "./collections/portalOutNode";
 import PortalInNodeHelper from "./collections/portalInNode";
 import ThatRobShapeNodeHelper from "./shapes/thatRobShapeNode";
+import RectangleNodeHelper from "./shapes/reactangleNode";
 
 // prettier-ignore
 export const getNodeHelper = (key: NodeTypes) => {
@@ -74,6 +75,7 @@ export const getNodeHelper = (key: NodeTypes) => {
       case NodeTypes.ARRAY_REPEAT: return RepeatArrayNodeHelper;
 
       case NodeTypes.SHAPE_CIRCLE: return CircleNodeHelper;
+      case NodeTypes.SHAPE_RECTANGLE: return RectangleNodeHelper;
       case NodeTypes.SHAPE_RING: return RingNodeHelper;
       case NodeTypes.SHAPE_POLYGON: return PolygonNodeHelper;
       case NodeTypes.SHAPE_POLYGRAM: return PolygramNodeHelper;
