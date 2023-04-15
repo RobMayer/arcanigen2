@@ -30,6 +30,7 @@ import { faSlash as buttonIcon } from "@fortawesome/pro-light-svg-icons";
 
 import Checkbox from "!/components/buttons/Checkbox";
 import TextInput from "!/components/inputs/TextInput";
+import useMarkers from "!/utility/useMarkers";
 
 interface ISegmentNode extends INodeDefinition {
    inputs: {
@@ -252,10 +253,6 @@ const Renderer = memo(({ nodeId, depth, globals, overrides = {} }: NodeRendererP
    const strokeCap = nodeHooks.useValue(nodeId, "strokeCap");
    const strokeOffset = nodeHooks.useCoalesce(nodeId, "strokeOffset", "strokeOffset", globals);
 
-   const [MarkStart, msId] = nodeHooks.useInputNode(nodeId, "strokeMarkStart", globals);
-   const [MarkEnd, meId] = nodeHooks.useInputNode(nodeId, "strokeMarkEnd", globals);
-   const strokeMarkAlign = nodeHooks.useValue(nodeId, "strokeMarkAlign");
-
    const positionMode = nodeHooks.useValue(nodeId, "positionMode");
    const positionX = nodeHooks.useCoalesce(nodeId, "positionX", "positionX", globals);
    const positionY = nodeHooks.useCoalesce(nodeId, "positionY", "positionY", globals);
@@ -281,40 +278,11 @@ const Renderer = memo(({ nodeId, depth, globals, overrides = {} }: NodeRendererP
       [endMode, endRadius, endTheta, endY]
    );
 
+   const [Markers, mStartId, mMidId, mEndId] = useMarkers(nodeHooks, nodeId, globals, overrides, depth);
+
    return (
       <g transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`}>
-         {MarkStart && msId && (
-            <marker
-               id={`markstart_${nodeId}_lyr-${depth ?? ""}`}
-               markerUnits="userSpaceOnUse"
-               markerWidth={"100%"}
-               markerHeight={"100%"}
-               refX={"center"}
-               refY={"center"}
-               overflow={"visible"}
-               orient={strokeMarkAlign ? "auto-start-reverse" : undefined}
-            >
-               <g transform={strokeMarkAlign ? `rotate(-90)` : ""}>
-                  <MarkStart nodeId={msId} depth={(depth ?? "") + `_${nodeId}.markStart`} globals={globals} />
-               </g>
-            </marker>
-         )}
-         {MarkEnd && meId && (
-            <marker
-               id={`markend_${nodeId}_lyr-${depth ?? ""}`}
-               markerUnits="userSpaceOnUse"
-               markerWidth={"100%"}
-               markerHeight={"100%"}
-               refX={"center"}
-               refY={"center"}
-               overflow={"visible"}
-               orient={strokeMarkAlign ? "auto-start-reverse" : undefined}
-            >
-               <g transform={strokeMarkAlign ? `rotate(-90)` : ""}>
-                  <MarkEnd nodeId={meId} depth={(depth ?? "") + `_${nodeId}.markEnd`} globals={globals} />
-               </g>
-            </marker>
-         )}
+         <Markers />
          <g
             stroke={MathHelper.colorToSVG("strokeColor" in overrides ? overrides.strokeColor : strokeColor)}
             fill={MathHelper.colorToSVG("fillColor" in overrides ? overrides.fillColor : fillColor)}
@@ -326,8 +294,9 @@ const Renderer = memo(({ nodeId, depth, globals, overrides = {} }: NodeRendererP
             strokeDasharray={MathHelper.listToLengths("strokeDash" in overrides ? overrides.strokeDash : strokeDash)
                .map(MathHelper.lengthToPx)
                .join(" ")}
-            markerStart={MarkStart && msId ? `url('#markstart_${nodeId}_lyr-${depth ?? ""}')` : undefined}
-            markerEnd={MarkEnd && meId ? `url('#markend_${nodeId}_lyr-${depth ?? ""}')` : undefined}
+            markerStart={mStartId}
+            markerMid={mMidId}
+            markerEnd={mEndId}
          >
             <line x1={x1} x2={x2} y1={y1} y2={y2} vectorEffect={"non-scaling-stroke"} />
          </g>

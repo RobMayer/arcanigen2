@@ -32,6 +32,7 @@ import lodash from "lodash";
 import NumberInput from "!/components/inputs/NumberInput";
 import SliderInput from "!/components/inputs/SliderInput";
 import Checkbox from "!/components/buttons/Checkbox";
+import useMarkers from "!/utility/useMarkers";
 
 interface IThatRobShapeNode extends INodeDefinition {
    inputs: {
@@ -52,6 +53,9 @@ interface IThatRobShapeNode extends INodeDefinition {
       positionRadius: Length;
       positionTheta: number;
       rotation: number;
+
+      midpoint: number;
+      midpointSpread: number;
    };
    outputs: {
       output: NodeRenderer;
@@ -76,6 +80,9 @@ interface IThatRobShapeNode extends INodeDefinition {
       positionTheta: number;
       positionMode: PositionMode;
       rotation: number;
+
+      midpoint: number;
+      midpointSpread: number;
    };
 }
 
@@ -96,6 +103,9 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
 
    const [strokeMarkAlign, setStrokeMarkAlign] = nodeHooks.useValueState(nodeId, "strokeMarkAlign");
 
+   const [midpoint, setMidpoint] = nodeHooks.useValueState(nodeId, "midpoint");
+   const [midpointSpread, setMidpointSpread] = nodeHooks.useValueState(nodeId, "midpointSpread");
+
    const hasRadius = nodeHooks.useHasLink(nodeId, "radius");
    const hasStrokeWidth = nodeHooks.useHasLink(nodeId, "strokeWidth");
    const hasStrokeOffset = nodeHooks.useHasLink(nodeId, "strokeOffset");
@@ -104,6 +114,9 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const hasSeed = nodeHooks.useHasLink(nodeId, "seed");
    const hasWeight = nodeHooks.useHasLink(nodeId, "weight");
    const hasCount = nodeHooks.useHasLink(nodeId, "count");
+
+   const hasMidpoint = nodeHooks.useHasLink(nodeId, "midpoint");
+   const hasMidpointSpread = nodeHooks.useHasLink(nodeId, "midpointSpread");
 
    return (
       <BaseNode<IThatRobShapeNode> nodeId={nodeId} helper={ThatRobShapeNodeHelper} hooks={nodeHooks}>
@@ -172,6 +185,16 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             <SocketIn<IThatRobShapeNode> nodeId={nodeId} socketId={"strokeMarkEnd"} type={SocketTypes.SHAPE}>
                Marker End
             </SocketIn>
+            <SocketIn<IThatRobShapeNode> nodeId={nodeId} socketId={"midpoint"} type={SocketTypes.PERCENT}>
+               <BaseNode.Input label={"Midpoint"}>
+                  <SliderInput value={midpoint} onValidValue={setMidpoint} disabled={hasMidpoint} min={0} max={1} />
+               </BaseNode.Input>
+            </SocketIn>
+            <SocketIn<IThatRobShapeNode> nodeId={nodeId} socketId={"midpoint"} type={SocketTypes.PERCENT}>
+               <BaseNode.Input label={"Midpoint Spread"}>
+                  <SliderInput value={midpointSpread} onValidValue={setMidpointSpread} disabled={hasMidpointSpread} min={0} max={1} />
+               </BaseNode.Input>
+            </SocketIn>
             <Checkbox checked={strokeMarkAlign} onToggle={setStrokeMarkAlign}>
                Align Markers
             </Checkbox>
@@ -194,9 +217,7 @@ const Renderer = memo(({ nodeId, globals, depth, overrides = {} }: NodeRendererP
    const strokeOffset = nodeHooks.useCoalesce(nodeId, "strokeOffset", "strokeOffset", globals);
    const strokeJoin = nodeHooks.useValue(nodeId, "strokeJoin");
 
-   const [MarkStart, msId] = nodeHooks.useInputNode(nodeId, "strokeMarkStart", globals);
-   const [MarkEnd, meId] = nodeHooks.useInputNode(nodeId, "strokeMarkEnd", globals);
-   const strokeMarkAlign = nodeHooks.useValue(nodeId, "strokeMarkAlign");
+   const weightCurve = nodeHooks.useInput(nodeId, "weightCurve", globals);
 
    const positionMode = nodeHooks.useValue(nodeId, "positionMode");
    const positionX = nodeHooks.useCoalesce(nodeId, "positionX", "positionX", globals);
@@ -205,11 +226,12 @@ const Renderer = memo(({ nodeId, globals, depth, overrides = {} }: NodeRendererP
    const positionRadius = nodeHooks.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
    const rotation = nodeHooks.useCoalesce(nodeId, "rotation", "rotation", globals);
 
-   const weightCurve = nodeHooks.useInput(nodeId, "weightCurve", globals);
+   const midpoint = nodeHooks.useCoalesce(nodeId, "midpoint", "midpoint", globals);
+   const midpointSpread = nodeHooks.useCoalesce(nodeId, "midpointSpread", "midpointSpread", globals);
 
    const points = useMemo(() => {
       const sRand = seededRandom(seed);
-      return lodash.range(Math.max(1, count)).map(() => {
+      return lodash.range(Math.max(1, count)).reduce((acc) => {
          const type = sRand();
 
          const wType = MathHelper.lerp(type, 0, 1, {
@@ -223,6 +245,8 @@ const Renderer = memo(({ nodeId, globals, depth, overrides = {} }: NodeRendererP
          const cT = sRand() * 360;
          const iR = sRand() * rad;
          const iT = sRand() * 360;
+         const randSpread = (sRand() - 0.5) * 2 * midpointSpread;
+         const theMid = MathHelper.clamp(midpoint + randSpread, 0, 1);
 
          const cX = Math.cos(MathHelper.deg2rad(cT)) * cR;
          const cY = Math.sin(MathHelper.deg2rad(cT)) * cR;
@@ -246,50 +270,33 @@ const Renderer = memo(({ nodeId, globals, depth, overrides = {} }: NodeRendererP
          const bX = pX - h * dY;
          const bY = pY + h * dX;
 
-         if (wType <= weight) {
-            return `M ${aX},${aY} A ${tR},${tR} 0 0 0 ${bX},${bY}`;
-            //arc
-         } else {
-            //line
-            return `M ${aX},${aY} L ${bX},${bY}`;
+         if (!globals.filterData || globals.filterData.discriminator() <= globals.filterData.threshold) {
+            if (wType <= weight) {
+               const aT = MathHelper.rad2deg(Math.atan2(aY - cY, aX - cX)) / 360;
+               const bT = MathHelper.rad2deg(Math.atan2(bY - cY, bX - cX)) / 360;
+
+               const mT = MathHelper.angleLerp(theMid, Math.min(aT, bT), Math.max(aT, bT), "closestCW") * 360;
+
+               const mX = Math.cos(MathHelper.deg2rad(mT)) * tR + cX;
+               const mY = Math.sin(MathHelper.deg2rad(mT)) * tR + cY;
+               acc.push(`M ${aX},${aY} A ${tR},${tR} 0 0 0 ${mX},${mY} A ${tR},${tR} 0 0 0 ${bX},${bY}`);
+               //arc
+            } else {
+               const mX = MathHelper.lerp(theMid, aX, bX);
+               const mY = MathHelper.lerp(theMid, aY, bY);
+               //line
+               acc.push(`M ${aX},${aY} L ${mX},${mY} L ${bX},${bY}`);
+            }
          }
-      });
-   }, [count, seed, radius, weight, weightCurve]);
+         return acc;
+      }, [] as string[]);
+   }, [globals.filterData, seed, count, weightCurve?.curveFn, weightCurve?.easing, weightCurve?.intensity, radius, midpoint, weight, midpointSpread]);
+
+   const [Markers, mStartId, mMidId, mEndId] = useMarkers(nodeHooks, nodeId, globals, overrides, depth);
 
    return (
       <g transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`}>
-         {MarkStart && msId && (
-            <marker
-               id={`markstart_${nodeId}_lyr-${depth ?? ""}`}
-               markerUnits="userSpaceOnUse"
-               markerWidth={"100%"}
-               markerHeight={"100%"}
-               refX={"center"}
-               refY={"center"}
-               overflow={"visible"}
-               orient={strokeMarkAlign ? "auto-start-reverse" : undefined}
-            >
-               <g transform={strokeMarkAlign ? `rotate(-90)` : ""}>
-                  <MarkStart nodeId={msId} depth={(depth ?? "") + `_${nodeId}.markStart`} globals={globals} />
-               </g>
-            </marker>
-         )}
-         {MarkEnd && meId && (
-            <marker
-               id={`markend_${nodeId}_lyr-${depth ?? ""}`}
-               markerUnits="userSpaceOnUse"
-               markerWidth={"100%"}
-               markerHeight={"100%"}
-               refX={"center"}
-               refY={"center"}
-               overflow={"visible"}
-               orient={strokeMarkAlign ? "auto-start-reverse" : undefined}
-            >
-               <g transform={strokeMarkAlign ? `rotate(-90)` : ""}>
-                  <MarkEnd nodeId={meId} depth={(depth ?? "") + `_${nodeId}.markEnd`} globals={globals} />
-               </g>
-            </marker>
-         )}
+         <Markers />
          <g
             stroke={MathHelper.colorToSVG("strokeColor" in overrides ? overrides.strokeColor : strokeColor)}
             strokeOpacity={MathHelper.colorToOpacity("strokeColor" in overrides ? overrides.strokeColor : strokeColor)}
@@ -301,8 +308,9 @@ const Renderer = memo(({ nodeId, globals, depth, overrides = {} }: NodeRendererP
                .join(" ")}
             strokeLinejoin={"strokeJoin" in overrides ? overrides.strokeJoin : strokeJoin}
             fill={"none"}
-            markerStart={MarkStart && msId ? `url('#markstart_${nodeId}_lyr-${depth ?? ""}')` : undefined}
-            markerEnd={MarkEnd && meId ? `url('#markend_${nodeId}_lyr-${depth ?? ""}')` : undefined}
+            markerStart={mStartId}
+            markerMid={mMidId}
+            markerEnd={mEndId}
          >
             {points.map((each, i) => {
                return <path d={each} key={i} vectorEffect={"non-scaling-stroke"} />;
@@ -340,6 +348,9 @@ const ThatRobShapeNodeHelper: INodeHelper<IThatRobShapeNode> = {
          positionTheta: 0,
          positionMode: "cartesian",
          rotation: 0,
+         filterWeight: 0.5,
+         midpoint: 0.5,
+         midpointSpread: 0,
       };
    },
    controls: Controls,

@@ -29,6 +29,7 @@ import { SocketOut, SocketIn } from "../../nodeView/socket";
 import { MetaPrefab, TransformPrefabs } from "../../nodeView/prefabs";
 import AngleInput from "!/components/inputs/AngleInput";
 import TextInput from "!/components/inputs/TextInput";
+import useMarkers from "!/utility/useMarkers";
 
 interface IArcNode extends INodeDefinition {
    inputs: {
@@ -198,18 +199,12 @@ const Renderer = memo(({ nodeId, globals, depth, overrides = {} }: NodeRendererP
 
    const pieSlice = nodeHooks.useValue(nodeId, "pieSlice");
 
-   const [MarkStart, msId] = nodeHooks.useInputNode(nodeId, "strokeMarkStart", globals);
-   const [MarkMid, mmId] = nodeHooks.useInputNode(nodeId, "strokeMarkMid", globals);
-   const [MarkEnd, meId] = nodeHooks.useInputNode(nodeId, "strokeMarkEnd", globals);
-
    const positionMode = nodeHooks.useValue(nodeId, "positionMode");
    const positionX = nodeHooks.useCoalesce(nodeId, "positionX", "positionX", globals);
    const positionY = nodeHooks.useCoalesce(nodeId, "positionY", "positionY", globals);
    const positionTheta = nodeHooks.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
    const positionRadius = nodeHooks.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
    const rotation = nodeHooks.useCoalesce(nodeId, "rotation", "rotation", globals);
-
-   const strokeMarkAlign = nodeHooks.useValue(nodeId, "strokeMarkAlign");
 
    const pathD = useMemo(() => {
       const rad = MathHelper.lengthToPx(radius);
@@ -228,57 +223,11 @@ const Renderer = memo(({ nodeId, globals, depth, overrides = {} }: NodeRendererP
       } A ${rad},${rad} 0 0 1 ${midX},${midY} A ${rad},${rad} 0 0 1 ${endX},${endY} ${pieSlice ? `Z` : ""}`;
    }, [pieSlice, radius, thetaEnd, thetaStart]);
 
+   const [Markers, mStartId, mMidId, mEndId] = useMarkers(nodeHooks, nodeId, globals, overrides, depth);
+
    return (
       <g transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`}>
-         {MarkStart && msId && (
-            <marker
-               id={`markstart_${nodeId}_lyr-${depth ?? ""}`}
-               markerUnits="userSpaceOnUse"
-               markerWidth={"100%"}
-               markerHeight={"100%"}
-               refX={"center"}
-               refY={"center"}
-               overflow={"visible"}
-               orient={strokeMarkAlign ? "auto-start-reverse" : undefined}
-            >
-               <g transform={strokeMarkAlign ? `rotate(-90)` : ""}>
-                  <MarkStart nodeId={msId} depth={(depth ?? "") + `_${nodeId}.markStart`} globals={globals} />
-               </g>
-            </marker>
-         )}
-         {MarkEnd && meId && (
-            <marker
-               id={`markend_${nodeId}_lyr-${depth ?? ""}`}
-               markerUnits="userSpaceOnUse"
-               markerWidth={"100%"}
-               markerHeight={"100%"}
-               refX={"center"}
-               refY={"center"}
-               overflow={"visible"}
-               orient={strokeMarkAlign ? "auto-start-reverse" : undefined}
-            >
-               <g transform={strokeMarkAlign ? `rotate(-90)` : ""}>
-                  <MarkEnd nodeId={meId} depth={(depth ?? "") + `_${nodeId}.markEnd`} globals={globals} />
-               </g>
-            </marker>
-         )}
-         {MarkMid && mmId && (
-            <marker
-               id={`markmid_${nodeId}_lyr-${depth ?? ""}`}
-               markerUnits="userSpaceOnUse"
-               markerWidth={"100%"}
-               markerHeight={"100%"}
-               refX={"center"}
-               refY={"center"}
-               overflow={"visible"}
-               orient={strokeMarkAlign ? "auto-start-reverse" : undefined}
-            >
-               <g transform={strokeMarkAlign ? `rotate(-90)` : ""}>
-                  <MarkMid nodeId={mmId} depth={(depth ?? "") + `_${nodeId}.markMid`} globals={globals} />
-               </g>
-            </marker>
-         )}
-
+         <Markers />
          <g
             stroke={MathHelper.colorToSVG("strokeColor" in overrides ? overrides.strokeColor : strokeColor)}
             fill={MathHelper.colorToSVG("fillColor" in overrides ? overrides.fillColor : fillColor)}
@@ -291,9 +240,9 @@ const Renderer = memo(({ nodeId, globals, depth, overrides = {} }: NodeRendererP
                .map(MathHelper.lengthToPx)
                .join(" ")}
             strokeLinejoin={"strokeJoin" in overrides ? overrides.strokeJoin : strokeJoin}
-            markerStart={MarkStart && msId ? `url('#markstart_${nodeId}_lyr-${depth ?? ""}')` : undefined}
-            markerEnd={MarkEnd && meId ? `url('#markend_${nodeId}_lyr-${depth ?? ""}')` : undefined}
-            markerMid={MarkMid && mmId ? `url('#markmid_${nodeId}_lyr-${depth ?? ""}')` : undefined}
+            markerStart={mStartId}
+            markerMid={mMidId}
+            markerEnd={mEndId}
          >
             <path d={pathD} vectorEffect={"non-scaling-stroke"} />
          </g>

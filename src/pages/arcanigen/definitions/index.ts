@@ -56,6 +56,7 @@ import PortalOutNodeHelper from "./collections/portalOutNode";
 import PortalInNodeHelper from "./collections/portalInNode";
 import ThatRobShapeNodeHelper from "./shapes/thatRobShapeNode";
 import RectangleNodeHelper from "./shapes/reactangleNode";
+import RandomFilterNodeHelper from "./collections/randomFilterNode";
 
 // prettier-ignore
 export const getNodeHelper = (key: NodeTypes) => {
@@ -69,6 +70,7 @@ export const getNodeHelper = (key: NodeTypes) => {
       case NodeTypes.COL_RESTYLE: return OverrideStylesNodeHelper;
       case NodeTypes.COL_PORTAL_IN: return PortalInNodeHelper;
       case NodeTypes.COL_PORTAL_OUT: return PortalOutNodeHelper;
+      case NodeTypes.COL_RANDOM_FILTER: return RandomFilterNodeHelper;
 
       case NodeTypes.ARRAY_VERTEX: return VertexArrayNodeHelper;
       case NodeTypes.ARRAY_SPIRAL: return SpiralArrayNodeHelper;

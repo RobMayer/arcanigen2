@@ -3,6 +3,7 @@ import ColorConvert, { ColorFields } from "./colorconvert";
 import { Length, Color } from "./types/units";
 
 export const deg2rad = (deg: number) => deg * (Math.PI / 180);
+export const rad2deg = (rad: number) => (180 * rad) / Math.PI;
 
 const DEFAULT_CURVE: Curve = {
    curveFn: "linear",
@@ -291,6 +292,7 @@ const LENGTH_LIST_REGEX = "^([0-9.])+(px|mm|in|cm|pt)(?:\\s([0-9.])+(px|mm|in|cm
 
 const MathHelper = {
    deg2rad,
+   rad2deg,
    mod,
    lerp,
    delerp,

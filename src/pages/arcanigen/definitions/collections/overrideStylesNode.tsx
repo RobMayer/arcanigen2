@@ -36,6 +36,9 @@ interface IOverrideStylesNode extends INodeDefinition {
       strokeColor: Color;
       fillColor: Color;
       strokeOffset: Length;
+      strokeMarkStart: NodeRenderer;
+      strokeMarkMid: NodeRenderer;
+      strokeMarkEnd: NodeRenderer;
    };
    outputs: {
       output: NodeRenderer;
@@ -48,6 +51,7 @@ interface IOverrideStylesNode extends INodeDefinition {
       strokeCap: StrokeCapMode;
       strokeOffset: Length;
       strokeDash: string;
+      strokeMarkAlign: boolean;
 
       isStrokeColor: boolean;
       isStrokeWidth: boolean;
@@ -56,6 +60,11 @@ interface IOverrideStylesNode extends INodeDefinition {
       isStrokeCap: boolean;
       isStrokeDash: boolean;
       isStrokeOffset: boolean;
+      isStrokeMarkAlign: boolean;
+
+      isStrokeMarkStart: boolean;
+      isStrokeMarkMid: boolean;
+      isStrokeMarkEnd: boolean;
    };
 }
 
@@ -69,6 +78,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [strokeOffset, setStrokeOffset] = nodeHooks.useValueState(nodeId, "strokeOffset");
    const [strokeJoin, setStrokeJoin] = nodeHooks.useValueState(nodeId, "strokeJoin");
    const [fillColor, setFillColor] = nodeHooks.useValueState(nodeId, "fillColor");
+   const [strokeMarkAlign, setStrokeMarkAlign] = nodeHooks.useValueState(nodeId, "strokeMarkAlign");
 
    const [isStrokeWidth, setIsStrokeWidth] = nodeHooks.useValueState(nodeId, "isStrokeWidth");
    const [isStrokeColor, setIsStrokeColor] = nodeHooks.useValueState(nodeId, "isStrokeColor");
@@ -77,6 +87,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [isStrokeDash, setIsStrokeDash] = nodeHooks.useValueState(nodeId, "isStrokeDash");
    const [isStrokeOffset, setIsStrokeOffset] = nodeHooks.useValueState(nodeId, "isStrokeOffset");
    const [isFillColor, setIsFillColor] = nodeHooks.useValueState(nodeId, "isFillColor");
+   const [isStrokeMarkAlign, setIsStrokeMarkAlign] = nodeHooks.useValueState(nodeId, "isStrokeMarkAlign");
+   const [isStrokeMarkStart, setIsStrokeMarkStart] = nodeHooks.useValueState(nodeId, "isStrokeMarkStart");
+   const [isStrokeMarkMid, setIsStrokeMarkMid] = nodeHooks.useValueState(nodeId, "isStrokeMarkMid");
+   const [isStrokeMarkEnd, setIsStrokeMarkEnd] = nodeHooks.useValueState(nodeId, "isStrokeMarkEnd");
 
    const hasStrokeWidth = nodeHooks.useHasLink(nodeId, "strokeWidth");
    const hasStrokeOffset = nodeHooks.useHasLink(nodeId, "strokeOffset");
@@ -135,6 +149,30 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                </ToggleDiv>
             </BaseNode.Input>
          </SocketIn>
+         <SocketIn<IOverrideStylesNode> nodeId={nodeId} socketId={"strokeMarkStart"} type={SocketTypes.SHAPE}>
+            <ToggleDiv>
+               <Checkbox checked={isStrokeMarkStart} onToggle={setIsStrokeMarkStart} title={"enabled"} />
+               <span>Marker Start</span>
+            </ToggleDiv>
+         </SocketIn>
+         <SocketIn<IOverrideStylesNode> nodeId={nodeId} socketId={"strokeMarkMid"} type={SocketTypes.SHAPE}>
+            <ToggleDiv>
+               <Checkbox checked={isStrokeMarkMid} onToggle={setIsStrokeMarkMid} title={"enabled"} />
+               <span>Marker Mid</span>
+            </ToggleDiv>
+         </SocketIn>
+         <SocketIn<IOverrideStylesNode> nodeId={nodeId} socketId={"strokeMarkEnd"} type={SocketTypes.SHAPE}>
+            <ToggleDiv>
+               <Checkbox checked={isStrokeMarkEnd} onToggle={setIsStrokeMarkEnd} title={"enabled"} />
+               <span>Marker End</span>
+            </ToggleDiv>
+         </SocketIn>
+         <ToggleDiv>
+            <Checkbox checked={isStrokeMarkAlign} onToggle={setIsStrokeMarkAlign} title={"enabled"} />
+            <Checkbox checked={strokeMarkAlign} onToggle={setStrokeMarkAlign}>
+               Align Markers
+            </Checkbox>
+         </ToggleDiv>
          <SocketIn<IOverrideStylesNode> nodeId={nodeId} socketId={"fillColor"} type={SocketTypes.COLOR}>
             <BaseNode.Input label={"Fill Color"}>
                <ToggleDiv>
@@ -156,6 +194,8 @@ const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps)
    const strokeDash = nodeHooks.useValue(nodeId, "strokeDash");
    const strokeOffset = nodeHooks.useValue(nodeId, "strokeOffset");
    const strokeJoin = nodeHooks.useValue(nodeId, "strokeJoin");
+   const strokeMarkAlign = nodeHooks.useValue(nodeId, "strokeMarkAlign");
+
    const isStrokeWidth = nodeHooks.useValue(nodeId, "isStrokeWidth");
    const isStrokeColor = nodeHooks.useValue(nodeId, "isStrokeColor");
    const isFillColor = nodeHooks.useValue(nodeId, "isFillColor");
@@ -163,8 +203,16 @@ const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps)
    const isStrokeJoin = nodeHooks.useValue(nodeId, "isStrokeJoin");
    const isStrokeOffset = nodeHooks.useValue(nodeId, "isStrokeOffset");
    const isStrokeDash = nodeHooks.useValue(nodeId, "isStrokeDash");
+   const isStrokeMarkAlign = nodeHooks.useValue(nodeId, "isStrokeMarkAlign");
 
    const [Content, cId] = nodeHooks.useInputNode(nodeId, "input", globals);
+   const [MarkerStart, msId] = nodeHooks.useInputNode(nodeId, "strokeMarkStart", globals);
+   const [MarkerMid, mmId] = nodeHooks.useInputNode(nodeId, "strokeMarkMid", globals);
+   const [MarkerEnd, meId] = nodeHooks.useInputNode(nodeId, "strokeMarkEnd", globals);
+
+   const isStrokeMarkStart = nodeHooks.useValue(nodeId, "isStrokeMarkStart");
+   const isStrokeMarkMid = nodeHooks.useValue(nodeId, "isStrokeMarkMid");
+   const isStrokeMarkEnd = nodeHooks.useValue(nodeId, "isStrokeMarkEnd");
 
    const newOverrides = useMemo(() => {
       const r = { ...overrides };
@@ -189,6 +237,18 @@ const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps)
       if (isStrokeDash) {
          r.strokeDash = strokeDash;
       }
+      if (isStrokeMarkAlign) {
+         r.strokeMarkAlign = strokeMarkAlign;
+      }
+      if (isStrokeMarkStart) {
+         r.strokeMarkStart = { Renderer: MarkerStart, id: msId };
+      }
+      if (isStrokeMarkEnd) {
+         r.strokeMarkEnd = { Renderer: MarkerEnd, id: meId };
+      }
+      if (isStrokeMarkMid) {
+         r.strokeMarkMid = { Renderer: MarkerMid, id: mmId };
+      }
       return r;
    }, [
       overrides,
@@ -199,6 +259,10 @@ const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps)
       isStrokeJoin,
       isStrokeOffset,
       isStrokeDash,
+      isStrokeMarkAlign,
+      isStrokeMarkStart,
+      isStrokeMarkEnd,
+      isStrokeMarkMid,
       strokeWidth,
       strokeColor,
       fillColor,
@@ -206,6 +270,13 @@ const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps)
       strokeJoin,
       strokeOffset,
       strokeDash,
+      strokeMarkAlign,
+      MarkerStart,
+      msId,
+      MarkerEnd,
+      meId,
+      MarkerMid,
+      mmId,
    ]);
 
    return <>{Content && cId && <Content nodeId={cId} depth={(depth ?? "") + `_${nodeId}`} globals={globals} overrides={newOverrides} />}</>;
@@ -226,13 +297,18 @@ const OverrideStylesNodeHelper: INodeHelper<IOverrideStylesNode> = {
       strokeDash: "",
       strokeOffset: { value: 0, unit: "px" },
       fillColor: null as Color,
-      isStrokeCap: true,
-      isFillColor: true,
-      isStrokeColor: true,
-      isStrokeJoin: true,
-      isStrokeWidth: true,
-      isStrokeDash: true,
-      isStrokeOffset: true,
+      strokeMarkAlign: true,
+      isStrokeCap: false,
+      isFillColor: false,
+      isStrokeColor: false,
+      isStrokeJoin: false,
+      isStrokeWidth: false,
+      isStrokeDash: false,
+      isStrokeOffset: false,
+      isStrokeMarkAlign: false,
+      isStrokeMarkStart: false,
+      isStrokeMarkMid: false,
+      isStrokeMarkEnd: false,
    }),
    controls: Controls,
 };

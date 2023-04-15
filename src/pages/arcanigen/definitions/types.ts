@@ -27,6 +27,7 @@ export enum NodeTypes {
    COL_SEQUENCE = "collectionSequence",
    COL_PORTAL_IN = "collectionPortalIn",
    COL_PORTAL_OUT = "collectionPortalOut",
+   COL_RANDOM_FILTER = "collectionRandomFilter",
 
    ARRAY_VERTEX = "arrayVertex",
    ARRAY_SPIRAL = "arraySpiral",
@@ -138,6 +139,7 @@ export type ControlRenderer = ComponentType<ControlRendererProps>;
 export type Globals = {
    sequenceData: { [key: string]: number };
    portalData: { [key: string]: number };
+   filterData?: { discriminator: () => number; threshold: number };
 };
 
 export type Sequence = {
