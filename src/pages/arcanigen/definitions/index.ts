@@ -54,6 +54,7 @@ import KnotNodeHelper from "./shapes/knotNode";
 import OverrideStylesNodeHelper from "./collections/overrideStylesNode";
 import PortalOutNodeHelper from "./collections/portalOutNode";
 import PortalInNodeHelper from "./collections/portalInNode";
+import ThatRobShapeNodeHelper from "./shapes/thatRobShapeNode";
 
 // prettier-ignore
 export const getNodeHelper = (key: NodeTypes) => {
@@ -83,9 +84,10 @@ export const getNodeHelper = (key: NodeTypes) => {
       case NodeTypes.SHAPE_ARC: return ArcNodeHelper;
       case NodeTypes.SHAPE_SPIRAL: return SpiralNodeHelper;
       case NodeTypes.SHAPE_SEGMENT: return SegmentNodeHelper;
-
+      
       case NodeTypes.SHAPE_FLOODFILL: return FloodFillNodeHelper;
       case NodeTypes.SHAPE_GLYPH: return GlyphNodeHelper;
+      case NodeTypes.SHAPE_THATROBSHAPE: return ThatRobShapeNodeHelper;
 
       case NodeTypes.VALUE_LENGTH: return LengthValueNodeHelper;
       case NodeTypes.VALUE_RANDOM: return RandomValueNodeHelper;

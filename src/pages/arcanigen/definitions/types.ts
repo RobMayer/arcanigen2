@@ -19,6 +19,7 @@ export enum NodeTypes {
    SHAPE_SEGMENT = "shapeSegment",
    SHAPE_FLOODFILL = "shapeFloodFill",
    SHAPE_GLYPH = "shapeGlyph",
+   SHAPE_THATROBSHAPE = "shapeThatRobShape",
 
    COL_LAYERS = "collectionLayers",
    COL_MASK = "collectionMask",

@@ -10,6 +10,17 @@ const DEFAULT_CURVE: Curve = {
    intensity: 1,
 };
 
+export const seededRandom = (seed: number) => {
+   let _seed = seed % 2147483647;
+   if (_seed <= 0) {
+      _seed = _seed + 2147483647;
+   }
+   return () => {
+      _seed = (_seed * 16807) % 2147483647;
+      return (_seed - 1) / 2147483646;
+   };
+};
+
 const CURVE_HANDLERS: { [keys in CurveFunction]: (t: number) => number } = {
    linear: (t: number) => t,
    semiquadratic: (t: number) => Math.pow(t, 1.5),
@@ -300,6 +311,7 @@ const MathHelper = {
    colorLerp,
    listToLengths,
    round,
+   seededRandom,
    WHITE,
    BLACK,
    LENGTH_LIST_REGEX,

@@ -94,9 +94,7 @@ const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof ILerpNumbe
       return MathHelper.lerp(t, from, to, distribution);
    }
 
-   return MathHelper.lerp(MathHelper.clamp(percent, 0, 1), from, to);
-
-   //TODO: How do I get sequence data from here?!?
+   return MathHelper.lerp(MathHelper.clamp(percent, 0, 1), from, to, distribution);
 };
 
 const LerpNumberNodeHelper: INodeHelper<ILerpNumberNode> = {
