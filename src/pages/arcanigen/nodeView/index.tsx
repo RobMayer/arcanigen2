@@ -213,6 +213,9 @@ const getLinkType = (a: SocketTypes, b: SocketTypes): LinkTypes => {
    if (a === SocketTypes.SEQUENCE && b === SocketTypes.SEQUENCE) {
       return LinkTypes.SEQUENCE;
    }
+   if (a === SocketTypes.PATH && b === SocketTypes.PATH) {
+      return LinkTypes.PATH;
+   }
    return LinkTypes.OTHER;
 };
 

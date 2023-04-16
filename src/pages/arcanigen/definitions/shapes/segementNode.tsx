@@ -13,6 +13,8 @@ import {
    StrokeCapMode,
    STROKECAP_MODES,
    POSITION_MODES,
+   NodePather,
+   NodePatherProps,
 } from "../types";
 import MathHelper from "!/utility/mathhelper";
 
@@ -59,6 +61,7 @@ interface ISegmentNode extends INodeDefinition {
    };
    outputs: {
       output: NodeRenderer;
+      path: NodePather;
    };
    values: {
       startMode: PositionMode;
@@ -227,8 +230,62 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             </SocketIn>
          </BaseNode.Foldout>
          <TransformPrefabs.Full<ISegmentNode> nodeId={nodeId} hooks={nodeHooks} />
+         <BaseNode.Foldout panelId={"moreOutputs"} label={"Additional Outputs"} inputs={""} outputs={"path"} nodeId={nodeId}>
+            <SocketOut<ISegmentNode> nodeId={nodeId} socketId={"path"} type={SocketTypes.PATH}>
+               Conformal Path
+            </SocketOut>
+         </BaseNode.Foldout>
          <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
+   );
+});
+
+const Pather = memo(({ nodeId, depth, globals, pathId, pathLength }: NodePatherProps) => {
+   const startMode = nodeHooks.useValue(nodeId, "startMode");
+
+   const startX = nodeHooks.useCoalesce(nodeId, "startX", "startX", globals);
+   const startY = nodeHooks.useCoalesce(nodeId, "startY", "startY", globals);
+   const startRadius = nodeHooks.useCoalesce(nodeId, "startRadius", "startRadius", globals);
+   const startTheta = nodeHooks.useCoalesce(nodeId, "startTheta", "startTheta", globals);
+
+   const endMode = nodeHooks.useValue(nodeId, "endMode");
+   const endX = nodeHooks.useCoalesce(nodeId, "endX", "endX", globals);
+   const endY = nodeHooks.useCoalesce(nodeId, "endY", "endY", globals);
+   const endRadius = nodeHooks.useCoalesce(nodeId, "endRadius", "endRadius", globals);
+   const endTheta = nodeHooks.useCoalesce(nodeId, "endTheta", "endTheta", globals);
+
+   const positionMode = nodeHooks.useValue(nodeId, "positionMode");
+   const positionX = nodeHooks.useCoalesce(nodeId, "positionX", "positionX", globals);
+   const positionY = nodeHooks.useCoalesce(nodeId, "positionY", "positionY", globals);
+   const positionTheta = nodeHooks.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
+   const positionRadius = nodeHooks.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
+   const rotation = nodeHooks.useCoalesce(nodeId, "rotation", "rotation", globals);
+
+   const x1 = useMemo(
+      () => (startMode === "cartesian" ? MathHelper.lengthToPx(startX) : MathHelper.lengthToPx(startRadius) * Math.cos(((startTheta - 90) * Math.PI) / 180)),
+      [startMode, startRadius, startTheta, startX]
+   );
+   const y1 = useMemo(
+      () => (startMode === "cartesian" ? MathHelper.lengthToPx(startY) : MathHelper.lengthToPx(startRadius) * Math.sin(((startTheta - 90) * Math.PI) / 180)),
+      [startMode, startRadius, startTheta, startY]
+   );
+
+   const x2 = useMemo(
+      () => (endMode === "cartesian" ? MathHelper.lengthToPx(endX) : MathHelper.lengthToPx(endRadius) * Math.cos(((endTheta - 90) * Math.PI) / 180)),
+      [endMode, endRadius, endTheta, endX]
+   );
+   const y2 = useMemo(
+      () => (endMode === "cartesian" ? MathHelper.lengthToPx(endY) : MathHelper.lengthToPx(endRadius) * Math.sin(((endTheta - 90) * Math.PI) / 180)),
+      [endMode, endRadius, endTheta, endY]
+   );
+
+   return (
+      <path
+         d={`M ${x1},${y1} L ${x2},${y2}`}
+         transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`}
+         pathLength={pathLength}
+         id={pathId}
+      />
    );
 });
 
@@ -298,7 +355,7 @@ const Renderer = memo(({ nodeId, depth, globals, overrides = {} }: NodeRendererP
             markerMid={mMidId}
             markerEnd={mEndId}
          >
-            <line x1={x1} x2={x2} y1={y1} y2={y2} vectorEffect={"non-scaling-stroke"} />
+            <path d={`M ${x1},${y1} L ${x2},${y2}`} vectorEffect={"non-scaling-stroke"} />
          </g>
       </g>
    );
@@ -310,7 +367,14 @@ const SegmentNodeHelper: INodeHelper<ISegmentNode> = {
    nodeIcon,
    flavour: "emphasis",
    type: NodeTypes.SHAPE_SEGMENT,
-   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof ISegmentNode["outputs"]) => Renderer,
+   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof ISegmentNode["outputs"]) => {
+      switch (socket) {
+         case "output":
+            return Renderer;
+         case "path":
+            return Pather;
+      }
+   },
    initialize: () => ({
       startX: { value: 0, unit: "px" },
       startY: { value: 0, unit: "px" },

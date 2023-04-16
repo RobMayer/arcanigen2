@@ -8,6 +8,7 @@ import BaseNode from "../../nodeView/node";
 import { SocketIn } from "../../nodeView/socket";
 import { ControlRendererProps, INodeDefinition, INodeHelper, NodeRenderer, NodeTypes, SocketTypes } from "../types";
 import { faFlagCheckered as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
+import { FONT_DEFINITIONS } from "../fonts";
 
 interface IResultNode extends INodeDefinition {
    inputs: {
@@ -124,6 +125,20 @@ export const RootNodeRenderer = () => {
          xmlns="http://www.w3.org/2000/svg"
          xmlnsXlink="http://www.w3.org/1999/xlink"
       >
+         <style>
+            {`text.font-default { font-family: inherit; }`}
+            {Object.keys(FONT_DEFINITIONS)
+               .map(
+                  (k) => `
+               @font-face {
+                  font-family: '${FONT_DEFINITIONS[k].family}';
+                  src: url('${FONT_DEFINITIONS[k].url}') format('${FONT_DEFINITIONS[k].format}');
+               }
+               text.font-${k} { font-family: '${FONT_DEFINITIONS[k].family}'; }
+            `
+               )
+               .join("")}
+         </style>
          <g transform={`translate(${x}, ${y})`}>{OutputRenderer && childNodeId && <OutputRenderer nodeId={childNodeId} depth={"ROOT"} globals={globals} />}</g>
       </svg>
    );

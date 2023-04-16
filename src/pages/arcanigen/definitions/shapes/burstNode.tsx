@@ -16,6 +16,10 @@ import {
    THETA_MODES,
    RADIAL_MODES,
    RadialMode,
+   NodePather,
+   Globals,
+   IArcaneGraph,
+   NodePatherProps,
 } from "../types";
 import MathHelper from "!/utility/mathhelper";
 
@@ -62,6 +66,7 @@ interface IBurstNode extends INodeDefinition {
    };
    outputs: {
       output: NodeRenderer;
+      path: NodePather;
    };
    values: {
       radialMode: RadialMode;
@@ -232,8 +237,72 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             </Checkbox>
          </BaseNode.Foldout>
          <TransformPrefabs.Full<IBurstNode> nodeId={nodeId} hooks={nodeHooks} />
+         <BaseNode.Foldout panelId={"moreOutputs"} label={"Additional Outputs"} inputs={""} outputs={"path"} nodeId={nodeId}>
+            <SocketOut<IBurstNode> nodeId={nodeId} socketId={"path"} type={SocketTypes.PATH}>
+               Conformal Path
+            </SocketOut>
+         </BaseNode.Foldout>
          <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
+   );
+});
+
+const Pather = memo(({ nodeId, depth, globals, pathLength, pathId }: NodePatherProps) => {
+   const spurCount = Math.max(0, nodeHooks.useCoalesce(nodeId, "spurCount", "spurCount", globals));
+   const radialMode = nodeHooks.useValue(nodeId, "radialMode");
+   const radius = nodeHooks.useCoalesce(nodeId, "radius", "radius", globals);
+   const deviation = nodeHooks.useCoalesce(nodeId, "deviation", "deviation", globals);
+   const minorRadius = nodeHooks.useCoalesce(nodeId, "minorRadius", "minorRadius", globals);
+   const majorRadius = nodeHooks.useCoalesce(nodeId, "majorRadius", "majorRadius", globals);
+
+   const positionMode = nodeHooks.useValue(nodeId, "positionMode");
+   const positionX = nodeHooks.useCoalesce(nodeId, "positionX", "positionX", globals);
+   const positionY = nodeHooks.useCoalesce(nodeId, "positionY", "positionY", globals);
+   const positionTheta = nodeHooks.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
+   const positionRadius = nodeHooks.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
+   const rotation = nodeHooks.useCoalesce(nodeId, "rotation", "rotation", globals);
+
+   const thetaMode = nodeHooks.useValue(nodeId, "thetaMode");
+   const thetaStart = nodeHooks.useCoalesce(nodeId, "thetaStart", "thetaStart", globals);
+   const thetaEnd = nodeHooks.useCoalesce(nodeId, "thetaEnd", "thetaEnd", globals);
+   const thetaSteps = nodeHooks.useCoalesce(nodeId, "thetaSteps", "thetaSteps", globals);
+   const thetaInclusive = nodeHooks.useValue(nodeId, "thetaInclusive");
+   const thetaCurve = nodeHooks.useInput(nodeId, "thetaCurve", globals);
+
+   const rI = radialMode === "majorminor" ? MathHelper.lengthToPx(minorRadius) : MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(deviation) / 2;
+   const rO = radialMode === "majorminor" ? MathHelper.lengthToPx(majorRadius) : MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(deviation) / 2;
+
+   const points = useMemo(() => {
+      return lodash
+         .range(spurCount)
+         .map((n) => {
+            const coeff = MathHelper.delerp(n, 0, thetaInclusive ? spurCount - 1 : spurCount);
+            const angle =
+               thetaMode === "startstop"
+                  ? MathHelper.lerp(coeff, 1 * thetaStart, 1 * thetaEnd, {
+                       curveFn: thetaCurve?.curveFn ?? "linear",
+                       easing: thetaCurve?.easing ?? "in",
+                       intensity: thetaCurve?.intensity ?? 1,
+                    })
+                  : MathHelper.lerp(coeff, 0, spurCount * thetaSteps, {
+                       curveFn: thetaCurve?.curveFn ?? "linear",
+                       easing: thetaCurve?.easing ?? "in",
+                       intensity: thetaCurve?.intensity ?? 1,
+                    });
+            const c = Math.cos(MathHelper.deg2rad(angle - 90));
+            const s = Math.sin(MathHelper.deg2rad(angle - 90));
+            return `M ${rI * c},${rI * s} L ${rO * c},${rO * s}`;
+         })
+         .join(" ");
+   }, [rI, rO, spurCount, thetaCurve?.curveFn, thetaCurve?.easing, thetaEnd, thetaInclusive, thetaMode, thetaStart, thetaSteps, thetaCurve?.intensity]);
+
+   return (
+      <path
+         d={points}
+         transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`}
+         id={pathId}
+         pathLength={pathLength}
+      />
    );
 });
 
@@ -319,7 +388,14 @@ const BurstNodeHelper: INodeHelper<IBurstNode> = {
    nodeIcon,
    flavour: "emphasis",
    type: NodeTypes.SHAPE_BURST,
-   getOutput: () => Renderer,
+   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IBurstNode["outputs"], globals: Globals) => {
+      switch (socket) {
+         case "output":
+            return Renderer;
+         case "path":
+            return Pather;
+      }
+   },
    initialize: () => ({
       radius: { value: 150, unit: "px" },
       deviation: { value: 20, unit: "px" },

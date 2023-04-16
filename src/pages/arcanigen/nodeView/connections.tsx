@@ -1,4 +1,3 @@
-import { Flavour } from "!/components";
 import { useDragCanvasEvents } from "!/components/containers/DragCanvas";
 import useResizeObserver from "!/utility/hooks/useResizeObserver";
 import useKey from "@accessible/use-key";
@@ -206,6 +205,10 @@ const ThePath = styled.g`
       --type-stroke: var(--emphasis-icon);
       --type-stroke-selected: var(--emphasis-icon-highlight);
    }
+   &.type_path {
+      --type-stroke: var(--emphasis-icon);
+      --type-stroke-selected: var(--emphasis-icon-highlight);
+   }
    &.type_shape {
       --type-stroke: var(--confirm-icon);
       --type-stroke-selected: var(--confirm-icon-highlight);
@@ -306,6 +309,8 @@ const getLinkType = (type: LinkTypes): string => {
          return "other";
       case LinkTypes.PORTAL:
          return "portal";
+      case LinkTypes.PATH:
+         return "path";
    }
    return "accent";
 };

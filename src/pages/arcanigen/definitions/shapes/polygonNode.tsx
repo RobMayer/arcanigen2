@@ -18,6 +18,8 @@ import {
    STROKEJOIN_MODES,
    STROKECAP_MODES,
    StrokeCapMode,
+   NodePatherProps,
+   NodePather,
 } from "../types";
 import MathHelper from "!/utility/mathhelper";
 
@@ -54,6 +56,7 @@ interface IPolygonNode extends INodeDefinition {
    };
    outputs: {
       output: NodeRenderer;
+      path: NodePather;
       rInscribe: Length;
       rCircumscribe: Length;
       rMiddle: Length;
@@ -154,7 +157,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             </SocketIn>
          </BaseNode.Foldout>
          <TransformPrefabs.Full<IPolygonNode> nodeId={nodeId} hooks={nodeHooks} />
-         <BaseNode.Foldout panelId={"moreOutputs"} label={"Additional Outputs"} inputs={""} outputs={"rInscribe rCircumscribe rMiddle"} nodeId={nodeId}>
+         <BaseNode.Foldout panelId={"moreOutputs"} label={"Additional Outputs"} inputs={""} outputs={"path rInscribe rCircumscribe rMiddle"} nodeId={nodeId}>
+            <SocketOut<IPolygonNode> nodeId={nodeId} socketId={"path"} type={SocketTypes.PATH}>
+               Conformal Path
+            </SocketOut>
             <SocketOut<IPolygonNode> nodeId={nodeId} socketId={"rInscribe"} type={SocketTypes.LENGTH}>
                Inscribe Radius
             </SocketOut>
@@ -167,6 +173,44 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          </BaseNode.Foldout>
          <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
+   );
+});
+
+const Pather = memo(({ nodeId, globals, pathId, depth, pathLength }: NodePatherProps) => {
+   const radius = nodeHooks.useCoalesce(nodeId, "radius", "radius", globals);
+   const pointCount = Math.min(24, Math.max(3, nodeHooks.useCoalesce(nodeId, "pointCount", "pointCount", globals)));
+   const rScribe = nodeHooks.useValue(nodeId, "rScribe");
+
+   const positionMode = nodeHooks.useValue(nodeId, "positionMode");
+   const positionX = nodeHooks.useCoalesce(nodeId, "positionX", "positionX", globals);
+   const positionY = nodeHooks.useCoalesce(nodeId, "positionY", "positionY", globals);
+   const positionTheta = nodeHooks.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
+   const positionRadius = nodeHooks.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
+   const rotation = nodeHooks.useCoalesce(nodeId, "rotation", "rotation", globals);
+   const thetaCurve = nodeHooks.useInput(nodeId, "thetaCurve", globals);
+
+   const points = useMemo(() => {
+      const tR = getTrueRadius(MathHelper.lengthToPx(radius), rScribe, pointCount);
+      const p = lodash.range(pointCount).map((each, i) => {
+         const coeff = MathHelper.lerp(MathHelper.delerp(each, 0, pointCount), 0, 360, {
+            curveFn: thetaCurve?.curveFn ?? "linear",
+            easing: thetaCurve?.easing ?? "in",
+            intensity: thetaCurve?.intensity ?? 1,
+         });
+         return `${tR * Math.cos(MathHelper.deg2rad(coeff - 90))},${tR * Math.sin(MathHelper.deg2rad(coeff - 90))}`;
+      });
+      return `M ${p[0]} ${p.slice(1).map((e) => `L ${e}`)} Z`;
+   }, [pointCount, radius, rScribe, thetaCurve?.curveFn, thetaCurve?.easing, thetaCurve?.intensity]);
+
+   return (
+      <g>
+         <path
+            transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`}
+            d={points}
+            id={pathId}
+            pathLength={pathLength}
+         />
+      </g>
    );
 });
 
@@ -236,6 +280,9 @@ const PolygonNodeHelper: INodeHelper<IPolygonNode> = {
    getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IPolygonNode["outputs"], globals: Globals) => {
       if (socket === "output") {
          return Renderer;
+      }
+      if (socket === "path") {
+         return Pather;
       }
       const radius = nodeMethods.coalesce(graph, nodeId, "radius", "radius", globals);
       const pointCount = nodeMethods.getValue(graph, nodeId, "pointCount");

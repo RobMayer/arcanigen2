@@ -1,9 +1,12 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
 import {
    ControlRendererProps,
+   IArcaneGraph,
    INodeDefinition,
    INodeHelper,
+   NodePather,
+   NodePatherProps,
    NodeRenderer,
    NodeRendererProps,
    NodeTypes,
@@ -36,9 +39,11 @@ interface ICircleNode extends INodeDefinition {
       positionY: Length;
       positionRadius: Length;
       positionTheta: number;
+      rotation: number;
    };
    outputs: {
       output: NodeRenderer;
+      path: NodePather;
    };
    values: {
       radius: Length;
@@ -49,6 +54,7 @@ interface ICircleNode extends INodeDefinition {
       strokeOffset: Length;
       fillColor: Color;
 
+      rotation: number;
       positionX: Length;
       positionY: Length;
       positionRadius: Length;
@@ -114,9 +120,39 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                </BaseNode.Input>
             </SocketIn>
          </BaseNode.Foldout>
-         <TransformPrefabs.Position<ICircleNode> nodeId={nodeId} hooks={nodeHooks} />
+         <TransformPrefabs.Full<ICircleNode> nodeId={nodeId} hooks={nodeHooks} />
+         <BaseNode.Foldout panelId={"moreOutputs"} label={"Additional Outputs"} inputs={""} outputs={"path"} nodeId={nodeId}>
+            <SocketOut<ICircleNode> nodeId={nodeId} socketId={"path"} type={SocketTypes.PATH}>
+               Conformal Path
+            </SocketOut>
+         </BaseNode.Foldout>
          <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
+   );
+});
+
+const Pather = memo(({ nodeId, globals, depth, pathId, pathLength }: NodePatherProps) => {
+   const radius = nodeHooks.useCoalesce(nodeId, "radius", "radius", globals);
+
+   const positionMode = nodeHooks.useValue(nodeId, "positionMode");
+   const positionX = nodeHooks.useCoalesce(nodeId, "positionX", "positionX", globals);
+   const positionY = nodeHooks.useCoalesce(nodeId, "positionY", "positionY", globals);
+   const positionTheta = nodeHooks.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
+   const positionRadius = nodeHooks.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
+   const rotation = nodeHooks.useCoalesce(nodeId, "rotation", "rotation", globals);
+
+   const points = useMemo(() => {
+      const r = MathHelper.lengthToPx(radius);
+      return `M 0,${-1 * r} A ${r},${r} 0 0 1 0,${r} A ${r},${r} 0 0 1 0,${r * -1}`;
+   }, [radius]);
+
+   return (
+      <path
+         d={points}
+         transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`}
+         pathLength={pathLength}
+         id={pathId}
+      />
    );
 });
 
@@ -135,9 +171,10 @@ const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) =
    const positionY = nodeHooks.useCoalesce(nodeId, "positionY", "positionY", globals);
    const positionTheta = nodeHooks.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
    const positionRadius = nodeHooks.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
+   const rotation = nodeHooks.useCoalesce(nodeId, "rotation", "rotation", globals);
 
    return (
-      <g transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)}`}>
+      <g transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`}>
          <g
             stroke={MathHelper.colorToSVG("strokeColor" in overrides ? overrides.strokeColor : strokeColor)}
             fill={MathHelper.colorToSVG("fillColor" in overrides ? overrides.fillColor : fillColor)}
@@ -162,7 +199,14 @@ const CircleNodeHelper: INodeHelper<ICircleNode> = {
    nodeIcon,
    flavour: "emphasis",
    type: NodeTypes.SHAPE_CIRCLE,
-   getOutput: () => Renderer,
+   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof ICircleNode["outputs"]) => {
+      switch (socket) {
+         case "output":
+            return Renderer;
+         case "path":
+            return Pather;
+      }
+   },
    initialize: () => ({
       radius: { value: 100, unit: "px" },
       strokeWidth: { value: 1, unit: "px" },
@@ -177,6 +221,7 @@ const CircleNodeHelper: INodeHelper<ICircleNode> = {
       positionRadius: { value: 0, unit: "px" },
       positionTheta: 0,
       positionMode: "cartesian",
+      rotation: 0,
    }),
    controls: Controls,
 };

@@ -147,6 +147,36 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    );
 });
 
+// const Pather = memo(({ nodeId, depth, globals, pathId }: NodePatherProps) => {
+//    const path = nodeHooks.useValue(nodeId, "path");
+//    const radius = nodeHooks.useCoalesce(nodeId, "radius", "radius", globals);
+
+//    const positionMode = nodeHooks.useValue(nodeId, "positionMode");
+//    const positionX = nodeHooks.useCoalesce(nodeId, "positionX", "positionX", globals);
+//    const positionY = nodeHooks.useCoalesce(nodeId, "positionY", "positionY", globals);
+//    const positionTheta = nodeHooks.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
+//    const positionRadius = nodeHooks.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
+//    const rotation = nodeHooks.useCoalesce(nodeId, "rotation", "rotation", globals);
+
+//    return (
+//       <g transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`}>
+//          <symbol id={`glyph_${nodeId}_lyr-${depth ?? ""}`} viewBox="0 0 512 512">
+//             <path d={path} vectorEffect={"non-scaling-stroke"} />
+//          </symbol>
+//          <g>
+//             <use
+//                href={`#glyph_${nodeId}_lyr-${depth ?? ""}`}
+//                width={Math.max(0, MathHelper.lengthToPx(radius) * 2)}
+//                height={Math.max(0, MathHelper.lengthToPx(radius) * 2)}
+//                x={MathHelper.lengthToPx(radius) * -1}
+//                y={MathHelper.lengthToPx(radius) * -1}
+//                vectorEffect={"non-scaling-stroke"}
+//             />
+//          </g>
+//       </g>
+//    );
+// });
+
 const Renderer = memo(({ nodeId, depth, globals, overrides = {} }: NodeRendererProps) => {
    const path = nodeHooks.useValue(nodeId, "path");
    const radius = nodeHooks.useCoalesce(nodeId, "radius", "radius", globals);

@@ -20,6 +20,7 @@ export enum NodeTypes {
    SHAPE_SEGMENT = "shapeSegment",
    SHAPE_FLOODFILL = "shapeFloodFill",
    SHAPE_GLYPH = "shapeGlyph",
+   SHAPE_TEXTPATH = "shapeTextPath",
    SHAPE_THATROBSHAPE = "shapeThatRobShape",
 
    COL_LAYERS = "collectionLayers",
@@ -83,9 +84,10 @@ export enum SocketTypes {
    COLOR = 64,
    SEQUENCE = 128,
    CURVE = 256,
-   PORTAL = 512,
+   PATH = 512,
+   PORTAL = 1024,
 
-   ANY = 1 | 2 | 4 | 8 | 16 | 32 | 64 | 128 | 256 | 512,
+   ANY = 1 | 2 | 4 | 8 | 16 | 32 | 64 | 128 | 256 | 512 | 1024,
    NUMBER = 2 | 4,
 }
 
@@ -94,6 +96,7 @@ export enum LinkTypes {
    SEQUENCE,
    SHAPE,
    PORTAL,
+   PATH,
 }
 
 export type InSocket = string | null;
@@ -135,6 +138,10 @@ export type NodeRendererProps = { nodeId: string; depth: string; globals: Global
 export type NodeRenderer = ComponentType<NodeRendererProps>;
 export type ControlRendererProps = { nodeId: string; globals: Globals };
 export type ControlRenderer = ComponentType<ControlRendererProps>;
+export type NodePatherProps = { nodeId: string; depth: string; globals: Globals; pathId: string; pathLength: number };
+export type NodePather = ComponentType<NodePatherProps>;
+
+export type Path = string;
 
 export type Globals = {
    sequenceData: { [key: string]: number };
@@ -346,3 +353,17 @@ export const ROUNDING_MODES = {
 };
 
 export type RoundingMode = keyof typeof ROUNDING_MODES;
+
+export const TEXT_ALIGN_MODE = {
+   start: "Start",
+   middle: "Middle",
+   end: "End",
+};
+export type TextAlignMode = keyof typeof TEXT_ALIGN_MODE;
+
+export const TEXT_ANCHOR_MODE = {
+   auto: "Bottom",
+   middle: "Middle",
+   hanging: "Top",
+};
+export type TextAnchorMode = keyof typeof TEXT_ANCHOR_MODE;

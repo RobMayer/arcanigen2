@@ -204,6 +204,7 @@ const getSocketFlavour = (type: SocketTypes): Flavour => {
       case SocketTypes.CURVE:
          return "info";
       case SocketTypes.SEQUENCE:
+      case SocketTypes.PATH:
          return "emphasis";
       case SocketTypes.SHAPE:
          return "confirm";

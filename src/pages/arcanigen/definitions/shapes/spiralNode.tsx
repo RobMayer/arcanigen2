@@ -14,6 +14,8 @@ import {
    STROKECAP_MODES,
    RadialMode,
    RADIAL_MODES,
+   NodePatherProps,
+   NodePather,
 } from "../types";
 import MathHelper from "!/utility/mathhelper";
 
@@ -57,6 +59,7 @@ interface ISpiralNode extends INodeDefinition {
    };
    outputs: {
       output: NodeRenderer;
+      path: NodePather;
    };
    values: {
       radialMode: RadialMode;
@@ -200,8 +203,62 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             </SocketIn>
          </BaseNode.Foldout>
          <TransformPrefabs.Full<ISpiralNode> nodeId={nodeId} hooks={nodeHooks} />
+         <BaseNode.Foldout panelId={"moreOutputs"} label={"Additional Outputs"} inputs={""} outputs={"path"} nodeId={nodeId}>
+            <SocketOut<ISpiralNode> nodeId={nodeId} socketId={"path"} type={SocketTypes.PATH}>
+               Conformal Path
+            </SocketOut>
+         </BaseNode.Foldout>
          <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
+   );
+});
+
+const Pather = memo(({ nodeId, depth, globals, pathId, pathLength }: NodePatherProps) => {
+   const radialMode = nodeHooks.useValue(nodeId, "radialMode");
+   const radius = nodeHooks.useCoalesce(nodeId, "radius", "radius", globals);
+   const deviation = nodeHooks.useCoalesce(nodeId, "deviation", "deviation", globals);
+   const minorRadius = nodeHooks.useCoalesce(nodeId, "minorRadius", "minorRadius", globals);
+   const majorRadius = nodeHooks.useCoalesce(nodeId, "majorRadius", "majorRadius", globals);
+
+   const thetaStart = nodeHooks.useCoalesce(nodeId, "thetaStart", "thetaStart", globals);
+   const thetaEnd = nodeHooks.useCoalesce(nodeId, "thetaEnd", "thetaEnd", globals);
+
+   const positionMode = nodeHooks.useValue(nodeId, "positionMode");
+   const positionX = nodeHooks.useCoalesce(nodeId, "positionX", "positionX", globals);
+   const positionY = nodeHooks.useCoalesce(nodeId, "positionY", "positionY", globals);
+   const positionTheta = nodeHooks.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
+   const positionRadius = nodeHooks.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
+   const rotation = nodeHooks.useCoalesce(nodeId, "rotation", "rotation", globals);
+
+   const rI = radialMode === "majorminor" ? MathHelper.lengthToPx(minorRadius) : MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(deviation) / 2;
+   const rO = radialMode === "majorminor" ? MathHelper.lengthToPx(majorRadius) : MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(deviation) / 2;
+
+   const pathD = useMemo(() => {
+      const c = 2 + Math.floor(Math.abs(thetaEnd - thetaStart) / 10);
+      return lodash
+         .range(c)
+         .map((n) => {
+            const coeff = MathHelper.delerp(n, 0, c - 1);
+            const rad = MathHelper.lerp(coeff, rI, rO);
+            const ang = MathHelper.lerp(coeff, thetaStart, thetaEnd);
+
+            const x = rad * Math.cos(((ang - 90) * Math.PI) / 180);
+            const y = rad * Math.sin(((ang - 90) * Math.PI) / 180);
+
+            return [x, y];
+         })
+         .reduce((acc, each, i, ary) => {
+            return i === 0 ? `M ${each[0]},${each[1]}` : `${acc} ${bezierCommand(each, i, ary)}`;
+         }, "");
+   }, [rI, rO, thetaEnd, thetaStart]);
+
+   return (
+      <path
+         d={pathD}
+         transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`}
+         pathLength={pathLength}
+         id={pathId}
+      />
    );
 });
 
@@ -283,7 +340,14 @@ const SpiralNodeHelper: INodeHelper<ISpiralNode> = {
    nodeIcon: faSpiral,
    flavour: "emphasis",
    type: NodeTypes.SHAPE_SPIRAL,
-   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof ISpiralNode["outputs"]) => Renderer,
+   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof ISpiralNode["outputs"]) => {
+      switch (socket) {
+         case "output":
+            return Renderer;
+         case "path":
+            return Pather;
+      }
+   },
    initialize: () => ({
       radius: { value: 150, unit: "px" },
       minorRadius: { value: 120, unit: "px" },

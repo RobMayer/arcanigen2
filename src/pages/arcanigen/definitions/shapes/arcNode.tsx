@@ -14,6 +14,8 @@ import {
    STROKECAP_MODES,
    StrokeJoinMode,
    STROKEJOIN_MODES,
+   NodePather,
+   NodePatherProps,
 } from "../types";
 import MathHelper from "!/utility/mathhelper";
 
@@ -53,6 +55,7 @@ interface IArcNode extends INodeDefinition {
    };
    outputs: {
       output: NodeRenderer;
+      path: NodePather;
    };
    values: {
       radius: Length;
@@ -180,6 +183,11 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             </SocketIn>
          </BaseNode.Foldout>
          <TransformPrefabs.Full<IArcNode> nodeId={nodeId} hooks={nodeHooks} />
+         <BaseNode.Foldout panelId={"moreOutputs"} label={"Additional Outputs"} inputs={""} outputs={"path"} nodeId={nodeId}>
+            <SocketOut<IArcNode> nodeId={nodeId} socketId={"path"} type={SocketTypes.PATH}>
+               Conformal Path
+            </SocketOut>
+         </BaseNode.Foldout>
          <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
@@ -250,13 +258,61 @@ const Renderer = memo(({ nodeId, globals, depth, overrides = {} }: NodeRendererP
    );
 });
 
+const Pather = memo(({ nodeId, globals, pathId, depth, pathLength }: NodePatherProps) => {
+   const radius = nodeHooks.useCoalesce(nodeId, "radius", "radius", globals);
+   const thetaStart = nodeHooks.useCoalesce(nodeId, "thetaStart", "thetaStart", globals);
+   const thetaEnd = nodeHooks.useCoalesce(nodeId, "thetaEnd", "thetaEnd", globals);
+
+   const pieSlice = nodeHooks.useValue(nodeId, "pieSlice");
+
+   const positionMode = nodeHooks.useValue(nodeId, "positionMode");
+   const positionX = nodeHooks.useCoalesce(nodeId, "positionX", "positionX", globals);
+   const positionY = nodeHooks.useCoalesce(nodeId, "positionY", "positionY", globals);
+   const positionTheta = nodeHooks.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
+   const positionRadius = nodeHooks.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
+   const rotation = nodeHooks.useCoalesce(nodeId, "rotation", "rotation", globals);
+
+   const pathD = useMemo(() => {
+      const rad = MathHelper.lengthToPx(radius);
+
+      const s = Math.min(thetaStart, thetaEnd);
+      const e = Math.max(thetaStart, thetaEnd);
+
+      const startX = rad * Math.cos(((s - 90) * Math.PI) / 180);
+      const startY = rad * Math.sin(((s - 90) * Math.PI) / 180);
+      const midX = rad * Math.cos((((s - 90 + (e - 90)) / 2) * Math.PI) / 180);
+      const midY = rad * Math.sin((((s - 90 + (e - 90)) / 2) * Math.PI) / 180);
+      const endX = rad * Math.cos(((e - 90) * Math.PI) / 180);
+      const endY = rad * Math.sin(((e - 90) * Math.PI) / 180);
+      return `${
+         pieSlice ? `M 0,0 L ${startX},${startY}` : ` M ${startX},${startY}`
+      } A ${rad},${rad} 0 0 1 ${midX},${midY} A ${rad},${rad} 0 0 1 ${endX},${endY} ${pieSlice ? `Z` : ""}`;
+   }, [pieSlice, radius, thetaEnd, thetaStart]);
+
+   return (
+      <path
+         pathLength={pathLength}
+         id={pathId}
+         d={pathD}
+         transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`}
+      />
+   );
+});
+
 const ArcNodeHelper: INodeHelper<IArcNode> = {
    name: "Arc",
    buttonIcon,
    nodeIcon,
    flavour: "emphasis",
    type: NodeTypes.SHAPE_ARC,
-   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IArcNode["outputs"]) => Renderer,
+   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IArcNode["outputs"]) => {
+      switch (socket) {
+         case "output":
+            return Renderer;
+         case "path":
+            return Pather;
+      }
+   },
    initialize: () => ({
       radius: { value: 150, unit: "px" },
       strokeWidth: { value: 1, unit: "px" },

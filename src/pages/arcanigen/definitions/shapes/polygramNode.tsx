@@ -18,6 +18,8 @@ import {
    STROKEJOIN_MODES,
    STROKECAP_MODES,
    StrokeCapMode,
+   NodePather,
+   NodePatherProps,
 } from "../types";
 import MathHelper from "!/utility/mathhelper";
 
@@ -54,6 +56,7 @@ interface IPolygramNode extends INodeDefinition {
    };
    outputs: {
       output: NodeRenderer;
+      path: NodePather;
       rTangents: Length;
       rPoints: Length;
       rMiddle: Length;
@@ -184,7 +187,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             </SocketIn>
          </BaseNode.Foldout>
          <TransformPrefabs.Full<IPolygramNode> nodeId={nodeId} hooks={nodeHooks} />
-         <BaseNode.Foldout panelId={"moreOutputs"} label={"Additional Outputs"} inputs={""} outputs={"rTangents rPoints rMiddle"} nodeId={nodeId}>
+         <BaseNode.Foldout panelId={"moreOutputs"} label={"Additional Outputs"} inputs={""} outputs={"path rTangents rPoints rMiddle"} nodeId={nodeId}>
+            <SocketOut<IPolygramNode> nodeId={nodeId} socketId={"path"} type={SocketTypes.PATH}>
+               Path
+            </SocketOut>
             <SocketOut<IPolygramNode> nodeId={nodeId} socketId={"rTangents"} type={SocketTypes.LENGTH}>
                Tangents Radius
             </SocketOut>
@@ -265,6 +271,54 @@ const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) =
    );
 });
 
+const Pather = memo(({ nodeId, globals, pathId, pathLength }: NodePatherProps) => {
+   const radius = nodeHooks.useCoalesce(nodeId, "radius", "radius", globals);
+   const pointCount = nodeHooks.useCoalesce(nodeId, "pointCount", "pointCount", globals);
+   const rScribeMode = nodeHooks.useValue(nodeId, "rScribeMode");
+
+   const theMax = Math.ceil(pointCount / 2) - 2;
+
+   const skipCount = Math.min(theMax, Math.max(0, nodeHooks.useCoalesce(nodeId, "skipCount", "skipCount", globals)));
+
+   const positionMode = nodeHooks.useValue(nodeId, "positionMode");
+   const positionX = nodeHooks.useCoalesce(nodeId, "positionX", "positionX", globals);
+   const positionY = nodeHooks.useCoalesce(nodeId, "positionY", "positionY", globals);
+   const positionTheta = nodeHooks.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
+   const positionRadius = nodeHooks.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
+   const rotation = nodeHooks.useCoalesce(nodeId, "rotation", "rotation", globals);
+   const thetaCurve = nodeHooks.useInput(nodeId, "thetaCurve", globals);
+
+   const points = useMemo(() => {
+      const tR = getTrueRadius(MathHelper.lengthToPx(radius), rScribeMode, pointCount);
+      const angles = lodash.range(0, pointCount).map((i) =>
+         MathHelper.lerp(MathHelper.delerp(i, 0, pointCount), 0, 360, {
+            curveFn: thetaCurve?.curveFn ?? "linear",
+            easing: thetaCurve?.easing ?? "in",
+            intensity: thetaCurve?.intensity ?? 1,
+         })
+      );
+
+      const pts = lodash.range(0, pointCount).map((a, c) => {
+         const i = angles[(a * (skipCount + 1)) % angles.length];
+         return `${c === 0 ? "M" : "L"} ${tR * Math.cos(MathHelper.deg2rad(i - 90))},${tR * Math.sin(MathHelper.deg2rad(i - 90))}`;
+      });
+
+      return `M ${pts[0]} ${pts
+         .slice(1, -1)
+         .map((e) => `L ${e}`)
+         .join(" ")} Z`;
+   }, [radius, rScribeMode, pointCount, skipCount, thetaCurve?.curveFn, thetaCurve?.easing, thetaCurve?.intensity]);
+
+   return (
+      <path
+         d={points}
+         transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`}
+         pathLength={pathLength}
+         id={pathId}
+      />
+   );
+});
+
 const nodeMethods = ArcaneGraph.nodeMethods<IPolygramNode>();
 
 const PolygramNodeHelper: INodeHelper<IPolygramNode> = {
@@ -276,6 +330,9 @@ const PolygramNodeHelper: INodeHelper<IPolygramNode> = {
    getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IPolygramNode["outputs"], globals: Globals) => {
       if (socket === "output") {
          return Renderer;
+      }
+      if (socket === "path") {
+         return Pather;
       }
       const radius = nodeMethods.coalesce(graph, nodeId, "radius", "radius", globals);
       const pointCount = nodeMethods.getValue(graph, nodeId, "pointCount");

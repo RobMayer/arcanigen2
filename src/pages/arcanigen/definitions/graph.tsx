@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useCallback, useContext, useMemo, useRef, useSyncExternalStore } from "react";
-import { Globals, IArcaneGraph, INodeDefinition, INodeHelper, INodeInstance, LinkTypes, NodeRenderer, NodeTypes, SocketTypes } from "./types";
+import { Globals, IArcaneGraph, INodeDefinition, INodeHelper, INodeInstance, LinkTypes, NodePather, NodeRenderer, NodeTypes, SocketTypes } from "./types";
 import { v4 as uuid } from "uuid";
 import ObjHelper from "!/utility/objHelper";
 import fp from "lodash/fp";
@@ -274,7 +274,7 @@ const nodeHooks = <T extends INodeDefinition>() => {
       }, [graph, nodeId, socket, globals]) as T["inputs"][K];
    };
 
-   const useInputNode = <K extends keyof T["inputs"]>(nodeId: string, socket: K, globals: Globals): [NodeRenderer, string] | [null, null] => {
+   const useInputNode = <K extends keyof T["inputs"]>(nodeId: string, socket: K, globals: Globals): [T["inputs"][K], string] | [null, null] => {
       const store = useContext(StoreContext)!;
 
       const graph = useSyncExternalStore(store.subToGraph, () => store.getGraph());
