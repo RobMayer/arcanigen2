@@ -47,6 +47,7 @@ interface IThatRobShapeNode extends INodeDefinition {
       strokeOffset: Length;
       strokeMarkStart: NodeRenderer;
       strokeMarkEnd: NodeRenderer;
+      strokeMarkMid: NodeRenderer;
 
       positionX: Length;
       positionY: Length;
@@ -181,6 +182,9 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             </SocketIn>
             <SocketIn<IThatRobShapeNode> nodeId={nodeId} socketId={"strokeMarkStart"} type={SocketTypes.SHAPE}>
                Marker Start
+            </SocketIn>
+            <SocketIn<IThatRobShapeNode> nodeId={nodeId} socketId={"strokeMarkMid"} type={SocketTypes.SHAPE}>
+               Marker Mid
             </SocketIn>
             <SocketIn<IThatRobShapeNode> nodeId={nodeId} socketId={"strokeMarkEnd"} type={SocketTypes.SHAPE}>
                Marker End
