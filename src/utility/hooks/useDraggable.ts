@@ -18,9 +18,6 @@ const useDraggable = (
                Object.entries(data).forEach(([m, [allowed, cb, extra]]) => {
                   e.dataTransfer!.effectAllowed = allowed;
                   e.dataTransfer!.setData(m, cb());
-                  if (extra) {
-                     e.dataTransfer!.setData("stlm/extra", extra);
-                  }
                });
                e.dataTransfer.setDragImage(n, 0, 0);
             }

@@ -11,10 +11,10 @@ import {
    NodeRendererProps,
    ControlRendererProps,
 } from "../types";
-import { faClose, faLayerGroup as nodeIcon, faPlus } from "@fortawesome/pro-solid-svg-icons";
+import { faClose, faLayerGroup as nodeIcon, faPlus, faUpDown } from "@fortawesome/pro-solid-svg-icons";
 import { faLayerGroup as buttonIcon } from "@fortawesome/pro-light-svg-icons";
 import ArcaneGraph from "../graph";
-import { memo, useCallback, useMemo } from "react";
+import { Fragment, HTMLAttributes, memo, useCallback, useEffect, useMemo, useRef } from "react";
 import ObjHelper from "!/utility/objHelper";
 import ActionButton from "!/components/buttons/ActionButton";
 import IconButton from "!/components/buttons/IconButton";
@@ -24,6 +24,9 @@ import BaseNode from "../../nodeView/node";
 import { SocketIn, SocketOut } from "../../nodeView/socket";
 import styled from "styled-components";
 import { MetaPrefab } from "../../nodeView/prefabs";
+import useDroppable from "!/utility/hooks/useDroppable";
+import useDraggable from "!/utility/hooks/useDraggable";
+import { useNodeGraphEventBus } from "../../nodeView";
 
 interface ILayersNode extends INodeDefinition {
    inputs: {
@@ -42,6 +45,8 @@ const nodeHooks = ArcaneGraph.nodeHooks<ILayersNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [node, setNode, setGraph] = nodeHooks.useAlterNode(nodeId);
+
+   const { eventBus } = useNodeGraphEventBus();
 
    const addLayer = useCallback(() => {
       const sId = uuid();
@@ -115,8 +120,31 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
       [setNode]
    );
 
+   const orderLayer = useCallback(
+      (socketId: string, position: number) => {
+         setNode((p) => {
+            const idx = p.sockets.indexOf(socketId);
+            if (idx === -1 || idx === position || idx === position - 1) {
+               return p;
+            }
+            const nSockets = [...p.sockets];
+            nSockets.splice(idx, 1);
+            nSockets.splice(position > idx ? position - 1 : position, 0, socketId);
+            return {
+               ...p,
+               sockets: nSockets,
+            };
+         });
+      },
+      [setNode]
+   );
+
+   useEffect(() => {
+      eventBus.current?.trigger(`node[${nodeId}].collapse`, {});
+   }, [node.sockets, eventBus, nodeId]);
+
    return (
-      <BaseNode<ILayersNode> nodeId={nodeId} helper={LayersNodeHelper} hooks={nodeHooks}>
+      <BaseNode<ILayersNode> nodeId={nodeId} helper={LayersNodeHelper} hooks={nodeHooks} className={"slim"}>
          <SocketOut<ILayersNode> nodeId={nodeId} socketId={"output"} type={SocketTypes.SHAPE}>
             Output
          </SocketOut>
@@ -128,26 +156,30 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          </BaseNode.Input>
          {node.sockets.map((id, i) => {
             return (
-               <SocketIn<ILayersNode> nodeId={nodeId} socketId={id} type={SocketTypes.SHAPE} key={id}>
-                  <LayerDiv>
-                     <Dropdown
-                        value={node.modes[id]}
-                        options={BLEND_MODES}
-                        onValue={(e) => {
-                           setLayerMode(id, e);
-                        }}
-                     />
-                     <IconButton
-                        onClick={() => {
-                           removeLayer(id);
-                        }}
-                        icon={faClose}
-                        flavour={"danger"}
-                     />
-                  </LayerDiv>
-               </SocketIn>
+               <Fragment key={id}>
+                  <DragTarget index={i} orderLayer={orderLayer} />
+                  <SocketIn<ILayersNode> nodeId={nodeId} socketId={id} type={SocketTypes.SHAPE}>
+                     <EachLayer socketId={id} key={id}>
+                        <Dropdown
+                           value={node.modes[id]}
+                           options={BLEND_MODES}
+                           onValue={(e) => {
+                              setLayerMode(id, e);
+                           }}
+                        />
+                        <IconButton
+                           onClick={() => {
+                              removeLayer(id);
+                           }}
+                           icon={faClose}
+                           flavour={"danger"}
+                        />
+                     </EachLayer>
+                  </SocketIn>
+               </Fragment>
             );
          })}
+         <DragTarget index={node.sockets.length} orderLayer={orderLayer} />
          <hr />
          <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
@@ -241,9 +273,62 @@ const LayersNodeHelper: INodeHelper<ILayersNode> = {
 
 export default LayersNodeHelper;
 
-const LayerDiv = styled.div`
+const EachLayer = styled(({ socketId, className, children, ...props }: { socketId: string } & HTMLAttributes<HTMLDivElement>) => {
+   const handle = useRef<HTMLDivElement>(null);
+
+   const entries = useMemo(
+      () => ({
+         "application/trh/layer-node/entry": ["move", () => socketId],
+      }),
+      [socketId]
+   );
+
+   const isDragging = useDraggable(handle, entries as any, false);
+
+   return (
+      <div {...props} className={`${className} ${isDragging ? "state-dragging" : ""}`}>
+         <Handle ref={handle}>
+            <Icon icon={faUpDown} />
+         </Handle>
+         <>{children}</>
+      </div>
+   );
+})`
    display: grid;
-   grid-template-columns: 1fr auto;
+   grid-template-columns: auto 1fr auto;
    align-items: center;
    gap: 0.25em;
+   &.state-dragging {
+      outline: 1px dashed var(--effect-border-highlight);
+   }
+`;
+
+const Handle = styled.div`
+   cursor: row-resize;
+   color: var(--icon);
+   &:hover {
+      color: var(--icon-highlight);
+   }
+`;
+
+const DragTarget = styled(
+   ({ index, orderLayer, className, ...props }: HTMLAttributes<HTMLDivElement> & { index: number; orderLayer: (sId: string, pos: number) => void }) => {
+      const ref = useRef<HTMLDivElement>(null);
+
+      const isDropping = useDroppable(ref, {
+         "application/trh/layer-node/entry": [
+            "move",
+            (data: string) => {
+               orderLayer(data, index);
+            },
+         ],
+      });
+
+      return <div {...props} ref={ref} className={`${className} ${isDropping ? "state-dropping" : ""}`} />;
+   }
+)`
+   padding-block: 2px;
+   &.state-dropping {
+      background: white;
+   }
 `;

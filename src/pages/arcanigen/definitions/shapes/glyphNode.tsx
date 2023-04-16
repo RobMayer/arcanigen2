@@ -205,7 +205,7 @@ const GlyphNodeHelper: INodeHelper<IGlyphNode> = {
       strokeOffset: { value: 0, unit: "px" },
       fillColor: { r: 0, g: 0, b: 0, a: 1 },
       strokeColor: null as Color,
-      strokeJoin: "bevel",
+      strokeJoin: "miter",
       strokeCap: "butt",
 
       positionX: { value: 0, unit: "px" },

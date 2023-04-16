@@ -85,7 +85,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          <hr />
          <SocketIn<IVertexArrayNode> nodeId={nodeId} socketId={"pointCount"} type={SocketTypes.INTEGER}>
             <BaseNode.Input label={"Points"}>
-               <SliderInput revertInvalid value={pointCount} onValidValue={setPointCount} min={3} max={24} step={1} disabled={hasPointCount} />
+               <SliderInput revertInvalid value={pointCount} onValidValue={setPointCount} min={2} max={32} step={1} disabled={hasPointCount} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IVertexArrayNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
@@ -115,7 +115,7 @@ const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps)
    const [output, childNodeId] = nodeHooks.useInputNode(nodeId, "input", globals);
    const radius = nodeHooks.useCoalesce(nodeId, "radius", "radius", globals);
    const rScribeMode = nodeHooks.useValue(nodeId, "rScribeMode");
-   const pointCount = Math.min(24, Math.max(3, nodeHooks.useCoalesce(nodeId, "pointCount", "pointCount", globals)));
+   const pointCount = Math.min(32, Math.max(2, nodeHooks.useCoalesce(nodeId, "pointCount", "pointCount", globals)));
    const isRotating = nodeHooks.useValue(nodeId, "isRotating");
    const tR = getTrueRadius(MathHelper.lengthToPx(radius), rScribeMode, pointCount);
 

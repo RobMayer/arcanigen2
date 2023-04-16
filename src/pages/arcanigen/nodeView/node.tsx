@@ -16,7 +16,7 @@ type IProps<T extends INodeDefinition> = {
    hooks: ReturnType<typeof ArcaneGraph["nodeHooks"]>;
 } & HTMLAttributes<HTMLDivElement>;
 
-const BaseNode = <T extends INodeDefinition>({ nodeId, children, helper, hooks, noRemove = false, ...props }: IProps<T>) => {
+const BaseNode = <T extends INodeDefinition>({ nodeId, children, helper, hooks, className, noRemove = false, ...props }: IProps<T>) => {
    const [initialPostion, commitPosition] = useNodePosition(nodeId);
    const { removeNode } = ArcaneGraph.useGraph();
    const [isOpen, setIsOpen] = useNodeToggle(nodeId);
@@ -139,7 +139,7 @@ const BaseNode = <T extends INodeDefinition>({ nodeId, children, helper, hooks, 
 
    return (
       <MoveWrapper ref={mainRef} tabIndex={-1} data-trh-graph-node={nodeId}>
-         <Main {...props} className={`${isOpen ? "state-open" : "state-closed"}`}>
+         <Main {...props} className={`${className} ${isOpen ? "state-open" : "state-closed"}`}>
             <Label className={`flavour-${helper.flavour}`}>
                <ProxySocket className={"in"} data-trh-graph-sockethost={nodeId} data-trh-graph-fallback={"in"} />
                <IconButton flavour={"bare"} icon={helper.nodeIcon} className={"muted"} onClick={handleToggle} />
@@ -213,6 +213,9 @@ const Params = styled.div`
    gap: 0.625em 0;
    align-items: stretch;
    padding-inline: 0;
+   .slim > & {
+      gap: 0.25em;
+   }
    & > hr {
       margin-block: -0.125em;
       margin-inline: 0;

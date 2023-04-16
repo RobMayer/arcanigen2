@@ -30,7 +30,7 @@ const useDroppable = (
             }
          };
 
-         const outHandler = () => {
+         const outHandler = (e: DragEvent) => {
             setIsDropping(false);
          };
 

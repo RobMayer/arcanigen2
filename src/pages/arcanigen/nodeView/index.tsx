@@ -16,6 +16,7 @@ import useUIState from "!/utility/hooks/useUIState";
 
 type NodeGraphEvents = {
    [key: `node[${string}].move`]: NodeMoveEvent;
+   [key: `node[${string}].redraw`]: {};
    [key: `node[${string}].collapse`]: {};
    [key: `node[${string}].moveStart`]: NodeMoveEvent;
    [key: `node[${string}].moveEnd`]: NodeMoveEvent;

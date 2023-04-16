@@ -27,7 +27,6 @@ export enum NodeTypes {
    COL_SEQUENCE = "collectionSequence",
    COL_PORTAL_IN = "collectionPortalIn",
    COL_PORTAL_OUT = "collectionPortalOut",
-   COL_RANDOM_FILTER = "collectionRandomFilter",
 
    ARRAY_VERTEX = "arrayVertex",
    ARRAY_SPIRAL = "arraySpiral",
@@ -46,6 +45,7 @@ export enum NodeTypes {
 
    COL_TRANSFORM = "collectionTransform",
    COL_RESTYLE = "collectionOverrideStyles",
+   COL_RANDOM_FILTER = "collectionRandomFilter",
 
    EFFECT_BRUSH = "effectBrush",
    EFFECT_PENCIL = "effectPencil",
