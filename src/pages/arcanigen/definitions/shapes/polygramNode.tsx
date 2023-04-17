@@ -189,7 +189,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          <TransformPrefabs.Full<IPolygramNode> nodeId={nodeId} hooks={nodeHooks} />
          <BaseNode.Foldout panelId={"moreOutputs"} label={"Additional Outputs"} inputs={""} outputs={"path rTangents rPoints rMiddle"} nodeId={nodeId}>
             <SocketOut<IPolygramNode> nodeId={nodeId} socketId={"path"} type={SocketTypes.PATH}>
-               Path
+               Conformal Path
             </SocketOut>
             <SocketOut<IPolygramNode> nodeId={nodeId} socketId={"rTangents"} type={SocketTypes.LENGTH}>
                Tangents Radius
@@ -320,7 +320,7 @@ const Pather = memo(({ nodeId, globals, pathId, pathLength }: NodePatherProps) =
                const eachAngle = angles[(startIndex + eachCount * (skipCount + 1)) % angles.length];
                return `${tR * Math.cos(MathHelper.deg2rad(eachAngle - 90))}, ${tR * Math.sin(MathHelper.deg2rad(eachAngle - 90))}`;
             })
-            .slice(1, -1)
+            .slice(1)
             .map((e) => `L ${e}`);
 
          return `M ${tR * Math.cos(MathHelper.deg2rad(startAngle - 90))}, ${tR * Math.sin(MathHelper.deg2rad(startAngle - 90))} ${pts} Z`;
