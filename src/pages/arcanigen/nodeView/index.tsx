@@ -159,7 +159,7 @@ const NodeView = () => {
                setIsDrawerOpen((p) => !p);
             }}
             direction={"up"}
-            size={"clamp(100px, 20vw, 400px)"}
+            size={"clamp(100px, 20vmin, 400px)"}
          >
             <Grid>
                {NODE_BUTTONS.map((t) => {
@@ -248,7 +248,8 @@ const NodeButton = ({ children, type, onClick }: { children?: ReactNode; type: N
 
 const Grid = styled.div`
    display: grid;
-   grid-template-columns: repeat(auto-fit, 7em);
+   grid-template-columns: repeat(auto-fit, minmax(60px, 11vmin));
+   justify-content: center;
    grid-auto-rows: 8em;
    padding: 0.25em;
    gap: 0.5em;
