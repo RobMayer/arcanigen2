@@ -288,12 +288,26 @@ export const listToLengths = (t: string, sep: string = " ") => {
    }, [] as Length[]);
 };
 
+export const gcd = (a: number, b: number) => {
+   a = Math.abs(a);
+   b = Math.abs(b);
+
+   while (b !== 0) {
+      const temp = b;
+      b = a % b;
+      a = temp;
+   }
+
+   return a;
+};
+
 const LENGTH_LIST_REGEX = "^([0-9.])+(px|mm|in|cm|pt)(?:\\s([0-9.])+(px|mm|in|cm|pt))*$";
 
 const MathHelper = {
    deg2rad,
    rad2deg,
    mod,
+   gcd,
    lerp,
    delerp,
    lengthToPx,
