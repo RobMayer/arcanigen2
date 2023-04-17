@@ -1,13 +1,14 @@
 import IconButton from "!/components/buttons/IconButton";
 import Icon from "!/components/icons";
 import faBlank from "!/components/icons/faBlank";
-import { faCaretDown, faCaretRight, faClose } from "@fortawesome/pro-solid-svg-icons";
+import { faCaretDown, faCaretRight, faClose, faCopy, faTrash } from "@fortawesome/pro-solid-svg-icons";
 import { HTMLAttributes, memo, ReactNode, useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import styled from "styled-components";
 import ArcaneGraph, { useNodePanelToggle, useNodePosition, useNodeToggle } from "../definitions/graph";
 import { useNodeGraphEventBus } from ".";
 import { useDragCanvasEvents } from "!/components/containers/DragCanvas";
 import { INodeDefinition, INodeHelper } from "../definitions/types";
+import ContextMenu, { useContextMenu } from "!/components/popups/ContextMenu";
 
 type IProps<T extends INodeDefinition> = {
    nodeId: string;
@@ -18,7 +19,7 @@ type IProps<T extends INodeDefinition> = {
 
 const BaseNode = <T extends INodeDefinition>({ nodeId, children, helper, hooks, className, noRemove = false, ...props }: IProps<T>) => {
    const [initialPostion, commitPosition] = useNodePosition(nodeId);
-   const { removeNode } = ArcaneGraph.useGraph();
+   const { removeNode, duplicateNode } = ArcaneGraph.useGraph();
    const [isOpen, setIsOpen] = useNodeToggle(nodeId);
    const { eventBus, origin } = useNodeGraphEventBus();
    const name = hooks.useValue(nodeId, "name") ?? "";
@@ -137,19 +138,54 @@ const BaseNode = <T extends INodeDefinition>({ nodeId, children, helper, hooks, 
       }
    }, []);
 
+   const controls = useContextMenu();
+
    return (
-      <MoveWrapper ref={mainRef} tabIndex={-1} data-trh-graph-node={nodeId}>
-         <Main {...props} className={`${className} ${isOpen ? "state-open" : "state-closed"}`}>
-            <Label className={`flavour-${helper.flavour}`}>
-               <ProxySocket className={"in"} data-trh-graph-sockethost={nodeId} data-trh-graph-fallback={"in"} />
-               <IconButton flavour={"bare"} icon={helper.nodeIcon} className={"muted"} onClick={handleToggle} />
-               <LabelInner ref={gripRef}>{name ? `"${name}"` : helper.name}</LabelInner>
-               {!noRemove ? <IconButton flavour={"bare"} icon={faClose} onClick={handleRemove} /> : <Icon icon={faBlank} />}
-               <ProxySocket className={"out"} data-trh-graph-sockethost={nodeId} data-trh-graph-fallback={"out"} />
-            </Label>
-            {isOpen && <Params>{children}</Params>}
-         </Main>
-      </MoveWrapper>
+      <>
+         <ContextMenu controls={controls}>
+            <IconButton
+               icon={faCopy}
+               onClick={() => {
+                  duplicateNode(nodeId);
+                  controls.close();
+               }}
+            >
+               Duplicate Node
+            </IconButton>
+            <IconButton
+               icon={faTrash}
+               onClick={() => {
+                  removeNode(nodeId);
+                  controls.close();
+               }}
+               flavour={"danger"}
+            >
+               Remove Node
+            </IconButton>
+         </ContextMenu>
+         <MoveWrapper ref={mainRef} tabIndex={-1} data-trh-graph-node={nodeId}>
+            <Main {...props} className={`${className} ${isOpen ? "state-open" : "state-closed"}`}>
+               <Label
+                  className={`flavour-${helper.flavour}`}
+                  onContextMenu={
+                     !noRemove
+                        ? (e) => {
+                             e.preventDefault();
+                             controls.open.when(e);
+                          }
+                        : undefined
+                  }
+               >
+                  <ProxySocket className={"in"} data-trh-graph-sockethost={nodeId} data-trh-graph-fallback={"in"} />
+                  <IconButton flavour={"bare"} icon={helper.nodeIcon} className={"muted"} onClick={handleToggle} />
+                  <LabelInner ref={gripRef}>{name ? `"${name}"` : helper.name}</LabelInner>
+                  {!noRemove ? <IconButton flavour={"bare"} icon={faClose} onClick={handleRemove} /> : <Icon icon={faBlank} />}
+                  <ProxySocket className={"out"} data-trh-graph-sockethost={nodeId} data-trh-graph-fallback={"out"} />
+               </Label>
+               {isOpen && <Params>{children}</Params>}
+            </Main>
+         </MoveWrapper>
+      </>
    );
 };
 
