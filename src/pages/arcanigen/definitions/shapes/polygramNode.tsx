@@ -241,13 +241,24 @@ const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) =
          })
       );
 
-      return lodash
-         .range(0, pointCount)
-         .map((a) => {
-            const i = angles[(a * (skipCount + 1)) % angles.length];
-            return `${tR * Math.cos(MathHelper.deg2rad(i - 90))},${tR * Math.sin(MathHelper.deg2rad(i - 90))}`;
-         })
-         .join(" ");
+      const numShapes = MathHelper.gcd(pointCount, skipCount + 1);
+      const numLines = pointCount / numShapes;
+
+      const shapes = lodash.range(0, numShapes).map((a, startIndex) => {
+         const startAngle = angles[startIndex];
+         const pts = lodash
+            .range(0, numLines)
+            .map((e, eachCount) => {
+               const eachAngle = angles[(startIndex + eachCount * (skipCount + 1)) % angles.length];
+               return `${tR * Math.cos(MathHelper.deg2rad(eachAngle - 90))}, ${tR * Math.sin(MathHelper.deg2rad(eachAngle - 90))}`;
+            })
+            .slice(1)
+            .map((e) => `L ${e}`);
+
+         return `M ${tR * Math.cos(MathHelper.deg2rad(startAngle - 90))}, ${tR * Math.sin(MathHelper.deg2rad(startAngle - 90))} ${pts} Z`;
+      });
+
+      return shapes.join(" ");
    }, [radius, rScribeMode, pointCount, skipCount, thetaCurve?.curveFn, thetaCurve?.easing, thetaCurve?.intensity]);
 
    return (
@@ -265,7 +276,7 @@ const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) =
                .map(MathHelper.lengthToPx)
                .join(" ")}
          >
-            <polygon points={points} vectorEffect={"non-scaling-stroke"} />
+            <path d={points} vectorEffect={"non-scaling-stroke"} />
          </g>
       </g>
    );
@@ -298,15 +309,24 @@ const Pather = memo(({ nodeId, globals, pathId, pathLength }: NodePatherProps) =
          })
       );
 
-      const pts = lodash.range(0, pointCount).map((a, c) => {
-         const i = angles[(a * (skipCount + 1)) % angles.length];
-         return `${c === 0 ? "M" : "L"} ${tR * Math.cos(MathHelper.deg2rad(i - 90))},${tR * Math.sin(MathHelper.deg2rad(i - 90))}`;
+      const numShapes = MathHelper.gcd(pointCount, skipCount + 1);
+      const numLines = pointCount / numShapes;
+
+      const shapes = lodash.range(0, numShapes).map((a, startIndex) => {
+         const startAngle = angles[startIndex];
+         const pts = lodash
+            .range(0, numLines)
+            .map((e, eachCount) => {
+               const eachAngle = angles[(startIndex + eachCount * (skipCount + 1)) % angles.length];
+               return `${tR * Math.cos(MathHelper.deg2rad(eachAngle - 90))}, ${tR * Math.sin(MathHelper.deg2rad(eachAngle - 90))}`;
+            })
+            .slice(1, -1)
+            .map((e) => `L ${e}`);
+
+         return `M ${tR * Math.cos(MathHelper.deg2rad(startAngle - 90))}, ${tR * Math.sin(MathHelper.deg2rad(startAngle - 90))} ${pts} Z`;
       });
 
-      return `M ${pts[0]} ${pts
-         .slice(1, -1)
-         .map((e) => `L ${e}`)
-         .join(" ")} Z`;
+      return shapes.join(" ");
    }, [radius, rScribeMode, pointCount, skipCount, thetaCurve?.curveFn, thetaCurve?.easing, thetaCurve?.intensity]);
 
    return (

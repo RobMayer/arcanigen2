@@ -316,19 +316,27 @@ const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) =
             ? getTrueRadius(MathHelper.lengthToPx(outerRadius), oScribeMode, pointCount)
             : getTrueRadius(MathHelper.lengthToPx(radius), rScribeMode, pointCount)) + tOMod;
 
-      const innerPoints: string[] = [];
-      const outerPoints: string[] = [];
+      const numShapes = MathHelper.gcd(pointCount, skipCount + 1);
+      const numLines = pointCount / numShapes;
 
-      lodash.range(pointCount).forEach((a) => {
-         const i = angles[(a * (skipCount + 1)) % angles.length];
-         //return `${tR * Math.cos(MathHelper.deg2rad(i - 90))},${tR * Math.sin(MathHelper.deg2rad(i - 90))}`;
-         outerPoints.push(`${tO * Math.cos(MathHelper.deg2rad(i - 90))},${tO * Math.sin(MathHelper.deg2rad(i - 90))}`);
-         innerPoints.push(`${tI * Math.cos(MathHelper.deg2rad(i - 90))},${tI * Math.sin(MathHelper.deg2rad(i - 90))}`);
-      });
+      return lodash
+         .range(0, numShapes)
+         .map((a, startIndex) => {
+            const tmpO: string[] = [];
+            const tmpI: string[] = [];
+            lodash.range(0, numLines).forEach((a, eachCount) => {
+               //const i = angles[(a * (skipCount + 1)) % angles.length];
+               const i = angles[(startIndex + eachCount * (skipCount + 1)) % angles.length];
+               //return `${tR * Math.cos(MathHelper.deg2rad(i - 90))},${tR * Math.sin(MathHelper.deg2rad(i - 90))}`;
+               tmpO.push(`${tO * Math.cos(MathHelper.deg2rad(i - 90))},${tO * Math.sin(MathHelper.deg2rad(i - 90))}`);
+               tmpI.push(`${tI * Math.cos(MathHelper.deg2rad(i - 90))},${tI * Math.sin(MathHelper.deg2rad(i - 90))}`);
+            });
 
-      innerPoints.reverse();
+            tmpI.reverse();
 
-      return `M ${outerPoints[0]} ${outerPoints.slice(1).map((e) => `L ${e}`)} Z M ${innerPoints[0]} ${innerPoints.slice(1).map((e) => `L ${e}`)} Z`;
+            return `M ${tmpO[0]} ${tmpO.slice(1).map((e) => `L ${e}`)} Z M ${tmpI[0]} ${tmpI.slice(1).map((e) => `L ${e}`)} Z`;
+         })
+         .join(" ");
    }, [
       pointCount,
       expandMode,
