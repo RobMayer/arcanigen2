@@ -248,9 +248,9 @@ const NodeButton = ({ children, type, onClick }: { children?: ReactNode; type: N
 
 const Grid = styled.div`
    display: grid;
-   grid-template-columns: repeat(auto-fit, minmax(60px, 11vmin));
+   grid-template-columns: repeat(auto-fit, minmax(60px, 8vmin));
    justify-content: center;
-   grid-auto-rows: 8em;
+   grid-auto-rows: min-content;
    padding: 0.25em;
    gap: 0.5em;
 `;

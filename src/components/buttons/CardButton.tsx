@@ -39,21 +39,24 @@ const CardButton = styled(
    padding: 3px;
    color: var(--text);
    background: var(--layer-up);
+   aspect-ratio: 0.825;
 
    & > .icon {
-      font-size: 3em;
+      font-size: 3.5vmin;
       mix-blend-mode: var(--blend-icon);
       padding: 0.25em;
-      aspect-ratio: 1;
+
       align-self: center;
       justify-self: center;
       color: var(--flavour-icon);
       flex: 1 1 auto;
-      aspect-ratio: 1;
    }
 
    & > .text {
-      font-size: 0.875em;
+      font-size: min(1vmin, 0.875em);
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow-x: hidden;
       background: var(--flavour-button-muted);
       text-align: center;
       border: none;
