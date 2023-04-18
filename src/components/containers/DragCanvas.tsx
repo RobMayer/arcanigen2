@@ -171,15 +171,8 @@ const DragCanvas = styled(
 
                   const oldZoom = zoomRef.current;
                   const oldTranslation = posRef.current;
-                  const newZoom = oldZoom + e.deltaY * -0.001;
+                  const newZoom = Math.min(Math.max(0.125, oldZoom + e.deltaY * -0.001), 4);
                   setInternalZoom(newZoom);
-                  /*
-                  myc.translatex = (myc.translatex - tx)*myc.zoom/tzoom + tx;
-                  myc.translatey = (myc.translatey - ty)*myc.zoom/tzoom + ty;
-                  */
-
-                  //const dx = ((origin.x - e.x - oldTranslation.x) * newZoom) / oldZoom + oldTranslation.x;
-                  //const dy = ((origin.y - e.y - oldTranslation.y) * newZoom) / oldZoom + oldTranslation.y;
 
                   const originX = origin.left + origin.width / 2;
                   const originY = origin.top + origin.height / 2;
@@ -187,22 +180,15 @@ const DragCanvas = styled(
                   const mouseX = -(originX - e.x);
                   const mouseY = -(originY - e.y);
 
-                  const zoomRatio = newZoom / oldZoom;
+                  const mouseOffsetX = mouseX - oldTranslation.x;
+                  const mouseOffsetY = mouseY - oldTranslation.y;
 
-                  console.log("mouse-from-canvas", mouseX, mouseY);
-                  console.log("zoomRatio", zoomRatio);
-                  const newX = oldTranslation.x + mouseX * zoomRatio;
+                  const zoomChange = 1 - oldZoom / newZoom;
 
                   setInternalPosition(
-                     newX, //
-                     mouseY //
+                     oldTranslation.x - mouseOffsetX * zoomChange, //
+                     oldTranslation.y - mouseOffsetY * zoomChange //
                   );
-
-                  //const dx = ((origin.x - e.x - oldTranslation.x) * newZoom) / oldZoom + oldTranslation.x;
-                  //const dy = ((origin.y - e.y - oldTranslation.y) * newZoom) / oldZoom + oldTranslation.y;
-
-                  //const dx = ((zoomOriginX - oldTranslation.x) * newZoom) / oldZoom + oldTranslation.x;
-                  //const dy = ((zoomOriginY - oldTranslation.y) * newZoom) / oldZoom + oldTranslation.y;
                }
             };
 
