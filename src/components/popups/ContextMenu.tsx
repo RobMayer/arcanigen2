@@ -65,6 +65,8 @@ export const ContextMenuWrappers = {
       display: flex;
       flex-direction: column;
       box-shadow: 0px 0px 4px var(--app-box-shadow);
+      padding: 0.25em;
+      gap: 0.25em;
    `,
 };
 

@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useCallback, useContext, useMemo, useRef, useSyncExternalStore } from "react";
-import { Globals, IArcaneGraph, INodeDefinition, INodeHelper, INodeInstance, LinkTypes, NodePather, NodeRenderer, NodeTypes, SocketTypes } from "./types";
+import { Globals, IArcaneGraph, INodeDefinition, INodeHelper, INodeInstance, LinkTypes, NodeTypes, SocketTypes } from "./types";
 import { v4 as uuid } from "uuid";
 import ObjHelper from "!/utility/objHelper";
 import fp from "lodash/fp";
@@ -166,6 +166,23 @@ const useStoreData = () => {
       toggleListeners.current.forEach((callback) => callback());
    }, []);
 
+   const duplicateNode = useCallback((nodeId: string, at?: { x: number; y: number }) => {
+      const newNodeId = uuid();
+      const { nodeId: extantId, in: extantIn, out: extantOut, type: extantType, ...extantValues } = graphStore.current.nodes[nodeId];
+      const extantPos = posStore.current[nodeId];
+      graphStore.current = GraphHelper.append(graphStore.current, newNodeId, extantType, {
+         ...getNodeHelper(extantType).initialize(),
+         ...extantValues,
+         name: "",
+      });
+      posStore.current = { ...posStore.current, [newNodeId]: at ?? { x: (extantPos?.x ?? 0) + 30, y: (extantPos?.y ?? 0) + 30 } };
+      console.log(posStore.current);
+      toggleStore.current = { ...toggleStore.current, [newNodeId]: { node: true } };
+      graphListeners.current.forEach((callback) => callback());
+      positionListeners.current.forEach((callback) => callback());
+      toggleListeners.current.forEach((callback) => callback());
+   }, []);
+
    const removeNode = useCallback((nodeId: string) => {
       graphStore.current = GraphHelper.remove(graphStore.current, nodeId);
       posStore.current = ObjHelper.remove(posStore.current, nodeId);
@@ -216,6 +233,7 @@ const useStoreData = () => {
             disconnect,
             addNode,
             removeNode,
+            duplicateNode,
             debug,
             save,
             load,
@@ -237,6 +255,7 @@ const useStoreData = () => {
          setNodePanelToggle,
          connect,
          disconnect,
+         duplicateNode,
          addNode,
          removeNode,
          debug,
@@ -560,9 +579,9 @@ const GraphHelper = {
          nodes: {
             ...graph.nodes,
             [nodeId]: {
+               ...data,
                in: {},
                out: {},
-               ...data,
                type,
                nodeId,
             },

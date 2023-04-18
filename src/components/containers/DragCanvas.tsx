@@ -130,7 +130,6 @@ const DragCanvas = styled(
             setPosition: (v: Vector2N | ((p: Vector2N) => Vector2N)) => {
                const prev = posRef.current;
                const nV = typeof v === "function" ? v(prev) : v;
-
                setInternalPosition(nV.x, nV.y);
             },
             move: (x: number, y: number) => {
@@ -168,8 +167,28 @@ const DragCanvas = styled(
             const handle = (e: WheelEvent) => {
                if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
                } else {
-                  const pZ = zoomRef.current;
-                  setInternalZoom(pZ + e.deltaY * -0.001);
+                  const origin = n.getBoundingClientRect();
+
+                  const oldZoom = zoomRef.current;
+                  const oldTranslation = posRef.current;
+                  const newZoom = Math.min(Math.max(0.125, oldZoom + e.deltaY * -0.001), 4);
+                  setInternalZoom(newZoom);
+
+                  const originX = origin.left + origin.width / 2;
+                  const originY = origin.top + origin.height / 2;
+
+                  const mouseX = -(originX - e.x);
+                  const mouseY = -(originY - e.y);
+
+                  const mouseOffsetX = mouseX - oldTranslation.x;
+                  const mouseOffsetY = mouseY - oldTranslation.y;
+
+                  const zoomChange = 1 - oldZoom / newZoom;
+
+                  setInternalPosition(
+                     oldTranslation.x - mouseOffsetX * zoomChange, //
+                     oldTranslation.y - mouseOffsetY * zoomChange //
+                  );
                }
             };
 
@@ -178,7 +197,7 @@ const DragCanvas = styled(
                n.removeEventListener("wheel", handle);
             };
          }
-      }, [setInternalZoom]);
+      }, [setInternalZoom, setInternalPosition]);
 
       useEffect(() => {
          const d = dragRef.current;
