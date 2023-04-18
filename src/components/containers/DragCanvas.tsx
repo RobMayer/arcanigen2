@@ -110,14 +110,32 @@ const DragCanvas = styled(
       }, [setInternalPosition]);
 
       const setInternalZoom = useCallback(
-         (z: number) => {
+         (z: number, mouseX: number = 0, mouseY: number = 0) => {
             if (anchorRef.current && panRef.current) {
-               const nZ = Math.min(Math.max(0.125, z), 4);
-               zoomRef.current = nZ;
-               (anchorRef.current.style as any).scale = nZ;
-               panRef.current.style.backgroundSize = `calc(100vmin * ${nZ / 20})`;
+               const oldZoom = zoomRef.current;
+               const newZoom = Math.min(Math.max(0.125, z), 4);
+               zoomRef.current = newZoom;
+               (anchorRef.current.style as any).scale = newZoom;
+               panRef.current.style.backgroundSize = `calc(100vmin * ${newZoom / 20})`;
+
+               const oldTranslation = posRef.current;
+
+               const mouseOffsetX = mouseX - oldTranslation.x;
+               const mouseOffsetY = mouseY - oldTranslation.y;
+
+               const zoomChange = 1 - oldZoom / newZoom;
+
+               anchorRef.current.style.translate = `${oldTranslation.x - mouseOffsetX * zoomChange}px ${oldTranslation.y - mouseOffsetY * zoomChange}px`;
+               panRef.current.style.backgroundPositionX = `calc(50% + ${oldTranslation.x - mouseOffsetX * zoomChange}px)`;
+               panRef.current.style.backgroundPositionY = `calc(50% + ${oldTranslation.y - mouseOffsetY * zoomChange}px)`;
+               posRef.current.x = oldTranslation.x - mouseOffsetX * zoomChange;
+               posRef.current.y = oldTranslation.y - mouseOffsetY * zoomChange;
+               eventBus.current.trigger("trh:dragcanvas.move", {
+                  x: oldTranslation.x - mouseOffsetX * zoomChange,
+                  y: oldTranslation.y - mouseOffsetY * zoomChange,
+               });
+               eventBus.current.trigger("trh:dragcanvas.zoom", newZoom);
                checkBounds();
-               eventBus.current.trigger("trh:dragcanvas.zoom", nZ);
             }
          },
          [checkBounds]
@@ -170,25 +188,14 @@ const DragCanvas = styled(
                   const origin = n.getBoundingClientRect();
 
                   const oldZoom = zoomRef.current;
-                  const oldTranslation = posRef.current;
                   const newZoom = Math.min(Math.max(0.125, oldZoom + e.deltaY * -0.001), 4);
-                  setInternalZoom(newZoom);
 
                   const originX = origin.left + origin.width / 2;
                   const originY = origin.top + origin.height / 2;
 
                   const mouseX = -(originX - e.x);
                   const mouseY = -(originY - e.y);
-
-                  const mouseOffsetX = mouseX - oldTranslation.x;
-                  const mouseOffsetY = mouseY - oldTranslation.y;
-
-                  const zoomChange = 1 - oldZoom / newZoom;
-
-                  setInternalPosition(
-                     oldTranslation.x - mouseOffsetX * zoomChange, //
-                     oldTranslation.y - mouseOffsetY * zoomChange //
-                  );
+                  setInternalZoom(newZoom, mouseX, mouseY);
                }
             };
 
@@ -197,7 +204,7 @@ const DragCanvas = styled(
                n.removeEventListener("wheel", handle);
             };
          }
-      }, [setInternalZoom, setInternalPosition]);
+      }, [setInternalZoom]);
 
       useEffect(() => {
          const d = dragRef.current;
