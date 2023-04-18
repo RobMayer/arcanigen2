@@ -130,7 +130,6 @@ const DragCanvas = styled(
             setPosition: (v: Vector2N | ((p: Vector2N) => Vector2N)) => {
                const prev = posRef.current;
                const nV = typeof v === "function" ? v(prev) : v;
-
                setInternalPosition(nV.x, nV.y);
             },
             move: (x: number, y: number) => {
@@ -168,8 +167,42 @@ const DragCanvas = styled(
             const handle = (e: WheelEvent) => {
                if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
                } else {
-                  const pZ = zoomRef.current;
-                  setInternalZoom(pZ + e.deltaY * -0.001);
+                  const origin = n.getBoundingClientRect();
+
+                  const oldZoom = zoomRef.current;
+                  const oldTranslation = posRef.current;
+                  const newZoom = oldZoom + e.deltaY * -0.001;
+                  setInternalZoom(newZoom);
+                  /*
+                  myc.translatex = (myc.translatex - tx)*myc.zoom/tzoom + tx;
+                  myc.translatey = (myc.translatey - ty)*myc.zoom/tzoom + ty;
+                  */
+
+                  //const dx = ((origin.x - e.x - oldTranslation.x) * newZoom) / oldZoom + oldTranslation.x;
+                  //const dy = ((origin.y - e.y - oldTranslation.y) * newZoom) / oldZoom + oldTranslation.y;
+
+                  const originX = origin.left + origin.width / 2;
+                  const originY = origin.top + origin.height / 2;
+
+                  const mouseX = -(originX - e.x);
+                  const mouseY = -(originY - e.y);
+
+                  const zoomRatio = newZoom / oldZoom;
+
+                  console.log("mouse-from-canvas", mouseX, mouseY);
+                  console.log("zoomRatio", zoomRatio);
+                  const newX = oldTranslation.x + mouseX * zoomRatio;
+
+                  setInternalPosition(
+                     newX, //
+                     mouseY //
+                  );
+
+                  //const dx = ((origin.x - e.x - oldTranslation.x) * newZoom) / oldZoom + oldTranslation.x;
+                  //const dy = ((origin.y - e.y - oldTranslation.y) * newZoom) / oldZoom + oldTranslation.y;
+
+                  //const dx = ((zoomOriginX - oldTranslation.x) * newZoom) / oldZoom + oldTranslation.x;
+                  //const dy = ((zoomOriginY - oldTranslation.y) * newZoom) / oldZoom + oldTranslation.y;
                }
             };
 
@@ -178,7 +211,7 @@ const DragCanvas = styled(
                n.removeEventListener("wheel", handle);
             };
          }
-      }, [setInternalZoom]);
+      }, [setInternalZoom, setInternalPosition]);
 
       useEffect(() => {
          const d = dragRef.current;
