@@ -253,7 +253,8 @@ const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) =
                return `${tR * Math.cos(MathHelper.deg2rad(eachAngle - 90))}, ${tR * Math.sin(MathHelper.deg2rad(eachAngle - 90))}`;
             })
             .slice(1)
-            .map((e) => `L ${e}`);
+            .map((e) => `L ${e}`)
+            .join(" ");
 
          return `M ${tR * Math.cos(MathHelper.deg2rad(startAngle - 90))}, ${tR * Math.sin(MathHelper.deg2rad(startAngle - 90))} ${pts} Z`;
       });
@@ -321,7 +322,8 @@ const Pather = memo(({ nodeId, globals, pathId, pathLength }: NodePatherProps) =
                return `${tR * Math.cos(MathHelper.deg2rad(eachAngle - 90))}, ${tR * Math.sin(MathHelper.deg2rad(eachAngle - 90))}`;
             })
             .slice(1)
-            .map((e) => `L ${e}`);
+            .map((e) => `L ${e}`)
+            .join(" ");
 
          return `M ${tR * Math.cos(MathHelper.deg2rad(startAngle - 90))}, ${tR * Math.sin(MathHelper.deg2rad(startAngle - 90))} ${pts} Z`;
       });

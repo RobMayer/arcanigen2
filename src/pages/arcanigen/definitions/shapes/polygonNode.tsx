@@ -199,7 +199,10 @@ const Pather = memo(({ nodeId, globals, pathId, depth, pathLength }: NodePatherP
          });
          return `${tR * Math.cos(MathHelper.deg2rad(coeff - 90))},${tR * Math.sin(MathHelper.deg2rad(coeff - 90))}`;
       });
-      return `M ${p[0]} ${p.slice(1).map((e) => `L ${e}`)} Z`;
+      return `M ${p[0]} ${p
+         .slice(1)
+         .map((e) => `L ${e}`)
+         .join(" ")} Z`;
    }, [pointCount, radius, rScribe, thetaCurve?.curveFn, thetaCurve?.easing, thetaCurve?.intensity]);
 
    return (
@@ -243,9 +246,12 @@ const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) =
             easing: thetaCurve?.easing ?? "in",
             intensity: thetaCurve?.intensity ?? 1,
          });
-         return `${tR * Math.cos(MathHelper.deg2rad(coeff - 90))},${tR * Math.sin(MathHelper.deg2rad(coeff - 90))}`;
+         return `${tR * Math.cos(MathHelper.deg2rad(coeff - 90))},${tR * Math.sin(MathHelper.deg2rad(coeff - 90))} `;
       });
-      return `M ${p[0]} ${p.slice(1).map((e) => `L ${e}`)} Z`;
+      return `M ${p[0]} ${p
+         .slice(1)
+         .map((e) => `L ${e}`)
+         .join(" ")} Z`;
    }, [pointCount, radius, rScribe, thetaCurve?.curveFn, thetaCurve?.easing, thetaCurve?.intensity]);
 
    return (

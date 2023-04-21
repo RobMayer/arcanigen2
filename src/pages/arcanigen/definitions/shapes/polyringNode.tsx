@@ -321,7 +321,13 @@ const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) =
 
       innerPoints.reverse();
 
-      return `M ${outerPoints[0]} ${outerPoints.slice(1).map((e) => `L ${e}`)} Z M ${innerPoints[0]} ${innerPoints.slice(1).map((e) => `L ${e}`)} Z`;
+      return `M ${outerPoints[0]} ${outerPoints
+         .slice(1)
+         .map((e) => `L ${e}`)
+         .join(" ")} Z M ${innerPoints[0]} ${innerPoints
+         .slice(1)
+         .map((e) => `L ${e}`)
+         .join(" ")} Z`;
    }, [
       expandMode,
       innerRadius,

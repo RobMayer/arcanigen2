@@ -334,7 +334,13 @@ const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) =
 
             tmpI.reverse();
 
-            return `M ${tmpO[0]} ${tmpO.slice(1).map((e) => `L ${e}`)} Z M ${tmpI[0]} ${tmpI.slice(1).map((e) => `L ${e}`)} Z`;
+            return `M ${tmpO[0]} ${tmpO
+               .slice(1)
+               .map((e) => `L ${e}`)
+               .join(" ")} Z M ${tmpI[0]} ${tmpI
+               .slice(1)
+               .map((e) => `L ${e}`)
+               .join(" ")} Z`;
          })
          .join(" ");
    }, [
