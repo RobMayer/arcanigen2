@@ -36,7 +36,12 @@ interface IGlyphNode extends INodeDefinition {
       strokeColor: Color;
       strokeOffset: Length;
       fillColor: Color;
-      radius: Length;
+      width: Length;
+      height: Length;
+      viewX: Length;
+      viewY: Length;
+      viewW: Length;
+      viewH: Length;
 
       positionX: Length;
       positionY: Length;
@@ -48,7 +53,13 @@ interface IGlyphNode extends INodeDefinition {
       output: NodeRenderer;
    };
    values: {
-      radius: Length;
+      width: Length;
+      height: Length;
+      viewX: Length;
+      viewY: Length;
+      viewW: Length;
+      viewH: Length;
+
       path: string;
       strokeWidth: Length;
       strokeColor: Color;
@@ -72,7 +83,14 @@ const nodeHooks = ArcaneGraph.nodeHooks<IGlyphNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [path, setPath] = nodeHooks.useValueState(nodeId, "path");
-   const [radius, setRadius] = nodeHooks.useValueState(nodeId, "radius");
+   const [width, setWidth] = nodeHooks.useValueState(nodeId, "width");
+   const [height, setHeight] = nodeHooks.useValueState(nodeId, "height");
+
+   const [viewX, setViewX] = nodeHooks.useValueState(nodeId, "viewX");
+   const [viewY, setViewY] = nodeHooks.useValueState(nodeId, "viewY");
+   const [viewW, setViewW] = nodeHooks.useValueState(nodeId, "viewW");
+   const [viewH, setViewH] = nodeHooks.useValueState(nodeId, "viewH");
+
    const [strokeWidth, setStrokeWidth] = nodeHooks.useValueState(nodeId, "strokeWidth");
    const [strokeColor, setStrokeColor] = nodeHooks.useValueState(nodeId, "strokeColor");
    const [strokeJoin, setStrokeJoin] = nodeHooks.useValueState(nodeId, "strokeJoin");
@@ -81,7 +99,12 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [strokeOffset, setStrokeOffset] = nodeHooks.useValueState(nodeId, "strokeOffset");
    const [fillColor, setFillColor] = nodeHooks.useValueState(nodeId, "fillColor");
 
-   const hasRadius = nodeHooks.useHasLink(nodeId, "radius");
+   const hasWidth = nodeHooks.useHasLink(nodeId, "width");
+   const hasHeight = nodeHooks.useHasLink(nodeId, "height");
+   const hasViewX = nodeHooks.useHasLink(nodeId, "viewX");
+   const hasViewY = nodeHooks.useHasLink(nodeId, "viewY");
+   const hasViewW = nodeHooks.useHasLink(nodeId, "viewW");
+   const hasViewH = nodeHooks.useHasLink(nodeId, "viewH");
    const hasStrokeWidth = nodeHooks.useHasLink(nodeId, "strokeWidth");
    const hasStrokeColor = nodeHooks.useHasLink(nodeId, "strokeColor");
    const hasStrokeOffset = nodeHooks.useHasLink(nodeId, "strokeOffset");
@@ -101,12 +124,36 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             </Preview>
          </BaseNode.Input>
          <BaseNode.Foldout panelId={"pathDef"} label={"Custom Path"} inputs={""} nodeId={nodeId} outputs={""}>
-            <div>Expected value is the 'd' attribute of an SVG Path with a vewbox of 512x512.</div>
+            <SocketIn<IGlyphNode> nodeId={nodeId} socketId={"viewX"} type={SocketTypes.LENGTH}>
+               <BaseNode.Input label={"Viewbox X"}>
+                  <LengthInput value={viewX} onValidValue={setViewX} disabled={hasViewX} min={0} />
+               </BaseNode.Input>
+            </SocketIn>
+            <SocketIn<IGlyphNode> nodeId={nodeId} socketId={"viewY"} type={SocketTypes.LENGTH}>
+               <BaseNode.Input label={"Viewbox Y"}>
+                  <LengthInput value={viewY} onValidValue={setViewY} disabled={hasViewY} min={0} />
+               </BaseNode.Input>
+            </SocketIn>
+            <SocketIn<IGlyphNode> nodeId={nodeId} socketId={"viewW"} type={SocketTypes.LENGTH}>
+               <BaseNode.Input label={"Viewbox Width"}>
+                  <LengthInput value={viewW} onValidValue={setViewW} disabled={hasViewW} />
+               </BaseNode.Input>
+            </SocketIn>
+            <SocketIn<IGlyphNode> nodeId={nodeId} socketId={"viewH"} type={SocketTypes.LENGTH}>
+               <BaseNode.Input label={"Viewbox Height"}>
+                  <LengthInput value={viewH} onValidValue={setViewH} disabled={hasViewH} />
+               </BaseNode.Input>
+            </SocketIn>
             <TextArea className={"auto tall"} value={path} onValidCommit={setPath} />
          </BaseNode.Foldout>
-         <SocketIn<IGlyphNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
-            <BaseNode.Input label={"Radius"}>
-               <LengthInput value={radius} onValidValue={setRadius} disabled={hasRadius} min={0} />
+         <SocketIn<IGlyphNode> nodeId={nodeId} socketId={"width"} type={SocketTypes.LENGTH}>
+            <BaseNode.Input label={"Width"}>
+               <LengthInput value={width} onValidValue={setWidth} disabled={hasWidth} min={0} />
+            </BaseNode.Input>
+         </SocketIn>
+         <SocketIn<IGlyphNode> nodeId={nodeId} socketId={"height"} type={SocketTypes.LENGTH}>
+            <BaseNode.Input label={"Height"}>
+               <LengthInput value={height} onValidValue={setHeight} disabled={hasHeight} min={0} />
             </BaseNode.Input>
          </SocketIn>
          <hr />
@@ -147,39 +194,14 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    );
 });
 
-// const Pather = memo(({ nodeId, depth, globals, pathId }: NodePatherProps) => {
-//    const path = nodeHooks.useValue(nodeId, "path");
-//    const radius = nodeHooks.useCoalesce(nodeId, "radius", "radius", globals);
-
-//    const positionMode = nodeHooks.useValue(nodeId, "positionMode");
-//    const positionX = nodeHooks.useCoalesce(nodeId, "positionX", "positionX", globals);
-//    const positionY = nodeHooks.useCoalesce(nodeId, "positionY", "positionY", globals);
-//    const positionTheta = nodeHooks.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
-//    const positionRadius = nodeHooks.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
-//    const rotation = nodeHooks.useCoalesce(nodeId, "rotation", "rotation", globals);
-
-//    return (
-//       <g transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`}>
-//          <symbol id={`glyph_${nodeId}_lyr-${depth ?? ""}`} viewBox="0 0 512 512">
-//             <path d={path} vectorEffect={"non-scaling-stroke"} />
-//          </symbol>
-//          <g>
-//             <use
-//                href={`#glyph_${nodeId}_lyr-${depth ?? ""}`}
-//                width={Math.max(0, MathHelper.lengthToPx(radius) * 2)}
-//                height={Math.max(0, MathHelper.lengthToPx(radius) * 2)}
-//                x={MathHelper.lengthToPx(radius) * -1}
-//                y={MathHelper.lengthToPx(radius) * -1}
-//                vectorEffect={"non-scaling-stroke"}
-//             />
-//          </g>
-//       </g>
-//    );
-// });
-
 const Renderer = memo(({ nodeId, depth, globals, overrides = {} }: NodeRendererProps) => {
    const path = nodeHooks.useValue(nodeId, "path");
-   const radius = nodeHooks.useCoalesce(nodeId, "radius", "radius", globals);
+   const width = nodeHooks.useCoalesce(nodeId, "width", "width", globals);
+   const height = nodeHooks.useCoalesce(nodeId, "height", "height", globals);
+   const viewX = nodeHooks.useCoalesce(nodeId, "viewX", "viewX", globals);
+   const viewY = nodeHooks.useCoalesce(nodeId, "viewY", "viewY", globals);
+   const viewW = nodeHooks.useCoalesce(nodeId, "viewW", "viewW", globals);
+   const viewH = nodeHooks.useCoalesce(nodeId, "viewH", "viewH", globals);
    const strokeWidth = nodeHooks.useCoalesce(nodeId, "strokeWidth", "strokeWidth", globals);
    const strokeColor = nodeHooks.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
    const fillColor = nodeHooks.useCoalesce(nodeId, "fillColor", "fillColor", globals);
@@ -195,7 +217,10 @@ const Renderer = memo(({ nodeId, depth, globals, overrides = {} }: NodeRendererP
 
    return (
       <g transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`}>
-         <symbol id={`glyph_${nodeId}_lyr-${depth ?? ""}`} viewBox="0 0 512 512">
+         <symbol
+            id={`glyph_${nodeId}_lyr-${depth ?? ""}`}
+            viewBox={`${MathHelper.lengthToPx(viewX)} ${MathHelper.lengthToPx(viewY)} ${MathHelper.lengthToPx(viewW)} ${MathHelper.lengthToPx(viewH)}`}
+         >
             <path d={path} vectorEffect={"non-scaling-stroke"} />
          </symbol>
          <g
@@ -209,10 +234,10 @@ const Renderer = memo(({ nodeId, depth, globals, overrides = {} }: NodeRendererP
          >
             <use
                href={`#glyph_${nodeId}_lyr-${depth ?? ""}`}
-               width={Math.max(0, MathHelper.lengthToPx(radius) * 2)}
-               height={Math.max(0, MathHelper.lengthToPx(radius) * 2)}
-               x={MathHelper.lengthToPx(radius) * -1}
-               y={MathHelper.lengthToPx(radius) * -1}
+               width={Math.max(0, MathHelper.lengthToPx(width))}
+               height={Math.max(0, MathHelper.lengthToPx(height))}
+               x={MathHelper.lengthToPx(width) * -1}
+               y={MathHelper.lengthToPx(width) * -1}
                vectorEffect={"non-scaling-stroke"}
             />
          </g>
@@ -229,7 +254,8 @@ const GlyphNodeHelper: INodeHelper<IGlyphNode> = {
    getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IGlyphNode["outputs"]) => Renderer,
    initialize: () => ({
       path: "",
-      radius: { value: 100, unit: "px" },
+      width: { value: 100, unit: "px" },
+      height: { value: 100, unit: "px" },
       strokeWidth: { value: 0, unit: "px" },
       strokeDash: "",
       strokeOffset: { value: 0, unit: "px" },
@@ -237,6 +263,10 @@ const GlyphNodeHelper: INodeHelper<IGlyphNode> = {
       strokeColor: null as Color,
       strokeJoin: "miter",
       strokeCap: "butt",
+      viewX: { value: 0, unit: "px" },
+      viewY: { value: 0, unit: "px" },
+      viewW: { value: 512, unit: "px" },
+      viewH: { value: 512, unit: "px" },
 
       positionX: { value: 0, unit: "px" },
       positionY: { value: 0, unit: "px" },
