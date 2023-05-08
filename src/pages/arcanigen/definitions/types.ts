@@ -32,6 +32,7 @@ export enum NodeTypes {
    ARRAY_VERTEX = "arrayVertex",
    ARRAY_SPIRAL = "arraySpiral",
    ARRAY_REPEAT = "arrayRepeat",
+   ARRAY_CLUSTER = "arrayCluster",
 
    VALUE_NUMBER = "valueNumber",
    VALUE_COLOR = "valueColor",

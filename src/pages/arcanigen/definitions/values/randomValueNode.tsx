@@ -26,7 +26,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [result, setResult] = nodeHooks.useValueState(nodeId, "result");
 
    const doRandom = useCallback(() => {
-      setResult(Math.floor(Math.random() * 1000));
+      setResult(Math.floor(Math.random() * 100000));
    }, [setResult]);
 
    return (

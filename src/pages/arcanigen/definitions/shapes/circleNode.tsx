@@ -149,7 +149,7 @@ const Pather = memo(({ nodeId, globals, depth, pathId, pathLength }: NodePatherP
    return (
       <path
          d={points}
-         transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`}
+         transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation ?? 0})`}
          pathLength={pathLength}
          id={pathId}
       />
@@ -174,7 +174,7 @@ const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) =
    const rotation = nodeHooks.useCoalesce(nodeId, "rotation", "rotation", globals);
 
    return (
-      <g transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`}>
+      <g transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation ?? 0})`}>
          <g
             stroke={MathHelper.colorToSVG("strokeColor" in overrides ? overrides.strokeColor : strokeColor)}
             fill={MathHelper.colorToSVG("fillColor" in overrides ? overrides.fillColor : fillColor)}

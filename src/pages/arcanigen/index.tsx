@@ -3,7 +3,7 @@
 import Page from "!/components/content/Page";
 import styled from "styled-components";
 // import NodeView from "./nodeView";
-import { HTMLAttributes } from "react";
+import { HTMLAttributes, useState } from "react";
 import NodeView from "./nodeView";
 import OutputView from "./outputView";
 import ArcaneGraph from "./definitions/graph";
@@ -11,6 +11,8 @@ import ActionButton from "!/components/buttons/ActionButton";
 import { saveAs } from "file-saver";
 import { IArcaneGraph } from "./definitions/types";
 import Modal, { useModal } from "!/components/popups/Modal";
+import NumberInput from "!/components/inputs/NumberInput";
+import { FONT_DEFINITIONS } from "./definitions/fonts";
 // import OutputView from "./outputView";
 // import { StateProvider } from "./state";
 
@@ -70,6 +72,7 @@ const handleUpload = (element: HTMLInputElement, file: File, dispatch: (value: U
 
 const ArcaneGraphMenu = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) => {
    const { save, load, reset } = ArcaneGraph.useGraph();
+   const [dpi, setDpi] = useState<number>(96);
 
    const modalControls = useModal();
 
@@ -131,9 +134,11 @@ const ArcaneGraphMenu = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) =>
                      const cH = canvas.offsetHeight;
                      const content = canvas.innerHTML;
                      if (content) {
-                        rasterize(content, cW, cH)
-                           .then((res: Blob) => {
-                              saveAs(res, "arcanigen.png");
+                        encodeFonts(content)
+                           .then((res) => {
+                              return rasterize(res, (cW / 96) * dpi, (cH / 96) * dpi).then((res: Blob) => {
+                                 return saveAs(res, "arcanigen.png");
+                              });
                            })
                            .catch((e) => {
                               console.error(e);
@@ -144,6 +149,7 @@ const ArcaneGraphMenu = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) =>
             >
                Export PNG
             </ActionButton>
+            <span>DPI:</span> <NumberInput value={dpi} min={1} onValidValue={setDpi} className={"small"} />
             <ActionButton flavour={"danger"} onClick={modalControls.open}>
                Reset
             </ActionButton>
@@ -157,6 +163,7 @@ const ArcaneGraphMenu = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) =>
    display: flex;
    grid-column: 1 / -1;
    border: 1px solid var(--effect-border-highlight);
+   align-items: center;
 `;
 
 const NOOP = () => {};
@@ -182,8 +189,40 @@ const rasterize = (svgString: string, width: number, height: number) => {
    });
 };
 
+const encodeFonts = (svgString: string) => {
+   return Promise.all(
+      Object.keys(FONT_DEFINITIONS).map((font) => {
+         return fetch(FONT_DEFINITIONS[font].url).then((response) => {
+            if (response.ok) {
+               return response
+                  .blob()
+                  .then(blobToBase64)
+                  .then((data: string) => {
+                     return { data, key: font };
+                  });
+            }
+            return Promise.reject(response.statusText);
+         });
+      })
+   ).then((results) => {
+      return results.reduce((acc, { key, data }) => {
+         return acc.replace(`url('${FONT_DEFINITIONS[key].url}')`, `url(${data})`);
+      }, svgString);
+   });
+};
+
 const ModalOptions = styled.div`
    display: grid;
    grid-template-columns: 1fr 1fr;
    border-top: 1px solid var(--effect-border-highlight);
 `;
+
+const blobToBase64 = (blob: Blob): Promise<string> => {
+   const reader = new FileReader();
+   reader.readAsDataURL(blob);
+   return new Promise((resolve) => {
+      reader.onloadend = () => {
+         resolve(reader.result as string);
+      };
+   });
+};

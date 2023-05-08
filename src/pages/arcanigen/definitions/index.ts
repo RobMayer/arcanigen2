@@ -58,6 +58,7 @@ import ThatRobShapeNodeHelper from "./shapes/thatRobShapeNode";
 import RectangleNodeHelper from "./shapes/reactangleNode";
 import RandomFilterNodeHelper from "./collections/randomFilterNode";
 import TextPathNodeHelper from "./shapes/textPathNode";
+import ClusterArrayNodeHelper from "./collections/clusterArrayNode";
 
 // prettier-ignore
 export const getNodeHelper = (key: NodeTypes) => {
@@ -76,6 +77,7 @@ export const getNodeHelper = (key: NodeTypes) => {
       case NodeTypes.ARRAY_VERTEX: return VertexArrayNodeHelper;
       case NodeTypes.ARRAY_SPIRAL: return SpiralArrayNodeHelper;
       case NodeTypes.ARRAY_REPEAT: return RepeatArrayNodeHelper;
+      case NodeTypes.ARRAY_CLUSTER: return ClusterArrayNodeHelper;
 
       case NodeTypes.SHAPE_CIRCLE: return CircleNodeHelper;
       case NodeTypes.SHAPE_RECTANGLE: return RectangleNodeHelper;
@@ -94,11 +96,11 @@ export const getNodeHelper = (key: NodeTypes) => {
       case NodeTypes.SHAPE_FLOODFILL: return FloodFillNodeHelper;
       case NodeTypes.SHAPE_GLYPH: return GlyphNodeHelper;
       case NodeTypes.SHAPE_THATROBSHAPE: return ThatRobShapeNodeHelper;
-
+      
       case NodeTypes.VALUE_LENGTH: return LengthValueNodeHelper;
       case NodeTypes.VALUE_RANDOM: return RandomValueNodeHelper;
       case NodeTypes.VALUE_ANGLE: return AngleValueNodeHelper;
-
+      
       case NodeTypes.VALUE_COLOR: return HexColorNodeHelper;
       case NodeTypes.VALUE_PERCENT: return PercentValueNodeHelper;
       case NodeTypes.VALUE_NUMBER: return NumberValueNodeHelper;

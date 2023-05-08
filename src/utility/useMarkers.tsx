@@ -24,8 +24,6 @@ const MarkersRenderer = ({ markStart: MarkStart, markMid: MarkMid, markEnd: Mark
                markerUnits="userSpaceOnUse"
                markerWidth={"100%"}
                markerHeight={"100%"}
-               refX={"center"}
-               refY={"center"}
                overflow={"visible"}
                orient={align ? "auto-start-reverse" : undefined}
             >
@@ -40,8 +38,6 @@ const MarkersRenderer = ({ markStart: MarkStart, markMid: MarkMid, markEnd: Mark
                markerUnits="userSpaceOnUse"
                markerWidth={"100%"}
                markerHeight={"100%"}
-               refX={"center"}
-               refY={"center"}
                overflow={"visible"}
                orient={align ? "auto-start-reverse" : undefined}
             >
@@ -56,8 +52,6 @@ const MarkersRenderer = ({ markStart: MarkStart, markMid: MarkMid, markEnd: Mark
                markerUnits="userSpaceOnUse"
                markerWidth={"100%"}
                markerHeight={"100%"}
-               refX={"center"}
-               refY={"center"}
                overflow={"visible"}
                orient={align ? "auto-start-reverse" : undefined}
             >
@@ -71,7 +65,7 @@ const MarkersRenderer = ({ markStart: MarkStart, markMid: MarkMid, markEnd: Mark
 };
 
 const useMarkers = (
-   nodeHooks: ReturnType<typeof ArcaneGraph["nodeHooks"]>,
+   nodeHooks: ReturnType<(typeof ArcaneGraph)["nodeHooks"]>,
    nodeId: string,
    globals: Globals,
    overrides: { [key: string]: any },

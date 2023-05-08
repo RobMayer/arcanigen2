@@ -29,6 +29,7 @@ import TextArea from "!/components/inputs/TextArea";
 import styled from "styled-components";
 import { MetaPrefab, TransformPrefabs } from "../../nodeView/prefabs";
 import TextInput from "!/components/inputs/TextInput";
+import NumberInput from "!/components/inputs/NumberInput";
 
 interface IGlyphNode extends INodeDefinition {
    inputs: {
@@ -59,6 +60,7 @@ interface IGlyphNode extends INodeDefinition {
       viewY: Length;
       viewW: Length;
       viewH: Length;
+      dpi: number;
 
       path: string;
       strokeWidth: Length;
@@ -85,6 +87,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [path, setPath] = nodeHooks.useValueState(nodeId, "path");
    const [width, setWidth] = nodeHooks.useValueState(nodeId, "width");
    const [height, setHeight] = nodeHooks.useValueState(nodeId, "height");
+   const [dpi, setDpi] = nodeHooks.useValueState(nodeId, "dpi");
 
    const [viewX, setViewX] = nodeHooks.useValueState(nodeId, "viewX");
    const [viewY, setViewY] = nodeHooks.useValueState(nodeId, "viewY");
@@ -98,6 +101,11 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [strokeDash, setStrokeDash] = nodeHooks.useValueState(nodeId, "strokeDash");
    const [strokeOffset, setStrokeOffset] = nodeHooks.useValueState(nodeId, "strokeOffset");
    const [fillColor, setFillColor] = nodeHooks.useValueState(nodeId, "fillColor");
+
+   const viewXIn = nodeHooks.useInput(nodeId, "viewX", globals);
+   const viewYIn = nodeHooks.useInput(nodeId, "viewY", globals);
+   const viewWIn = nodeHooks.useInput(nodeId, "viewW", globals);
+   const viewHIn = nodeHooks.useInput(nodeId, "viewH", globals);
 
    const hasWidth = nodeHooks.useHasLink(nodeId, "width");
    const hasHeight = nodeHooks.useHasLink(nodeId, "height");
@@ -117,13 +125,20 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          </SocketOut>
          <hr />
          <BaseNode.Input label={"preview"}>
-            <Preview viewBox={"0 0 512 512"}>
+            <Preview
+               viewBox={`
+               ${(MathHelper.lengthToPx(hasViewX ? viewXIn : viewX) / dpi) * 72}
+               ${(MathHelper.lengthToPx(hasViewY ? viewYIn : viewY) / dpi) * 72}
+               ${(MathHelper.lengthToPx(hasViewW ? viewWIn : viewW) / dpi) * 72}
+               ${(MathHelper.lengthToPx(hasViewH ? viewHIn : viewH) / dpi) * 72}
+            `}
+            >
                <g fill={"black"} stroke={"none"}>
                   <path d={path} />
                </g>
             </Preview>
          </BaseNode.Input>
-         <BaseNode.Foldout panelId={"pathDef"} label={"Custom Path"} inputs={""} nodeId={nodeId} outputs={""}>
+         <BaseNode.Foldout panelId={"pathDef"} label={"Custom Path"} inputs={"viewX viewY viewW viewH"} nodeId={nodeId} outputs={""}>
             <SocketIn<IGlyphNode> nodeId={nodeId} socketId={"viewX"} type={SocketTypes.LENGTH}>
                <BaseNode.Input label={"Viewbox X"}>
                   <LengthInput value={viewX} onValidValue={setViewX} disabled={hasViewX} min={0} />
@@ -144,6 +159,9 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                   <LengthInput value={viewH} onValidValue={setViewH} disabled={hasViewH} />
                </BaseNode.Input>
             </SocketIn>
+            <BaseNode.Input label={"DPI"}>
+               <NumberInput value={dpi} onValidValue={setDpi} />
+            </BaseNode.Input>
             <TextArea className={"auto tall"} value={path} onValidCommit={setPath} />
          </BaseNode.Foldout>
          <SocketIn<IGlyphNode> nodeId={nodeId} socketId={"width"} type={SocketTypes.LENGTH}>
@@ -196,6 +214,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
 
 const Renderer = memo(({ nodeId, depth, globals, overrides = {} }: NodeRendererProps) => {
    const path = nodeHooks.useValue(nodeId, "path");
+   const dpi = nodeHooks.useValue(nodeId, "dpi");
    const width = nodeHooks.useCoalesce(nodeId, "width", "width", globals);
    const height = nodeHooks.useCoalesce(nodeId, "height", "height", globals);
    const viewX = nodeHooks.useCoalesce(nodeId, "viewX", "viewX", globals);
@@ -219,7 +238,9 @@ const Renderer = memo(({ nodeId, depth, globals, overrides = {} }: NodeRendererP
       <g transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`}>
          <symbol
             id={`glyph_${nodeId}_lyr-${depth ?? ""}`}
-            viewBox={`${MathHelper.lengthToPx(viewX)} ${MathHelper.lengthToPx(viewY)} ${MathHelper.lengthToPx(viewW)} ${MathHelper.lengthToPx(viewH)}`}
+            viewBox={`${(MathHelper.lengthToPx(viewX) / dpi) * 72} ${(MathHelper.lengthToPx(viewY) / dpi) * 72} ${(MathHelper.lengthToPx(viewW) / dpi) * 72} ${
+               (MathHelper.lengthToPx(viewH) / dpi) * 72
+            }`}
          >
             <path d={path} vectorEffect={"non-scaling-stroke"} />
          </symbol>
@@ -236,8 +257,8 @@ const Renderer = memo(({ nodeId, depth, globals, overrides = {} }: NodeRendererP
                href={`#glyph_${nodeId}_lyr-${depth ?? ""}`}
                width={Math.max(0, MathHelper.lengthToPx(width))}
                height={Math.max(0, MathHelper.lengthToPx(height))}
-               x={MathHelper.lengthToPx(width) * -1}
-               y={MathHelper.lengthToPx(width) * -1}
+               x={MathHelper.lengthToPx(width) * -0.5}
+               y={MathHelper.lengthToPx(height) * -0.5}
                vectorEffect={"non-scaling-stroke"}
             />
          </g>
@@ -256,6 +277,7 @@ const GlyphNodeHelper: INodeHelper<IGlyphNode> = {
       path: "",
       width: { value: 100, unit: "px" },
       height: { value: 100, unit: "px" },
+      dpi: 96,
       strokeWidth: { value: 0, unit: "px" },
       strokeDash: "",
       strokeOffset: { value: 0, unit: "px" },

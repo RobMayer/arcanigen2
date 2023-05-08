@@ -179,7 +179,6 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          </Checkbox>
          <hr />
          <TransformPrefabs.Full<ISpiralArrayNode> nodeId={nodeId} hooks={nodeHooks} />
-         <hr />
          <SocketOut<ISpiralArrayNode> nodeId={nodeId} socketId={"sequence"} type={SocketTypes.SEQUENCE}>
             Sequence
          </SocketOut>

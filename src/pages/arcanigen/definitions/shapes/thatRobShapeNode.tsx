@@ -153,7 +153,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             panelId={"appearance"}
             label={"Appearance"}
             nodeId={nodeId}
-            inputs={"strokeWidth strokeColor fillColor strokeMarkStart strokeMarkEnd"}
+            inputs={"strokeWidth strokeColor fillColor strokeOffset strokeMarkStart strokeMarkEnd"}
             outputs={""}
          >
             <SocketIn<IThatRobShapeNode> nodeId={nodeId} socketId={"strokeWidth"} type={SocketTypes.LENGTH}>

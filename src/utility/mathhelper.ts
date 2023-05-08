@@ -1,4 +1,5 @@
 import { AngleLerpMode, Curve, CurveFunction, EasingMode, RoundingMode } from "!/pages/arcanigen/definitions/types";
+import lodash from "lodash";
 import ColorConvert, { ColorFields } from "./colorconvert";
 import { Length, Color } from "./types/units";
 
@@ -16,10 +17,32 @@ export const seededRandom = (seed: number) => {
    if (_seed <= 0) {
       _seed = _seed + 2147483647;
    }
-   return () => {
+
+   const get = () => {
       _seed = (_seed * 16807) % 2147483647;
       return (_seed - 1) / 2147483646;
    };
+
+   get.between = (a: number, b: number) => {
+      return lerp(get(), a, b);
+   };
+
+   get.pick = <T>(thing: T[], count: number) => {
+      if (count >= thing.length) {
+         return [...thing];
+      }
+      const n = [...thing];
+      const res = [] as T[];
+
+      lodash.range(count).forEach(() => {
+         const idx = Math.round(lerp(get(), 0, n.length - 1));
+         res.push(n[idx]);
+         n.splice(idx, 1);
+      });
+      return res;
+   };
+
+   return get;
 };
 
 const CURVE_HANDLERS: { [keys in CurveFunction]: (t: number) => number } = {
@@ -216,6 +239,10 @@ export const distance = (x1: number, y1: number, x2: number, y2: number) => {
    return Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
 };
 
+export const distanceSquare = (x1: number, y1: number, x2: number, y2: number) => {
+   return (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
+};
+
 export const clamp = (n: number, a: number, b: number) => {
    return Math.max(a, Math.min(b, n));
 };
@@ -301,6 +328,8 @@ export const gcd = (a: number, b: number) => {
    return a;
 };
 
+export const compare = (a: number, b: number) => (a > b ? 1 : a < b ? -1 : 0);
+
 const LENGTH_LIST_REGEX = "^([0-9.])+(px|mm|in|cm|pt)(?:\\s([0-9.])+(px|mm|in|cm|pt))*$";
 
 const MathHelper = {
@@ -322,6 +351,8 @@ const MathHelper = {
    shortestArc,
    shortestQuadrent,
    distance,
+   distanceSquare,
+   compare,
    clamp,
    angleLerp,
    colorLerp,
