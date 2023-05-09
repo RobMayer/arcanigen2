@@ -10,12 +10,12 @@ import {
    SocketTypes,
    NodeRendererProps,
    ControlRendererProps,
+   ILinkInstance,
 } from "../types";
 import { faClose, faLayerGroup as nodeIcon, faPlus, faUpDown } from "@fortawesome/pro-solid-svg-icons";
 import { faLayerGroup as buttonIcon } from "@fortawesome/pro-light-svg-icons";
 import ArcaneGraph from "../graph";
 import { Fragment, HTMLAttributes, memo, useCallback, useEffect, useMemo, useRef } from "react";
-import ObjHelper from "!/utility/objHelper";
 import ActionButton from "!/components/buttons/ActionButton";
 import IconButton from "!/components/buttons/IconButton";
 import Icon from "!/components/icons";
@@ -27,14 +27,16 @@ import { MetaPrefab } from "../../nodeView/prefabs";
 import useDroppable from "!/utility/hooks/useDroppable";
 import useDraggable from "!/utility/hooks/useDraggable";
 import { useNodeGraphEventBus } from "../../nodeView";
+import Checkbox from "!/components/buttons/Checkbox";
 
-interface ILayersNode extends INodeDefinition {
+export interface ILayersNode extends INodeDefinition {
    inputs: {
       [key: string]: NodeRenderer;
    };
    values: {
       sockets: string[];
       modes: { [key: string]: BlendMode };
+      enabled: { [key: string]: boolean };
    };
    outputs: {
       output: NodeRenderer;
@@ -55,6 +57,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             ...p,
             sockets: [...p.sockets, sId],
             modes: { ...p.modes, [sId]: "normal" },
+            enabled: { ...p.enabled, [sId]: true },
             in: {
                ...p.in,
                [sId]: null,
@@ -67,6 +70,8 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
       (sId: string) => {
          setGraph((prev) => {
             const linkId = prev.nodes[nodeId]?.in?.[sId] ?? undefined;
+
+            const prevNode = prev.nodes[nodeId] as INodeInstance<ILayersNode>;
 
             const otherNode = linkId
                ? {
@@ -89,12 +94,33 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                   ...otherNode,
                   [nodeId]: {
                      ...prev.nodes[nodeId],
-                     sockets: (prev.nodes[nodeId] as INodeInstance<ILayersNode>).sockets.filter((n) => n !== sId),
-                     modes: ObjHelper.remove((prev.nodes[nodeId] as INodeInstance<ILayersNode>).sockets, sId),
-                     in: ObjHelper.remove(prev.nodes[nodeId].in, sId),
+                     sockets: prevNode.sockets.filter((n) => n !== sId),
+                     modes: Object.entries(prevNode.modes).reduce((acc, [k, v]) => {
+                        if (sId !== k) {
+                           acc[k] = v;
+                        }
+                        return acc;
+                     }, {} as { [key: string]: BlendMode }),
+                     enabled: Object.entries(prevNode.enabled).reduce((acc, [k, v]) => {
+                        if (sId !== k) {
+                           acc[k] = v;
+                        }
+                        return acc;
+                     }, {} as { [key: string]: boolean }),
+                     in: Object.entries(prevNode.in).reduce((acc, [k, v]) => {
+                        if (k !== sId) {
+                           acc[k] = v;
+                        }
+                        return acc;
+                     }, {} as { [key: string]: string | null }),
                   },
                },
-               links: ObjHelper.remove(prev.links, linkId),
+               links: Object.entries(prev.links).reduce((acc, [k, v]) => {
+                  if (k !== linkId) {
+                     acc[k] = v;
+                  }
+                  return acc;
+               }, {} as { [key: string]: ILinkInstance }),
             };
          });
       },
@@ -114,6 +140,25 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                   }
                   return acc;
                }, {} as { [key: string]: BlendMode }),
+            };
+         });
+      },
+      [setNode]
+   );
+
+   const toggleLayerEnabled = useCallback(
+      (sId: string) => {
+         setNode((p) => {
+            return {
+               ...p,
+               enabled: Object.entries(p.enabled).reduce((acc, [k, v]) => {
+                  if (k === sId) {
+                     acc[k] = !v;
+                  } else {
+                     acc[k] = v;
+                  }
+                  return acc;
+               }, {} as { [key: string]: boolean }),
             };
          });
       },
@@ -160,6 +205,12 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                   <DragTarget index={i} orderLayer={orderLayer} />
                   <SocketIn<ILayersNode> nodeId={nodeId} socketId={id} type={SocketTypes.SHAPE}>
                      <EachLayer socketId={id} key={id}>
+                        <Checkbox
+                           checked={node.enabled[id]}
+                           onToggle={() => {
+                              toggleLayerEnabled(id);
+                           }}
+                        />
                         <Dropdown
                            value={node.modes[id]}
                            options={BLEND_MODES}
@@ -189,10 +240,11 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
 const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps) => {
    const sockets = nodeHooks.useValue(nodeId, "sockets") ?? [];
    const modes = nodeHooks.useValue(nodeId, "modes") ?? {};
+   const enabled = nodeHooks.useValue(nodeId, "enabled") ?? {};
    return (
       <g>
          {sockets.map((sId, i) => {
-            return (
+            return enabled[sId] ? (
                <Each
                   key={sId}
                   nodeId={nodeId}
@@ -204,11 +256,15 @@ const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps)
                   globals={globals}
                   overrides={overrides}
                />
+            ) : (
+               <NoOp key={sId} />
             );
          })}
       </g>
    );
 });
+
+const NoOp = () => <></>;
 
 const Each = ({
    nodeId,
@@ -263,6 +319,7 @@ const LayersNodeHelper: INodeHelper<ILayersNode> = {
       return {
          sockets: [socketId],
          modes: { [socketId]: "normal" },
+         enabled: { [socketId]: true },
          in: {
             [socketId]: null,
          },
@@ -295,7 +352,7 @@ const EachLayer = styled(({ socketId, className, children, ...props }: { socketI
    );
 })`
    display: grid;
-   grid-template-columns: auto 1fr auto;
+   grid-template-columns: auto auto 1fr auto;
    align-items: center;
    gap: 0.25em;
    &.state-dragging {

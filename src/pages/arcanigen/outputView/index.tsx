@@ -2,7 +2,7 @@ import BoundingBox from "!/components/containers/BoundingBox";
 import DragCanvas from "!/components/containers/DragCanvas";
 import { HTMLAttributes } from "react";
 import styled from "styled-components";
-import { RootNodeRenderer } from "../definitions/collections/resultNode";
+import { RootNodeRenderer } from "../definitions/meta/resultNode";
 
 const OutputView = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) => {
    return (

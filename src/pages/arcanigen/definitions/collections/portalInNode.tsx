@@ -11,12 +11,12 @@ import {
    PortalBus,
    IArcaneGraph,
    Globals,
+   ILinkInstance,
 } from "../types";
 import { faClose, faArrowRightToBracket as nodeIcon, faPlus } from "@fortawesome/pro-solid-svg-icons";
 import { faArrowRightToBracket as buttonIcon } from "@fortawesome/pro-light-svg-icons";
 import ArcaneGraph from "../graph";
 import { memo, useCallback, useMemo } from "react";
-import ObjHelper from "!/utility/objHelper";
 import ActionButton from "!/components/buttons/ActionButton";
 import IconButton from "!/components/buttons/IconButton";
 import Icon from "!/components/icons";
@@ -66,6 +66,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
       (sId: string) => {
          setGraph((prev) => {
             const linkId = prev.nodes[nodeId]?.in?.[sId] ?? undefined;
+            const prevNode = prev.nodes[nodeId] as INodeInstance<IPortalInNode>;
 
             const otherNode = linkId
                ? {
@@ -88,17 +89,27 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                   ...otherNode,
                   [nodeId]: {
                      ...prev.nodes[nodeId],
-                     sockets: (prev.nodes[nodeId] as INodeInstance<IPortalInNode>).sockets.filter((n) => n !== sId),
-                     channels: Object.entries((prev.nodes[nodeId] as INodeInstance<IPortalInNode>).channels).reduce((acc, [theId, theChannel]) => {
+                     sockets: prevNode.sockets.filter((n) => n !== sId),
+                     channels: Object.entries(prevNode.channels).reduce((acc, [theId, theChannel]) => {
                         if (sId !== theId) {
                            acc[theId] = theChannel;
                         }
                         return acc;
                      }, {} as { [key: string]: number }),
-                     in: ObjHelper.remove(prev.nodes[nodeId].in, sId),
+                     in: Object.entries(prevNode.in).reduce((acc, [k, v]) => {
+                        if (k !== sId) {
+                           acc[k] = v;
+                        }
+                        return acc;
+                     }, {} as { [key: string]: string | null }),
                   },
                },
-               links: ObjHelper.remove(prev.links, linkId),
+               links: Object.entries(prev.links).reduce((acc, [k, v]) => {
+                  if (k !== linkId) {
+                     acc[k] = v;
+                  }
+                  return acc;
+               }, {} as { [key: string]: ILinkInstance }),
             };
          });
       },

@@ -14,7 +14,7 @@ type IProps<T extends INodeDefinition> = {
    nodeId: string;
    helper: INodeHelper<T>;
    noRemove?: boolean;
-   hooks: ReturnType<typeof ArcaneGraph["nodeHooks"]>;
+   hooks: ReturnType<(typeof ArcaneGraph)["nodeHooks"]>;
 } & HTMLAttributes<HTMLDivElement>;
 
 const BaseNode = <T extends INodeDefinition>({ nodeId, children, helper, hooks, className, noRemove = false, ...props }: IProps<T>) => {
@@ -177,8 +177,12 @@ const BaseNode = <T extends INodeDefinition>({ nodeId, children, helper, hooks, 
                   }
                >
                   <ProxySocket className={"in"} data-trh-graph-sockethost={nodeId} data-trh-graph-fallback={"in"} />
-                  <IconButton flavour={"bare"} icon={helper.nodeIcon} className={"muted"} onClick={handleToggle} />
-                  <LabelInner ref={gripRef}>{name ? `"${name}"` : helper.name}</LabelInner>
+                  <IconButton flavour={"bare"} icon={isOpen ? faCaretDown : faCaretRight} className={"muted"} onClick={handleToggle} />
+                  <LabelInner ref={gripRef}>
+                     <Icon icon={helper.nodeIcon} className={"muted"} />
+                     <span>{name ? `"${name}"` : helper.name}</span>
+                     <Icon icon={faBlank} />
+                  </LabelInner>
                   {!noRemove ? <IconButton flavour={"bare"} icon={faClose} onClick={handleRemove} /> : <Icon icon={faBlank} />}
                   <ProxySocket className={"out"} data-trh-graph-sockethost={nodeId} data-trh-graph-fallback={"out"} />
                </Label>
@@ -195,8 +199,11 @@ const MoveWrapper = styled.div`
 `;
 
 const LabelInner = styled.div`
-   padding-inline: 0.5em;
+   display: grid;
+   grid-template-columns: auto 1fr auto;
+   gap: 0.5em;
    cursor: move;
+   align-items: center;
 `;
 
 const Main = memo(styled.div`
@@ -237,9 +244,6 @@ const Label = styled.div`
    font-weight: bold;
    font-variant: small-caps;
    font-size: 1.25em;
-   .has-importance > & {
-      background: var(--flavour-button);
-   }
 `;
 
 const Params = styled.div`

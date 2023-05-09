@@ -2,7 +2,7 @@ import HexColorInput from "!/components/inputs/colorHexInput";
 import LengthInput from "!/components/inputs/LengthInput";
 import MathHelper from "!/utility/mathhelper";
 import { Color, Length } from "!/utility/types/units";
-import { memo, useMemo } from "react";
+import { useMemo, memo } from "react";
 import ArcaneGraph from "../graph";
 import BaseNode from "../../nodeView/node";
 import { SocketIn } from "../../nodeView/socket";
@@ -81,11 +81,11 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
 });
 
 const ResultNodeHelper: INodeHelper<IResultNode> = {
-   name: "Canvas Output",
+   name: "Result",
    buttonIcon: null,
    flavour: "confirm",
    nodeIcon,
-   type: NodeTypes.RESULT,
+   type: NodeTypes.META_RESULT,
    getOutput: () => undefined as never,
    initialize: () => ({
       canvasColor: { r: 1, g: 1, b: 1, a: 1 },
@@ -99,22 +99,24 @@ const ResultNodeHelper: INodeHelper<IResultNode> = {
 
 export default ResultNodeHelper;
 
+const nodeId = "ROOT";
+
 export const RootNodeRenderer = () => {
    const globals = useMemo(() => ({ sequenceData: START_SEQUENCE, portalData: START_PORTAL }), []);
 
-   const canvasColor = nodeHelper.useCoalesce("ROOT", "canvasColor", "canvasColor", globals);
-   const canvasHeight = nodeHelper.useCoalesce("ROOT", "canvasHeight", "canvasHeight", globals);
-   const canvasWidth = nodeHelper.useCoalesce("ROOT", "canvasWidth", "canvasWidth", globals);
+   const canvasColor = nodeHelper.useCoalesce(nodeId, "canvasColor", "canvasColor", globals);
+   const canvasHeight = nodeHelper.useCoalesce(nodeId, "canvasHeight", "canvasHeight", globals);
+   const canvasWidth = nodeHelper.useCoalesce(nodeId, "canvasWidth", "canvasWidth", globals);
 
-   const originOffsetX = nodeHelper.useCoalesce("ROOT", "originOffsetX", "originOffsetX", globals);
-   const originOffsetY = nodeHelper.useCoalesce("ROOT", "originOffsetY", "originOffsetY", globals);
+   const originOffsetX = nodeHelper.useCoalesce(nodeId, "originOffsetX", "originOffsetX", globals);
+   const originOffsetY = nodeHelper.useCoalesce(nodeId, "originOffsetY", "originOffsetY", globals);
 
    const x = useMemo(() => MathHelper.lengthToPx(originOffsetX ?? { value: 0, unit: "px" }), [originOffsetX]);
    const y = useMemo(() => MathHelper.lengthToPx(originOffsetY ?? { value: 0, unit: "px" }), [originOffsetY]);
    const h = useMemo(() => Math.max(0, MathHelper.lengthToPx(canvasHeight ?? { value: 800, unit: "px" })), [canvasHeight]);
    const w = useMemo(() => Math.max(0, MathHelper.lengthToPx(canvasWidth ?? { value: 800, unit: "px" })), [canvasWidth]);
 
-   const [OutputRenderer, childNodeId] = nodeHelper.useInputNode("ROOT", "input", globals);
+   const [OutputRenderer, childNodeId] = nodeHelper.useInputNode(nodeId, "input", globals);
 
    return (
       <svg
@@ -141,7 +143,7 @@ export const RootNodeRenderer = () => {
                   .join("")}
             </style>
          </defs>
-         <g transform={`translate(${x}, ${y})`}>{OutputRenderer && childNodeId && <OutputRenderer nodeId={childNodeId} depth={"ROOT"} globals={globals} />}</g>
+         <g transform={`translate(${x}, ${y})`}>{OutputRenderer && childNodeId && <OutputRenderer nodeId={childNodeId} depth={nodeId} globals={globals} />}</g>
       </svg>
    );
 };

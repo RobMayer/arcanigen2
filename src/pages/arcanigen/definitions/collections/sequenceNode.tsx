@@ -13,12 +13,12 @@ import {
    SequenceMode,
    SEQUENCE_MODES,
    ControlRendererProps,
+   ILinkInstance,
 } from "../types";
 import { v4 as uuid } from "uuid";
 
 import { faClose, faPlus, faTimeline as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 import { faTimeline as buttonIcon } from "@fortawesome/pro-light-svg-icons";
-import ObjHelper from "!/utility/objHelper";
 import ActionButton from "!/components/buttons/ActionButton";
 import IconButton from "!/components/buttons/IconButton";
 import Icon from "!/components/icons";
@@ -68,6 +68,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
       (sId: string) => {
          setGraph((prev) => {
             const linkId = prev.nodes[nodeId]?.in?.[sId] ?? undefined;
+            const prevNode = prev.nodes[nodeId] as INodeInstance<ISequencerNode>;
 
             const otherNode = linkId
                ? {
@@ -89,12 +90,22 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                   ...prev.nodes,
                   ...otherNode,
                   [nodeId]: {
-                     ...prev.nodes[nodeId],
-                     sockets: (prev.nodes[nodeId] as INodeInstance<ISequencerNode>).sockets.filter((n) => n !== sId),
-                     in: ObjHelper.remove(prev.nodes[nodeId].in, sId),
+                     ...prevNode,
+                     sockets: prevNode.sockets.filter((n) => n !== sId),
+                     in: Object.entries(prevNode.in).reduce((acc, [k, v]) => {
+                        if (k !== sId) {
+                           acc[k] = v;
+                        }
+                        return acc;
+                     }, {} as { [key: string]: string | null }),
                   },
                },
-               links: ObjHelper.remove(prev.links, linkId),
+               links: Object.entries(prev.links).reduce((acc, [k, v]) => {
+                  if (k !== linkId) {
+                     acc[k] = v;
+                  }
+                  return acc;
+               }, {} as { [key: string]: ILinkInstance }),
             };
          });
       },

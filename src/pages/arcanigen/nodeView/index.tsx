@@ -171,7 +171,7 @@ const NodeView = () => {
    );
 };
 
-const NODE_BUTTONS = Object.values(NodeTypes).filter((v) => v !== NodeTypes.RESULT);
+const NODE_BUTTONS = Object.values(NodeTypes).filter((v) => v !== NodeTypes.META_RESULT);
 
 const BoxContents = styled(BoundingBox.Contents)`
    display: grid;

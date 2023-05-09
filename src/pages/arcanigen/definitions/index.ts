@@ -25,7 +25,7 @@ import { NodeTypes } from "./types";
 import HexColorNodeHelper from "./values/hexColorNode";
 import LengthValueNodeHelper from "./values/lengthValueNode";
 import RandomValueNodeHelper from "./values/randomValueNode";
-import ResultNodeHelper from "./collections/resultNode";
+import ResultNodeHelper from "./meta/resultNode";
 import SequencerNodeHelper from "./collections/sequenceNode";
 import ColorRGBNodeHelper from "./values/colorRGBNode";
 import ColorHSVNodeHelper from "./values/colorHSVNode";
@@ -59,11 +59,12 @@ import RectangleNodeHelper from "./shapes/reactangleNode";
 import RandomFilterNodeHelper from "./collections/randomFilterNode";
 import TextPathNodeHelper from "./shapes/textPathNode";
 import ClusterArrayNodeHelper from "./collections/clusterArrayNode";
+import NotesNodeHelper from "./meta/notesNode";
 
 // prettier-ignore
 export const getNodeHelper = (key: NodeTypes) => {
    switch (key) {
-      case NodeTypes.RESULT: return ResultNodeHelper;
+      case NodeTypes.META_RESULT: return ResultNodeHelper;
       
       case NodeTypes.COL_LAYERS: return LayersNodeHelper;
       case NodeTypes.COL_MASK: return MaskNodeHelper;
@@ -135,6 +136,8 @@ export const getNodeHelper = (key: NodeTypes) => {
       case NodeTypes.VALUE_CURVE: return CurveNodeHelper;
 
       case NodeTypes.SPLIT_COLOR: return SplitColorNodeHelper;
+
+      case NodeTypes.META_NOTES: return NotesNodeHelper;
 
    }
 };

@@ -4,7 +4,7 @@ import { IconProp } from "@fortawesome/fontawesome-svg-core";
 import { ComponentType } from "react";
 
 export enum NodeTypes {
-   RESULT = "result",
+   META_RESULT = "result",
 
    SHAPE_CIRCLE = "shapeCircle",
    SHAPE_RECTANGLE = "shapeRectangle",
@@ -72,6 +72,8 @@ export enum NodeTypes {
    COLOR_HCY = "colorHCY",
    COLOR_HSI = "colorHSI",
    COLOR_CMYK = "colorCMYK",
+
+   META_NOTES = "metaNotes",
 }
 
 export enum SocketTypes {
@@ -185,13 +187,27 @@ export interface INodeHelper<T extends INodeDefinition> {
    readonly type: NodeTypes;
    initialize: () => T["values"];
    controls: ControlRenderer;
-   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof T["outputs"], globals: Globals) => T["outputs"][typeof socket];
+   getOutput: (
+      graph: IArcaneGraph,
+      nodeId: string,
+      socket: keyof T["outputs"],
+      globals: Globals
+   ) => T["outputs"][typeof socket] extends never ? void : T["outputs"][typeof socket];
 }
 
 export type IArcaneGraph = {
    nodes: { [key: string]: INodeInstance<INodeDefinition> };
    links: {
       [key: string]: ILinkInstance;
+   };
+};
+
+export type IArcanePos = { [key: string]: { x: number; y: number } };
+
+export type IArcaneToggle = {
+   [key: string]: {
+      node: boolean;
+      [key: string]: boolean;
    };
 };
 

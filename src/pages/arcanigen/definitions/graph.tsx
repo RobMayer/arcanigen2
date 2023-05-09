@@ -1,50 +1,50 @@
-import { createContext, ReactNode, useCallback, useContext, useMemo, useRef, useSyncExternalStore } from "react";
-import { Globals, IArcaneGraph, INodeDefinition, INodeHelper, INodeInstance, LinkTypes, NodeTypes, SocketTypes } from "./types";
+import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
+import { Globals, IArcaneGraph, IArcanePos, IArcaneToggle, INodeDefinition, INodeHelper, INodeInstance, LinkTypes, NodeTypes, SocketTypes } from "./types";
 import { v4 as uuid } from "uuid";
-import ObjHelper from "!/utility/objHelper";
 import fp from "lodash/fp";
 import lodash from "lodash";
 import { getNodeHelper } from ".";
+import migrateLoadedFile, { SAVE_VERSION } from "./migration";
+import { getStartScene } from "./startScene";
 
-const initState: IArcaneGraph = {
-   nodes: {
-      ROOT: {
-         nodeId: "ROOT",
-         canvasColor: { r: 1, g: 1, b: 1, a: 1 },
-         canvasWidth: { value: 800, unit: "px" },
-         canvasHeight: { value: 800, unit: "px" },
-         type: NodeTypes.RESULT,
-         in: {
-            result: null,
-            canvasColor: null,
-         },
-         out: {},
-      } as INodeInstance<INodeDefinition>,
-   },
-   links: {},
-};
-
-type IArcanePos = { [key: string]: { x: number; y: number } };
-
-type IArcaneToggle = {
-   [key: string]: {
-      node: boolean;
-      [key: string]: boolean;
+const resetGraphState = () => {
+   return {
+      nodes: {
+         ROOT: {
+            nodeId: "ROOT",
+            canvasColor: { r: 1, g: 1, b: 1, a: 1 },
+            canvasWidth: { value: 800, unit: "px" },
+            canvasHeight: { value: 800, unit: "px" },
+            type: NodeTypes.META_RESULT,
+            in: {
+               result: null,
+               canvasColor: null,
+            },
+            out: {},
+         } as INodeInstance<INodeDefinition>,
+      },
+      links: {},
    };
 };
 
-const initPos: IArcanePos = {
-   ROOT: { x: 0, y: 0 },
+const resetPosState = () => {
+   return {
+      ROOT: { x: 0, y: 0 },
+   };
 };
 
-const initToggle: IArcaneToggle = {
-   ROOT: { node: true },
+const resetToggleState = () => {
+   return {
+      ROOT: {
+         node: true,
+      },
+   };
 };
 
 const useStoreData = () => {
-   const graphStore = useRef<IArcaneGraph>(initState);
-   const posStore = useRef<IArcanePos>(initPos);
-   const toggleStore = useRef<IArcaneToggle>(initToggle);
+   const graphStore = useRef<IArcaneGraph>(resetGraphState());
+   const posStore = useRef<IArcanePos>(resetPosState());
+   const toggleStore = useRef<IArcaneToggle>(resetToggleState());
    const getGraph = useCallback(() => graphStore.current, []);
    const getPositions = useCallback(() => posStore.current, []);
    const getToggles = useCallback(() => toggleStore.current, []);
@@ -119,27 +119,17 @@ const useStoreData = () => {
    }, []);
 
    const reset = useCallback(() => {
-      graphStore.current = {
-         nodes: {
-            ROOT: {
-               ...getNodeHelper(NodeTypes.RESULT).initialize(),
-               type: NodeTypes.RESULT,
-               nodeId: "ROOT",
-            } as INodeInstance<any>,
-         },
-         links: {},
-      };
-      posStore.current = {
-         ROOT: posStore.current.ROOT,
-      };
-
+      graphStore.current = resetGraphState();
+      posStore.current = resetPosState();
+      toggleStore.current = resetToggleState();
       graphListeners.current.forEach((callback) => callback());
       positionListeners.current.forEach((callback) => callback());
+      toggleListeners.current.forEach((callback) => callback());
    }, []);
 
    const save = useCallback(() => {
       return {
-         version: "0.0.1",
+         version: SAVE_VERSION,
          nodes: graphStore.current.nodes,
          links: graphStore.current.links,
          positions: posStore.current,
@@ -147,7 +137,9 @@ const useStoreData = () => {
       };
    }, []);
 
-   const load = useCallback(({ nodes, links, positions, toggles }: IArcaneGraph & { positions: IArcanePos } & { toggles: IArcaneToggle }) => {
+   const load = useCallback(({ version, ...data }: IArcaneGraph & { positions: IArcanePos } & { toggles: IArcaneToggle } & { version: string }) => {
+      data = migrateLoadedFile(version, data);
+      const { nodes, links, positions, toggles } = data;
       graphStore.current = { nodes, links };
       posStore.current = positions ?? {};
       toggleStore.current = toggles ?? {};
@@ -185,8 +177,18 @@ const useStoreData = () => {
 
    const removeNode = useCallback((nodeId: string) => {
       graphStore.current = GraphHelper.remove(graphStore.current, nodeId);
-      posStore.current = ObjHelper.remove(posStore.current, nodeId);
-      toggleStore.current = ObjHelper.remove(toggleStore.current, nodeId);
+      posStore.current = Object.entries(posStore.current).reduce((acc, [k, v]) => {
+         if (k !== nodeId) {
+            acc[k] = v;
+         }
+         return acc;
+      }, {} as IArcanePos);
+      toggleStore.current = Object.entries(toggleStore.current).reduce((acc, [k, v]) => {
+         if (k !== nodeId) {
+            acc[k] = v;
+         }
+         return acc;
+      }, {} as IArcaneToggle);
       graphListeners.current.forEach((callback) => callback());
       positionListeners.current.forEach((callback) => callback());
       toggleListeners.current.forEach((callback) => callback());
@@ -213,6 +215,10 @@ const useStoreData = () => {
       graphStore.current = typeof arg === "function" ? arg(prev) : { ...graphStore.current, ...arg };
       graphListeners.current.forEach((callback) => callback());
    }, []);
+
+   useEffect(() => {
+      load({ version: SAVE_VERSION, ...getStartScene() });
+   }, [load]);
 
    return useMemo(
       () => ({
@@ -543,7 +549,12 @@ const GraphHelper = {
                },
             },
          },
-         links: ObjHelper.remove(graph.links, linkId),
+         links: Object.entries(graph.links).reduce((acc, [k, v]) => {
+            if (k !== linkId) {
+               acc[k] = v;
+            }
+            return acc;
+         }, {} as IArcaneGraph["links"]),
       };
    },
 
@@ -564,7 +575,12 @@ const GraphHelper = {
 
       return {
          ...p,
-         nodes: ObjHelper.remove(p.nodes, nodeId),
+         nodes: Object.entries(p.nodes).reduce((acc, [k, v]) => {
+            if (k !== nodeId) {
+               acc[k] = v;
+            }
+            return acc;
+         }, {} as IArcaneGraph["nodes"]),
       };
    },
 
