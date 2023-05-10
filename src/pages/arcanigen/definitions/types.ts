@@ -302,6 +302,7 @@ export const SEQUENCE_MODES = {
    wrap: "Wrap",
    clamp: "Clamp",
    bounce: "Bounce",
+   truncate: "Truncate",
 };
 
 export type SequenceMode = keyof typeof SEQUENCE_MODES;

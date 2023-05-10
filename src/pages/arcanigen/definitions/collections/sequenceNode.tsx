@@ -26,8 +26,9 @@ import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
 import styled from "styled-components";
 import lodash from "lodash";
-import ToggleList from "!/components/selectors/ToggleList";
 import { MetaPrefab } from "../../nodeView/prefabs";
+import Dropdown from "!/components/selectors/Dropdown";
+import Checkbox from "!/components/buttons/Checkbox";
 
 interface ISequencerNode extends INodeDefinition {
    inputs: {
@@ -41,6 +42,7 @@ interface ISequencerNode extends INodeDefinition {
    values: {
       sockets: string[];
       mode: SequenceMode;
+      reverse: boolean;
    };
 }
 
@@ -49,6 +51,7 @@ const nodeHooks = ArcaneGraph.nodeHooks<ISequencerNode>();
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [node, setNode, setGraph] = nodeHooks.useAlterNode(nodeId);
    const [mode, setMode] = nodeHooks.useValueState(nodeId, "mode");
+   const [reverse, setReverse] = nodeHooks.useValueState(nodeId, "reverse");
 
    const addSocket = useCallback(() => {
       const sId = uuid();
@@ -123,8 +126,11 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          </SocketIn>
          <hr />
          <BaseNode.Input label={"Sequence Mode"}>
-            <ToggleList value={mode} onValue={setMode} options={SEQUENCE_MODES} />
+            <Dropdown value={mode} onValue={setMode} options={SEQUENCE_MODES} />
          </BaseNode.Input>
+         <Checkbox checked={reverse} onToggle={setReverse}>
+            Reverse Steps
+         </Checkbox>
          <BaseNode.Input>
             <ActionButton className={"slim"} onClick={addSocket}>
                <Icon icon={faPlus} /> Add Step
@@ -155,6 +161,7 @@ const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps)
    const sequence = nodeHooks.useInput(nodeId, "sequence", globals);
    const sockets = nodeHooks.useValue(nodeId, "sockets");
    const mode = nodeHooks.useValue(nodeId, "mode");
+   const reverse = nodeHooks.useValue(nodeId, "reverse");
 
    const theRenderSequence = useMemo(() => {
       if (!sockets) {
@@ -163,19 +170,31 @@ const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps)
       if (!sequence) {
          return [];
       }
+      const sTemp = [...sockets];
+      if (reverse) {
+         sTemp.reverse();
+      }
       if (mode === "wrap") {
-         return lodash.range(sequence.max).map((n) => sockets[n % sockets.length]);
+         return lodash.range(sequence.max).map((n) => sTemp[n % sockets.length]);
+      }
+      if (mode === "truncate") {
+         return lodash.range(sequence.max).map((n) => {
+            return n >= sTemp.length ? "" : sTemp[n];
+         });
       }
       if (mode === "clamp") {
          return lodash.range(sequence.max).map((n) => {
-            if (n > sockets.length - 1) {
-               return sockets[sockets.length - 1];
+            if (n > sTemp.length - 1) {
+               return sTemp[sTemp.length - 1];
             }
-            return sockets[n];
+            return sTemp[n];
          });
       }
       if (mode === "bounce") {
          const temp = [...sockets, ...sockets.slice(1, -1).reverse()];
+         if (reverse) {
+            temp.reverse();
+         }
          return lodash.range(sequence.max).map((n) => {
             if (n > temp.length - 1) {
                return temp[n % temp.length];
@@ -184,7 +203,7 @@ const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps)
          });
       }
       return [];
-   }, [mode, sequence, sockets]);
+   }, [mode, sequence, sockets, reverse]);
 
    const currentIteration = globals.sequenceData[sequence?.senderId];
    const [Comp, cId] = nodeHooks.useInputNode(nodeId, theRenderSequence[currentIteration], globals);
@@ -208,6 +227,7 @@ const SequencerNodeHelper: INodeHelper<ISequencerNode> = {
       return {
          sockets: [socketId],
          mode: "wrap",
+         reverse: false,
          in: {
             sequence: null,
             [socketId]: null,

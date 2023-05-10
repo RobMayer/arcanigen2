@@ -6,18 +6,84 @@ import { Fragment } from "react";
 
 const EXAMPLE_CATEGORIES = [
    {
-      name: "Node by Node",
-      contents: ["thatRobShape", "mask", "vertexArray", "spiralArray", "clusterArray", "sequencer", "portals"],
+      name: "Shapes",
+      flavour: "normal",
+      contents: [
+         "shapeCircle",
+         "shapeRectangle",
+         "shapeRing",
+         "shapePolygon",
+         "shapePolygram",
+         "shapeKnot",
+         "shapePolyring",
+         "shapeStar",
+         "shapeText",
+         "thatRobShape",
+      ],
+   },
+   {
+      name: "Modifiers and Collections",
+      flavour: "danger",
+      contents: ["styles", "transforms", "mask", "vertexArray", "spiralArray", "clusterArray", "sequencer", "lerp", "portals"],
+   },
+   {
+      name: "Other Things",
+      flavour: "confirm",
+      contents: ["note"],
    },
 ];
 
 const EXAMPLE_DATA: { [key: string]: IExample } = {
+   shapeCircle: {
+      name: "Circle",
+      description: "The circle of life finds a way?",
+   },
+   shapeRectangle: {
+      name: "Rectangle",
+      description: "[insert pulp fiction gif here]",
+   },
+   shapeRing: {
+      name: "Ring",
+      description: "not 'lord of the', I'm afraid",
+   },
+   shapePolygon: {
+      name: "Polygon",
+      description: "Got nothing witty for this one.",
+   },
+   shapePolygram: {
+      name: "Polygram",
+      description: "Still got nothin'.",
+   },
+   shapeKnot: {
+      name: "Knot",
+      description: "Knot quite what you think.",
+   },
+   shapePolyring: {
+      name: "Polyring",
+      description: "nothing witty springs to mind here either.",
+   },
+   shapeStar: {
+      name: "Star",
+      description: "The thing's hollow -- it goes on forever -- and -- oh my God! -- it's full of stars!",
+   },
+   shapeText: {
+      name: "Text",
+      description: "I couldn't think to use anything other than Lorem Ipsum and Hello World.",
+   },
    thatRobShape: {
       name: "ThatRobShape",
       description: "What an original name, I know.",
    },
+   styles: {
+      name: "Styles & Restyles",
+      description: "I feel like I should reference gangnam style or something, but I already feel old.",
+   },
+   lerp: {
+      name: "Lerp (tweening)",
+      description: "Not to be confused with the butler from the Addams family.",
+   },
    mask: {
-      name: "Mask",
+      name: "Masks",
       description: "It's just that masks are terribly comfortable - I think everyone will be wearing them in the future.",
    },
    vertexArray: {
@@ -40,6 +106,14 @@ const EXAMPLE_DATA: { [key: string]: IExample } = {
       name: "Portals",
       description: "Now you're thinking with them...",
    },
+   transforms: {
+      name: "Transforms",
+      description: "It's not a very good disguise even for a robot.",
+   },
+   note: {
+      name: "Note",
+      description: "it's what it says on the tin...",
+   },
 };
 
 const LoadExample = styled(({ className }: { className?: string }) => {
@@ -52,7 +126,7 @@ const LoadExample = styled(({ className }: { className?: string }) => {
                {EXAMPLE_CATEGORIES.map((category, i) => {
                   return (
                      <Fragment key={category.name}>
-                        <SectionHeader>{category.name}</SectionHeader>
+                        <SectionHeader className={`flavour-${category?.flavour ?? "normal"}`}>{category.name}</SectionHeader>
                         {category.contents.map((k) => {
                            return <Card onLoad={modalControls.close} key={k} id={k} data={EXAMPLE_DATA[k]} />;
                         })}
@@ -69,7 +143,8 @@ const LoadExample = styled(({ className }: { className?: string }) => {
    max-width: 80vw;
    width: auto;
    grid-template-columns: repeat(auto-fit, 600px);
-   gap: 0.5em;
+   gap: 0.75em;
+   padding: 0.5em;
 `;
 
 export default LoadExample;
@@ -85,7 +160,8 @@ const SectionHeader = styled.div`
    grid-column: 1 / -1;
    font-size: 1.5em;
    padding-inline: 0.25em;
-   border-bottom: 1px solid var(--effect-border-highlight);
+   border: 1px solid var(--flavour-button);
+   background: var(--flavour-button-muted);
 `;
 
 const Card = styled(({ className, onLoad, id, data }: { className?: string; data: IExample; id: string; onLoad: () => void }) => {

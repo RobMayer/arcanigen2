@@ -10,12 +10,23 @@ type IProps<T> = {
    value?: string;
    flavour?: Flavour;
    disabled?: boolean;
+   direction?: "horizontal" | "vertical";
 };
 
 const ToggleList = styled(
    forwardRef(
       <T extends Record<any, ReactNode>>(
-         { options, value, onValue, flavour = "accent", disabled = false, className, tabIndex, ...props }: IProps<T> & HTMLAttributes<HTMLDivElement>,
+         {
+            options,
+            value,
+            onValue,
+            flavour = "accent",
+            disabled = false,
+            className,
+            tabIndex,
+            direction = "horizontal",
+            ...props
+         }: IProps<T> & HTMLAttributes<HTMLDivElement>,
          fRef: ForwardedRef<HTMLDivElement>
       ) => {
          const [cache, setCache] = useState<keyof T>(value as keyof T);
@@ -73,7 +84,7 @@ const ToggleList = styled(
          return (
             <div
                {...props}
-               className={`${className ?? ""} ${disabled ? "state-disabled" : ""}`}
+               className={`${className ?? ""} ${disabled ? "state-disabled" : ""} direction-${direction}`}
                tabIndex={disabled ? undefined : tabIndex ?? 0}
                ref={createRef}
             >
@@ -90,8 +101,14 @@ const ToggleList = styled(
    )
 )`
    display: inline-grid;
-   grid-auto-flow: column;
-   grid-auto-columns: 1fr;
+   &.direction-horizontal {
+      grid-auto-flow: column;
+      grid-auto-columns: 1fr;
+   }
+   &.direction-vertical {
+      grid-auto-flow: row;
+      grid-auto-rows: 1fr;
+   }
    align-items: center;
    justify-items: stretch;
    background: var(--input-background);

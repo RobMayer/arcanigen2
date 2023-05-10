@@ -9,9 +9,10 @@ const migrateLoadedFile = (version: string, data: IArcaneGraph & { positions: IA
    }
    if (version === "0.0.1") {
       version = "0.0.2";
-      // migrate "root" to a uuid
       data.nodes = Object.entries(data.nodes).reduce((acc, [key, node]) => {
-         if (node.type === NodeTypes.COL_LAYERS) {
+         if (node.type === NodeTypes.COL_SEQUENCE) {
+            acc[key] = { ...node, reverse: false };
+         } else if (node.type === NodeTypes.COL_LAYERS) {
             // add enabled/disabled to layers
             const layerNode = data.nodes[key] as INodeInstance<ILayersNode>;
             layerNode.enabled = layerNode.sockets.reduce((acc, sId) => {

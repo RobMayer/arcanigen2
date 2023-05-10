@@ -114,23 +114,23 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          <hr />
          <SocketIn<ITransformNode> nodeId={nodeId} socketId={"scaleX"} type={SocketTypes.FLOAT}>
             <BaseNode.Input label={"Scale X"}>
-               <NumberInput value={scaleX} onCommit={setScaleX} disabled={hasScaleX} />
+               <NumberInput value={scaleX} onValidValue={setScaleX} disabled={hasScaleX} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<ITransformNode> nodeId={nodeId} socketId={"scaleY"} type={SocketTypes.FLOAT}>
             <BaseNode.Input label={"Scale Y"}>
-               <NumberInput value={scaleY} onCommit={setScaleY} disabled={hasScaleY} />
+               <NumberInput value={scaleY} onValidValue={setScaleY} disabled={hasScaleY} />
             </BaseNode.Input>
          </SocketIn>
          <hr />
          <SocketIn<ITransformNode> nodeId={nodeId} socketId={"skewX"} type={SocketTypes.ANGLE}>
             <BaseNode.Input label={"Skew X"}>
-               <AngleInput value={skewX} onCommit={setSkewX} disabled={hasSkewX} />
+               <AngleInput value={skewX} onValidValue={setSkewX} disabled={hasSkewX} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<ITransformNode> nodeId={nodeId} socketId={"scaleY"} type={SocketTypes.ANGLE}>
             <BaseNode.Input label={"Skew Y"}>
-               <AngleInput value={skewY} onCommit={setSkewY} disabled={hasSkewY} />
+               <AngleInput value={skewY} onValidValue={setSkewY} disabled={hasSkewY} />
             </BaseNode.Input>
          </SocketIn>
          <hr />
