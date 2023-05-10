@@ -31,6 +31,11 @@ const EXAMPLE_CATEGORIES = [
       flavour: "confirm",
       contents: ["note"],
    },
+   {
+      name: "Fancy Stuff",
+      flavour: "emphasis",
+      contents: ["demoTalisman"],
+   },
 ];
 
 const EXAMPLE_DATA: { [key: string]: IExample } = {
@@ -113,6 +118,10 @@ const EXAMPLE_DATA: { [key: string]: IExample } = {
    note: {
       name: "Note",
       description: "it's what it says on the tin...",
+   },
+   demoTalisman: {
+      name: "Rob Talisman",
+      description: "a study in using the ThatRobShape and Restyle nodes",
    },
 };
 
