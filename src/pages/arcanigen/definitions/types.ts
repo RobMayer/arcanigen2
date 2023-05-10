@@ -171,11 +171,7 @@ export type Position = {
    r: number;
 };
 
-export type Curve = {
-   curveFn: CurveFunction;
-   easing: EasingMode;
-   intensity: number;
-};
+export type Interpolator = (n: number) => number;
 
 export type OutSocketsOf<T extends INodeDefinition> = keyof T["outputs"];
 
@@ -337,7 +333,7 @@ export const ANGLE_LERP_MODES = {
 
 export type AngleLerpMode = keyof typeof ANGLE_LERP_MODES;
 
-export const CURVE_FUNCTIONS = {
+export const CURVE_PRESETS = {
    linear: "Linear",
    semiquadratic: "Semi-Quadratic ( n^1.5 )",
    quadratic: "Quadratic ( n^2 )",
@@ -348,7 +344,7 @@ export const CURVE_FUNCTIONS = {
    circular: "Circular ( 1-sqrt(1-t^2) )",
 };
 
-export type CurveFunction = keyof typeof CURVE_FUNCTIONS;
+export type CurvePreset = keyof typeof CURVE_PRESETS;
 
 export const EASING_MODES = {
    in: "In",

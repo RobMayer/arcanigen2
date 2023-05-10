@@ -4,7 +4,6 @@ import {
    AngleLerpMode,
    ANGLE_LERP_MODES,
    ControlRendererProps,
-   Curve,
    Globals,
    IArcaneGraph,
    INodeDefinition,
@@ -12,6 +11,7 @@ import {
    NodeTypes,
    Sequence,
    SocketTypes,
+   Interpolator,
 } from "../types";
 import MathHelper from "!/utility/mathhelper";
 
@@ -31,7 +31,7 @@ interface ILerpAngleNode extends INodeDefinition {
       to: number;
       percent: number;
       sequence: Sequence;
-      distribution: Curve;
+      distribution: Interpolator;
    };
    outputs: {
       value: number;

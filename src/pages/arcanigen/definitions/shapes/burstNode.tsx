@@ -2,7 +2,6 @@ import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
 import {
    ControlRendererProps,
-   Curve,
    INodeDefinition,
    INodeHelper,
    NodeRenderer,
@@ -20,6 +19,7 @@ import {
    Globals,
    IArcaneGraph,
    NodePatherProps,
+   Interpolator,
 } from "../types";
 import MathHelper from "!/utility/mathhelper";
 
@@ -49,7 +49,7 @@ interface IBurstNode extends INodeDefinition {
       thetaStart: number;
       thetaEnd: number;
       thetaSteps: number;
-      thetaCurve: Curve;
+      thetaCurve: Interpolator;
 
       strokeColor: Color;
       strokeOffset: Length;
@@ -279,22 +279,14 @@ const Pather = memo(({ nodeId, depth, globals, pathLength, pathId }: NodePatherP
             const coeff = MathHelper.delerp(n, 0, thetaInclusive ? spurCount - 1 : spurCount);
             const angle =
                thetaMode === "startstop"
-                  ? MathHelper.lerp(coeff, 1 * thetaStart, 1 * thetaEnd, {
-                       curveFn: thetaCurve?.curveFn ?? "linear",
-                       easing: thetaCurve?.easing ?? "in",
-                       intensity: thetaCurve?.intensity ?? 1,
-                    })
-                  : MathHelper.lerp(coeff, 0, spurCount * thetaSteps, {
-                       curveFn: thetaCurve?.curveFn ?? "linear",
-                       easing: thetaCurve?.easing ?? "in",
-                       intensity: thetaCurve?.intensity ?? 1,
-                    });
+                  ? MathHelper.lerp(coeff, 1 * thetaStart, 1 * thetaEnd, thetaCurve ?? MathHelper.DEFUALT_INTERPOLATOR)
+                  : MathHelper.lerp(coeff, 0, spurCount * thetaSteps, thetaCurve ?? MathHelper.DEFUALT_INTERPOLATOR);
             const c = Math.cos(MathHelper.deg2rad(angle - 90));
             const s = Math.sin(MathHelper.deg2rad(angle - 90));
             return `M ${rI * c},${rI * s} L ${rO * c},${rO * s}`;
          })
          .join(" ");
-   }, [rI, rO, spurCount, thetaCurve?.curveFn, thetaCurve?.easing, thetaEnd, thetaInclusive, thetaMode, thetaStart, thetaSteps, thetaCurve?.intensity]);
+   }, [rI, rO, spurCount, thetaCurve, thetaEnd, thetaInclusive, thetaMode, thetaStart, thetaSteps]);
 
    return (
       <path
@@ -342,21 +334,13 @@ const Renderer = memo(({ nodeId, depth, globals, overrides = {} }: NodeRendererP
          const coeff = MathHelper.delerp(n, 0, thetaInclusive ? spurCount - 1 : spurCount);
          const angle =
             thetaMode === "startstop"
-               ? MathHelper.lerp(coeff, 1 * thetaStart, 1 * thetaEnd, {
-                    curveFn: thetaCurve?.curveFn ?? "linear",
-                    easing: thetaCurve?.easing ?? "in",
-                    intensity: thetaCurve?.intensity ?? 1,
-                 })
-               : MathHelper.lerp(coeff, 0, spurCount * thetaSteps, {
-                    curveFn: thetaCurve?.curveFn ?? "linear",
-                    easing: thetaCurve?.easing ?? "in",
-                    intensity: thetaCurve?.intensity ?? 1,
-                 });
+               ? MathHelper.lerp(coeff, 1 * thetaStart, 1 * thetaEnd, thetaCurve ?? MathHelper.DEFUALT_INTERPOLATOR)
+               : MathHelper.lerp(coeff, 0, spurCount * thetaSteps, thetaCurve ?? MathHelper.DEFUALT_INTERPOLATOR);
          const c = Math.cos(MathHelper.deg2rad(angle - 90));
          const s = Math.sin(MathHelper.deg2rad(angle - 90));
          return <line key={n} x1={rI * c} y1={rI * s} x2={rO * c} y2={rO * s} vectorEffect={"non-scaling-stroke"} />;
       });
-   }, [rI, rO, spurCount, thetaCurve?.curveFn, thetaCurve?.easing, thetaEnd, thetaInclusive, thetaMode, thetaStart, thetaSteps, thetaCurve?.intensity]);
+   }, [rI, rO, spurCount, thetaCurve, thetaEnd, thetaInclusive, thetaMode, thetaStart, thetaSteps]);
 
    const [Markers, mStartId, mMidId, mEndId] = useMarkers(nodeHooks, nodeId, globals, overrides, depth);
 

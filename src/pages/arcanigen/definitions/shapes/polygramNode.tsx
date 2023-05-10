@@ -2,7 +2,6 @@ import { memo, useEffect, useMemo } from "react";
 import ArcaneGraph from "../graph";
 import {
    ControlRendererProps,
-   Curve,
    Globals,
    IArcaneGraph,
    INodeDefinition,
@@ -20,6 +19,7 @@ import {
    StrokeCapMode,
    NodePather,
    NodePatherProps,
+   Interpolator,
 } from "../types";
 import MathHelper from "!/utility/mathhelper";
 
@@ -42,7 +42,7 @@ interface IPolygramNode extends INodeDefinition {
       pointCount: number;
       skipCount: number;
       radius: Length;
-      thetaCurve: Curve;
+      thetaCurve: Interpolator;
       strokeWidth: Length;
       strokeColor: Color;
       strokeOffset: Length;
@@ -233,13 +233,9 @@ const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) =
 
    const points = useMemo(() => {
       const tR = getTrueRadius(MathHelper.lengthToPx(radius), rScribeMode, pointCount);
-      const angles = lodash.range(0, pointCount).map((i) =>
-         MathHelper.lerp(MathHelper.delerp(i, 0, pointCount), 0, 360, {
-            curveFn: thetaCurve?.curveFn ?? "linear",
-            easing: thetaCurve?.easing ?? "in",
-            intensity: thetaCurve?.intensity ?? 1,
-         })
-      );
+      const angles = lodash
+         .range(0, pointCount)
+         .map((i) => MathHelper.lerp(MathHelper.delerp(i, 0, pointCount), 0, 360, thetaCurve ?? MathHelper.DEFUALT_INTERPOLATOR));
 
       const numShapes = MathHelper.gcd(pointCount, skipCount + 1);
       const numLines = pointCount / numShapes;
@@ -260,7 +256,7 @@ const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) =
       });
 
       return shapes.join(" ");
-   }, [radius, rScribeMode, pointCount, skipCount, thetaCurve?.curveFn, thetaCurve?.easing, thetaCurve?.intensity]);
+   }, [radius, rScribeMode, pointCount, skipCount, thetaCurve]);
 
    return (
       <g transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`}>
@@ -302,13 +298,9 @@ const Pather = memo(({ nodeId, globals, pathId, pathLength }: NodePatherProps) =
 
    const points = useMemo(() => {
       const tR = getTrueRadius(MathHelper.lengthToPx(radius), rScribeMode, pointCount);
-      const angles = lodash.range(0, pointCount).map((i) =>
-         MathHelper.lerp(MathHelper.delerp(i, 0, pointCount), 0, 360, {
-            curveFn: thetaCurve?.curveFn ?? "linear",
-            easing: thetaCurve?.easing ?? "in",
-            intensity: thetaCurve?.intensity ?? 1,
-         })
-      );
+      const angles = lodash
+         .range(0, pointCount)
+         .map((i) => MathHelper.lerp(MathHelper.delerp(i, 0, pointCount), 0, 360, thetaCurve ?? MathHelper.DEFUALT_INTERPOLATOR));
 
       const numShapes = MathHelper.gcd(pointCount, skipCount + 1);
       const numLines = pointCount / numShapes;
@@ -329,7 +321,7 @@ const Pather = memo(({ nodeId, globals, pathId, pathLength }: NodePatherProps) =
       });
 
       return shapes.join(" ");
-   }, [radius, rScribeMode, pointCount, skipCount, thetaCurve?.curveFn, thetaCurve?.easing, thetaCurve?.intensity]);
+   }, [radius, rScribeMode, pointCount, skipCount, thetaCurve]);
 
    return (
       <path

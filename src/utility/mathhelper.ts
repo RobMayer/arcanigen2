@@ -1,4 +1,4 @@
-import { AngleLerpMode, Curve, CurveFunction, EasingMode, RoundingMode } from "!/pages/arcanigen/definitions/types";
+import { AngleLerpMode, Interpolator, RoundingMode } from "!/pages/arcanigen/definitions/types";
 import lodash from "lodash";
 import ColorConvert, { ColorFields } from "./colorconvert";
 import { Length, Color } from "./types/units";
@@ -6,11 +6,7 @@ import { Length, Color } from "./types/units";
 export const deg2rad = (deg: number) => deg * (Math.PI / 180);
 export const rad2deg = (rad: number) => (180 * rad) / Math.PI;
 
-const DEFAULT_CURVE: Curve = {
-   curveFn: "linear",
-   easing: "in",
-   intensity: 1,
-};
+export const DEFUALT_INTERPOLATOR: Interpolator = (n: number) => n;
 
 export const seededRandom = (seed: number) => {
    let _seed = seed % 2147483647;
@@ -45,34 +41,32 @@ export const seededRandom = (seed: number) => {
    return get;
 };
 
-const CURVE_HANDLERS: { [keys in CurveFunction]: (t: number) => number } = {
-   linear: (t: number) => t,
-   semiquadratic: (t: number) => Math.pow(t, 1.5),
-   quadratic: (t: number) => Math.pow(t, 2),
-   cubic: (t: number) => Math.pow(t, 3),
-   exponential: (t: number) => Math.pow(2, t) - 1,
-   sinusoidal: (t: number) => Math.sin(t * (Math.PI / 2)),
-   rootic: (t: number) => Math.sqrt(t),
-   circular: (t: number) => 1 - Math.sqrt(1 - Math.pow(t, 2)),
-};
+// const CURVE_HANDLERS: { [keys in CurvePreset]: (t: number) => number } = {
+//    linear: (t: number) => t,
+//    semiquadratic: (t: number) => Math.pow(t, 1.5),
+//    quadratic: (t: number) => Math.pow(t, 2),
+//    cubic: (t: number) => Math.pow(t, 3),
+//    exponential: (t: number) => Math.pow(2, t) - 1,
+//    sinusoidal: (t: number) => Math.sin(t * (Math.PI / 2)),
+//    rootic: (t: number) => Math.sqrt(t),
+//    circular: (t: number) => 1 - Math.sqrt(1 - Math.pow(t, 2)),
+// };
 
-const handleCurve = (e: EasingMode, func: (t: number) => number) => {
-   switch (e) {
-      case "in":
-         return (a: number) => func(a);
-      case "out":
-         return (a: number) => 1 - func(1 - a);
-      case "inout":
-         return (a: number) => (a < 0.5 ? func(a * 2) / 2 : a > 0.5 ? 1 - func(a * -2 + 2) / 2 : 0.5);
-      case "outin":
-         return (a: number) => (a < 0.5 ? 0.5 - func(1 - a * 2) / 2 : a > 0.5 ? 0.5 + func(a * 2 - 1) / 2 : 0.5);
-   }
-};
+// const handleCurve = (e: EasingMode, func: (t: number) => number) => {
+//    switch (e) {
+//       case "in":
+//          return (a: number) => func(a);
+//       case "out":
+//          return (a: number) => 1 - func(1 - a);
+//       case "inout":
+//          return (a: number) => (a < 0.5 ? func(a * 2) / 2 : a > 0.5 ? 1 - func(a * -2 + 2) / 2 : 0.5);
+//       case "outin":
+//          return (a: number) => (a < 0.5 ? 0.5 - func(1 - a * 2) / 2 : a > 0.5 ? 0.5 + func(a * 2 - 1) / 2 : 0.5);
+//    }
+// };
 
-export const lerp = (t: number, a: number, b: number, { curveFn, easing, intensity }: Curve = DEFAULT_CURVE) => {
-   const r = handleCurve(easing, CURVE_HANDLERS[curveFn])(t);
-   const nT = t + intensity * (r - t);
-   return a + nT * (b - a);
+export const lerp = (t: number, a: number, b: number, interpolator: Interpolator = DEFUALT_INTERPOLATOR) => {
+   return a + interpolator(t) * (b - a);
 };
 
 export const delerp = (d: number, start: number, end: number) => {
@@ -98,9 +92,9 @@ export const lengthToPx = (length: Length): number => {
    }
 };
 
-export const angleLerp = (t: number, a: number, b: number, mode: AngleLerpMode, curve: Curve = DEFAULT_CURVE) => {
-   const cw = mod(lerp(t, a, b + (a > b ? 1 : 0), curve), 1);
-   const ccw = mod(lerp(t, a + (a < b ? 1 : 0), b, curve), 1);
+export const angleLerp = (t: number, a: number, b: number, mode: AngleLerpMode, interpolator: Interpolator = DEFUALT_INTERPOLATOR) => {
+   const cw = mod(lerp(t, a, b + (a > b ? 1 : 0), interpolator), 1);
+   const ccw = mod(lerp(t, a + (a < b ? 1 : 0), b, interpolator), 1);
    switch (mode) {
       case "closestCW":
          return Math.abs(b - a) > 0.5 ? ccw : cw;
@@ -253,7 +247,7 @@ export const colorLerp = <T extends keyof ColorFields>(
    to: Color,
    colorSpace: T = "RGB" as T,
    hueMode: AngleLerpMode = "closestCW",
-   distribution: Curve = DEFAULT_CURVE
+   distribution: Interpolator = DEFUALT_INTERPOLATOR
 ) => {
    const a = ColorConvert[`color2${colorSpace}`](from) as ColorFields[T];
    const b = ColorConvert[`color2${colorSpace}`](to) as ColorFields[T];
@@ -362,6 +356,7 @@ const MathHelper = {
    WHITE,
    BLACK,
    LENGTH_LIST_REGEX,
+   DEFUALT_INTERPOLATOR,
 };
 
 export default MathHelper;

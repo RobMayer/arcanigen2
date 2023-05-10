@@ -1,6 +1,6 @@
 import { memo } from "react";
 import ArcaneGraph from "../graph";
-import { ControlRendererProps, Curve, Globals, IArcaneGraph, INodeDefinition, INodeHelper, NodeTypes, Sequence, SocketTypes } from "../types";
+import { ControlRendererProps, Globals, IArcaneGraph, INodeDefinition, INodeHelper, Interpolator, NodeTypes, Sequence, SocketTypes } from "../types";
 import MathHelper from "!/utility/mathhelper";
 
 import { faGaugeMed as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
@@ -18,7 +18,7 @@ interface ILerpNumberNode extends INodeDefinition {
       to: number;
       percent: number;
       sequence: Sequence;
-      distribution: Curve;
+      distribution: Interpolator;
    };
    outputs: {
       value: number;

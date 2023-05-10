@@ -14,7 +14,7 @@ import {
    STROKECAP_MODES,
    StrokeJoinMode,
    STROKEJOIN_MODES,
-   Curve,
+   Interpolator,
 } from "../types";
 import MathHelper, { seededRandom } from "!/utility/mathhelper";
 
@@ -39,7 +39,7 @@ interface IThatRobShapeNode extends INodeDefinition {
       radius: Length;
       seed: number;
       weight: number;
-      weightCurve: Curve;
+      weightCurve: Interpolator;
       count: number;
 
       strokeWidth: Length;
@@ -238,11 +238,7 @@ const Renderer = memo(({ nodeId, globals, depth, overrides = {} }: NodeRendererP
       return lodash.range(Math.max(1, count)).reduce((acc) => {
          const type = sRand();
 
-         const wType = MathHelper.lerp(type, 0, 1, {
-            curveFn: weightCurve?.curveFn ?? "linear",
-            easing: weightCurve?.easing ?? "in",
-            intensity: weightCurve?.intensity ?? 1,
-         });
+         const wType = MathHelper.lerp(type, 0, 1, weightCurve ?? MathHelper.DEFUALT_INTERPOLATOR);
 
          const rad = MathHelper.lengthToPx(radius);
          const cR = sRand() * rad + rad;
@@ -294,7 +290,7 @@ const Renderer = memo(({ nodeId, globals, depth, overrides = {} }: NodeRendererP
          }
          return acc;
       }, [] as string[]);
-   }, [globals.filterData, seed, count, weightCurve?.curveFn, weightCurve?.easing, weightCurve?.intensity, radius, midpoint, weight, midpointSpread]);
+   }, [globals.filterData, seed, count, weightCurve, radius, midpoint, weight, midpointSpread]);
 
    const [Markers, mStartId, mMidId, mEndId] = useMarkers(nodeHooks, nodeId, globals, overrides, depth);
 

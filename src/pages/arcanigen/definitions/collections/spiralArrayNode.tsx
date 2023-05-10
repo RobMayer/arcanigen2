@@ -2,7 +2,6 @@ import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
 import {
    ControlRendererProps,
-   Curve,
    Globals,
    IArcaneGraph,
    INodeDefinition,
@@ -17,6 +16,7 @@ import {
    SocketTypes,
    ThetaMode,
    THETA_MODES,
+   Interpolator,
 } from "../types";
 import MathHelper from "!/utility/mathhelper";
 
@@ -44,8 +44,8 @@ interface ISpiralArrayNode extends INodeDefinition {
       thetaStart: number;
       thetaEnd: number;
       thetaSteps: number;
-      thetaCurve: Curve;
-      radialCurve: Curve;
+      thetaCurve: Interpolator;
+      radialCurve: Interpolator;
 
       positionX: Length;
       positionY: Length;
@@ -223,23 +223,11 @@ const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps)
          const coeff = MathHelper.delerp(n, 0, thetaInclusive ? pointCount - 1 : pointCount);
          const rot =
             thetaMode === "startstop"
-               ? MathHelper.lerp(coeff, 1 * thetaStart, 1 * thetaEnd, {
-                    curveFn: thetaCurve?.curveFn ?? "linear",
-                    easing: thetaCurve?.easing ?? "in",
-                    intensity: thetaCurve?.intensity ?? 1,
-                 })
-               : MathHelper.lerp(coeff, 0, pointCount * thetaSteps, {
-                    curveFn: thetaCurve?.curveFn ?? "linear",
-                    easing: thetaCurve?.easing ?? "in",
-                    intensity: thetaCurve?.intensity ?? 1,
-                 });
+               ? MathHelper.lerp(coeff, 1 * thetaStart, 1 * thetaEnd, thetaCurve ?? MathHelper.DEFUALT_INTERPOLATOR)
+               : MathHelper.lerp(coeff, 0, pointCount * thetaSteps, thetaCurve ?? MathHelper.DEFUALT_INTERPOLATOR);
 
          // const rot = MathHelper.lerp(coeff, 0, 360) - 180;
-         const rad = MathHelper.lerp(coeff, rI, rO, {
-            curveFn: radialCurve?.curveFn ?? "linear",
-            easing: radialCurve?.easing ?? "in",
-            intensity: radialCurve?.intensity ?? 1,
-         });
+         const rad = MathHelper.lerp(coeff, rI, rO, radialCurve ?? MathHelper.DEFUALT_INTERPOLATOR);
 
          return (
             <g key={n} transform={`rotate(${rot + 180}) translate(0, ${rad})`}>
@@ -266,12 +254,8 @@ const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps)
       nodeId,
       depth,
       globals,
-      radialCurve?.curveFn,
-      radialCurve?.easing,
-      radialCurve?.intensity,
-      thetaCurve?.curveFn,
-      thetaCurve?.easing,
-      thetaCurve?.intensity,
+      radialCurve,
+      thetaCurve,
       overrides,
    ]);
 

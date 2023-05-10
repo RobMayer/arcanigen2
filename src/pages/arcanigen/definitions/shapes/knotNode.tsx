@@ -2,7 +2,6 @@ import { memo, useEffect, useMemo } from "react";
 import ArcaneGraph from "../graph";
 import {
    ControlRendererProps,
-   Curve,
    Globals,
    IArcaneGraph,
    INodeDefinition,
@@ -24,6 +23,7 @@ import {
    SPREAD_ALIGN_MODES,
    STROKECAP_MODES,
    StrokeCapMode,
+   Interpolator,
 } from "../types";
 import MathHelper from "!/utility/mathhelper";
 
@@ -49,7 +49,7 @@ interface IKnotNode extends INodeDefinition {
       spread: Length;
       innerRadius: Length;
       outerRadius: Length;
-      thetaCurve: Curve;
+      thetaCurve: Interpolator;
       strokeWidth: Length;
       strokeColor: Color;
       strokeOffset: Length;
@@ -293,13 +293,9 @@ const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) =
 
    const points = useMemo(() => {
       //const tR = getTrueRadius(MathHelper.lengthToPx(radius), scribeMode, pointCount);
-      const angles = lodash.range(0, pointCount).map((i) =>
-         MathHelper.lerp(MathHelper.delerp(i, 0, pointCount), 0, 360, {
-            curveFn: thetaCurve?.curveFn ?? "linear",
-            easing: thetaCurve?.easing ?? "in",
-            intensity: thetaCurve?.intensity ?? 1,
-         })
-      );
+      const angles = lodash
+         .range(0, pointCount)
+         .map((i) => MathHelper.lerp(MathHelper.delerp(i, 0, pointCount), 0, 360, thetaCurve ?? MathHelper.DEFUALT_INTERPOLATOR));
 
       const theSpread =
          expandMode === "point" ? MathHelper.lengthToPx(spread) : (1 / Math.cos(Math.PI / (pointCount / (skipCount + 1)))) * MathHelper.lengthToPx(spread);
@@ -355,9 +351,7 @@ const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) =
       iScribeMode,
       oScribeMode,
       outerRadius,
-      thetaCurve?.curveFn,
-      thetaCurve?.easing,
-      thetaCurve?.intensity,
+      thetaCurve,
       skipCount,
    ]);
 

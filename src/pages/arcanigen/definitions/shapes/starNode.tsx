@@ -2,7 +2,6 @@ import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
 import {
    ControlRendererProps,
-   Curve,
    IArcaneGraph,
    INodeDefinition,
    INodeHelper,
@@ -21,6 +20,7 @@ import {
    STROKECAP_MODES,
    StrokeCapMode,
    NodePatherProps,
+   Interpolator,
 } from "../types";
 import MathHelper from "!/utility/mathhelper";
 
@@ -45,7 +45,7 @@ interface IStarNode extends INodeDefinition {
       minorRadius: Length;
       radius: Length;
       deviation: Length;
-      thetaCurve: Curve;
+      thetaCurve: Interpolator;
       strokeWidth: Length;
       strokeOffset: Length;
       strokeColor: Color;
@@ -309,17 +309,9 @@ const Pather = memo(({ nodeId, globals, pathId, pathLength }: NodePatherProps) =
       return lodash
          .range(pointCount)
          .map((n, i, ary) => {
-            const ang = MathHelper.lerp(MathHelper.delerp(i, 0, pointCount), 0, 360, {
-               curveFn: thetaCurve?.curveFn ?? "linear",
-               easing: thetaCurve?.easing ?? "in",
-               intensity: thetaCurve?.intensity ?? 1,
-            });
+            const ang = MathHelper.lerp(MathHelper.delerp(i, 0, pointCount), 0, 360, thetaCurve ?? MathHelper.DEFUALT_INTERPOLATOR);
 
-            const nextAng = MathHelper.lerp(MathHelper.delerp(i + 1, 0, pointCount), 0, 360, {
-               curveFn: thetaCurve?.curveFn ?? "linear",
-               easing: thetaCurve?.easing ?? "in",
-               intensity: thetaCurve?.intensity ?? 1,
-            });
+            const nextAng = MathHelper.lerp(MathHelper.delerp(i + 1, 0, pointCount), 0, 360, thetaCurve ?? MathHelper.DEFUALT_INTERPOLATOR);
 
             const th = Math.abs(nextAng - ang) / 2;
             // const rad = i % 2 === 0 ? rO : rI;
@@ -362,22 +354,7 @@ const Pather = memo(({ nodeId, globals, pathId, pathLength }: NodePatherProps) =
             }`;
          })
          .join(" ");
-   }, [
-      minorRadius,
-      smoothing,
-      majorRadius,
-      cusping,
-      pointCount,
-      radialMode,
-      deviation,
-      radius,
-      rScribeMode,
-      minorScribeMode,
-      majorScribeMode,
-      thetaCurve?.curveFn,
-      thetaCurve?.easing,
-      thetaCurve?.intensity,
-   ]);
+   }, [minorRadius, smoothing, majorRadius, cusping, pointCount, radialMode, deviation, radius, rScribeMode, minorScribeMode, majorScribeMode, thetaCurve]);
 
    return (
       <path
@@ -434,17 +411,9 @@ const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) =
       return lodash
          .range(pointCount)
          .map((n, i, ary) => {
-            const ang = MathHelper.lerp(MathHelper.delerp(i, 0, pointCount), 0, 360, {
-               curveFn: thetaCurve?.curveFn ?? "linear",
-               easing: thetaCurve?.easing ?? "in",
-               intensity: thetaCurve?.intensity ?? 1,
-            });
+            const ang = MathHelper.lerp(MathHelper.delerp(i, 0, pointCount), 0, 360, thetaCurve ?? MathHelper.DEFUALT_INTERPOLATOR);
 
-            const nextAng = MathHelper.lerp(MathHelper.delerp(i + 1, 0, pointCount), 0, 360, {
-               curveFn: thetaCurve?.curveFn ?? "linear",
-               easing: thetaCurve?.easing ?? "in",
-               intensity: thetaCurve?.intensity ?? 1,
-            });
+            const nextAng = MathHelper.lerp(MathHelper.delerp(i + 1, 0, pointCount), 0, 360, thetaCurve ?? MathHelper.DEFUALT_INTERPOLATOR);
 
             const th = Math.abs(nextAng - ang) / 2;
             // const rad = i % 2 === 0 ? rO : rI;
@@ -487,22 +456,7 @@ const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) =
             }`;
          })
          .join(" ");
-   }, [
-      minorRadius,
-      smoothing,
-      majorRadius,
-      cusping,
-      pointCount,
-      radialMode,
-      deviation,
-      radius,
-      rScribeMode,
-      minorScribeMode,
-      majorScribeMode,
-      thetaCurve?.curveFn,
-      thetaCurve?.easing,
-      thetaCurve?.intensity,
-   ]);
+   }, [minorRadius, smoothing, majorRadius, cusping, pointCount, radialMode, deviation, radius, rScribeMode, minorScribeMode, majorScribeMode, thetaCurve]);
 
    return (
       <g transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`}>

@@ -2,7 +2,6 @@ import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
 import {
    ControlRendererProps,
-   Curve,
    Globals,
    IArcaneGraph,
    INodeDefinition,
@@ -15,6 +14,7 @@ import {
    SCRIBE_MODES,
    Sequence,
    SocketTypes,
+   Interpolator,
 } from "../types";
 import MathHelper from "!/utility/mathhelper";
 
@@ -35,7 +35,7 @@ interface IVertexArrayNode extends INodeDefinition {
       input: NodeRenderer;
       radius: Length;
       pointCount: number;
-      thetaCurve: Curve;
+      thetaCurve: Interpolator;
 
       positionX: Length;
       positionY: Length;
@@ -130,12 +130,7 @@ const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps)
    const children = useMemo(() => {
       return lodash.range(pointCount).map((n, i) => {
          const coeff = MathHelper.delerp(n, 0, pointCount);
-         const rot =
-            MathHelper.lerp(coeff, 0, 360, {
-               curveFn: thetaCurve?.curveFn ?? "linear",
-               easing: thetaCurve?.easing ?? "in",
-               intensity: thetaCurve?.intensity ?? 1,
-            }) - 180;
+         const rot = MathHelper.lerp(coeff, 0, 360, thetaCurve ?? MathHelper.DEFUALT_INTERPOLATOR) - 180;
 
          return (
             <g key={n} transform={`rotate(${rot}) translate(0, ${tR})`}>
@@ -147,7 +142,7 @@ const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps)
             </g>
          );
       });
-   }, [output, overrides, childNodeId, pointCount, tR, isRotating, nodeId, depth, globals, thetaCurve?.curveFn, thetaCurve?.easing, thetaCurve?.intensity]);
+   }, [output, overrides, childNodeId, pointCount, tR, isRotating, nodeId, depth, globals, thetaCurve]);
 
    return <g transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`}>{children}</g>;
 });

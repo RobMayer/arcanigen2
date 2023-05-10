@@ -2,7 +2,6 @@ import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
 import {
    ControlRendererProps,
-   Curve,
    Globals,
    IArcaneGraph,
    INodeDefinition,
@@ -24,6 +23,7 @@ import {
    EXPAND_MODES,
    STROKECAP_MODES,
    StrokeCapMode,
+   Interpolator,
 } from "../types";
 import MathHelper from "!/utility/mathhelper";
 
@@ -48,7 +48,7 @@ interface IPolyringNode extends INodeDefinition {
       spread: Length;
       innerRadius: Length;
       outerRadius: Length;
-      thetaCurve: Curve;
+      thetaCurve: Interpolator;
 
       strokeWidth: Length;
       strokeColor: Color;
@@ -309,11 +309,7 @@ const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) =
       const outerPoints: string[] = [];
 
       lodash.range(pointCount).forEach((each) => {
-         const coeff = MathHelper.lerp(MathHelper.delerp(each, 0, pointCount), 0, 360, {
-            curveFn: thetaCurve?.curveFn ?? "linear",
-            easing: thetaCurve?.easing ?? "in",
-            intensity: thetaCurve?.intensity ?? 1,
-         });
+         const coeff = MathHelper.lerp(MathHelper.delerp(each, 0, pointCount), 0, 360, thetaCurve ?? MathHelper.DEFUALT_INTERPOLATOR);
 
          outerPoints.push(`${tO * Math.cos(MathHelper.deg2rad(coeff - 90))},${tO * Math.sin(MathHelper.deg2rad(coeff - 90))}`);
          innerPoints.push(`${tI * Math.cos(MathHelper.deg2rad(coeff - 90))},${tI * Math.sin(MathHelper.deg2rad(coeff - 90))}`);
@@ -328,22 +324,7 @@ const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) =
          .slice(1)
          .map((e) => `L ${e}`)
          .join(" ")} Z`;
-   }, [
-      expandMode,
-      innerRadius,
-      outerRadius,
-      pointCount,
-      spanMode,
-      radius,
-      rScribeMode,
-      iScribeMode,
-      oScribeMode,
-      spread,
-      spreadAlignMode,
-      thetaCurve?.curveFn,
-      thetaCurve?.easing,
-      thetaCurve?.intensity,
-   ]);
+   }, [expandMode, innerRadius, outerRadius, pointCount, spanMode, radius, rScribeMode, iScribeMode, oScribeMode, spread, spreadAlignMode, thetaCurve]);
 
    return (
       <g transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`}>

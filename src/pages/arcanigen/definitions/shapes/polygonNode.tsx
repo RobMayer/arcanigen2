@@ -2,7 +2,6 @@ import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
 import {
    ControlRendererProps,
-   Curve,
    Globals,
    IArcaneGraph,
    INodeDefinition,
@@ -20,6 +19,7 @@ import {
    StrokeCapMode,
    NodePatherProps,
    NodePather,
+   Interpolator,
 } from "../types";
 import MathHelper from "!/utility/mathhelper";
 
@@ -41,7 +41,7 @@ interface IPolygonNode extends INodeDefinition {
    inputs: {
       pointCount: number;
       radius: Length;
-      thetaCurve: Curve;
+      thetaCurve: Interpolator;
 
       strokeWidth: Length;
       strokeColor: Color;
@@ -192,18 +192,14 @@ const Pather = memo(({ nodeId, globals, pathId, depth, pathLength }: NodePatherP
    const points = useMemo(() => {
       const tR = getTrueRadius(MathHelper.lengthToPx(radius), rScribe, pointCount);
       const p = lodash.range(pointCount).map((each, i) => {
-         const coeff = MathHelper.lerp(MathHelper.delerp(each, 0, pointCount), 0, 360, {
-            curveFn: thetaCurve?.curveFn ?? "linear",
-            easing: thetaCurve?.easing ?? "in",
-            intensity: thetaCurve?.intensity ?? 1,
-         });
+         const coeff = MathHelper.lerp(MathHelper.delerp(each, 0, pointCount), 0, 360, thetaCurve ?? MathHelper.DEFUALT_INTERPOLATOR);
          return `${tR * Math.cos(MathHelper.deg2rad(coeff - 90))},${tR * Math.sin(MathHelper.deg2rad(coeff - 90))}`;
       });
       return `M ${p[0]} ${p
          .slice(1)
          .map((e) => `L ${e}`)
          .join(" ")} Z`;
-   }, [pointCount, radius, rScribe, thetaCurve?.curveFn, thetaCurve?.easing, thetaCurve?.intensity]);
+   }, [pointCount, radius, rScribe, thetaCurve]);
 
    return (
       <g>
@@ -241,18 +237,14 @@ const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) =
    const points = useMemo(() => {
       const tR = getTrueRadius(MathHelper.lengthToPx(radius), rScribe, pointCount);
       const p = lodash.range(pointCount).map((each, i) => {
-         const coeff = MathHelper.lerp(MathHelper.delerp(each, 0, pointCount), 0, 360, {
-            curveFn: thetaCurve?.curveFn ?? "linear",
-            easing: thetaCurve?.easing ?? "in",
-            intensity: thetaCurve?.intensity ?? 1,
-         });
+         const coeff = MathHelper.lerp(MathHelper.delerp(each, 0, pointCount), 0, 360, thetaCurve ?? MathHelper.DEFUALT_INTERPOLATOR);
          return `${tR * Math.cos(MathHelper.deg2rad(coeff - 90))},${tR * Math.sin(MathHelper.deg2rad(coeff - 90))} `;
       });
       return `M ${p[0]} ${p
          .slice(1)
          .map((e) => `L ${e}`)
          .join(" ")} Z`;
-   }, [pointCount, radius, rScribe, thetaCurve?.curveFn, thetaCurve?.easing, thetaCurve?.intensity]);
+   }, [pointCount, radius, rScribe, thetaCurve]);
 
    return (
       <g transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`}>
@@ -350,3 +342,5 @@ const getPassedRadius = (r: number, desired: ScribeMode, sides: number) => {
          return r * Math.cos(Math.PI / sides);
    }
 };
+
+//thetaCurve ?? MathHelper.DEFUALT_INTERPOLATOR

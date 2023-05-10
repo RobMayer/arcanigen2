@@ -6,7 +6,6 @@ import {
    ColorSpace,
    COLOR_SPACES,
    ControlRendererProps,
-   Curve,
    Globals,
    IArcaneGraph,
    INodeDefinition,
@@ -14,6 +13,7 @@ import {
    NodeTypes,
    Sequence,
    SocketTypes,
+   Interpolator,
 } from "../types";
 import MathHelper from "!/utility/mathhelper";
 
@@ -36,7 +36,7 @@ interface ILerpColorNode extends INodeDefinition {
       to: Color;
       percent: number;
       sequence: Sequence;
-      distribution: Curve;
+      distribution: Interpolator;
    };
    outputs: {
       value: Color;
