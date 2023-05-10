@@ -7,11 +7,19 @@ import { Fragment } from "react";
 const EXAMPLE_CATEGORIES = [
    {
       name: "Node by Node",
-      contents: ["vertexArray", "spiralArray", "clusterArray", "portals"],
+      contents: ["thatRobShape", "mask", "vertexArray", "spiralArray", "clusterArray", "sequencer", "portals"],
    },
 ];
 
 const EXAMPLE_DATA: { [key: string]: IExample } = {
+   thatRobShape: {
+      name: "ThatRobShape",
+      description: "What an original name, I know.",
+   },
+   mask: {
+      name: "Mask",
+      description: "It's just that masks are terribly comfortable - I think everyone will be wearing them in the future.",
+   },
    vertexArray: {
       name: "Vertex Arrays",
       description: "Clones are meant to be expendable.",
@@ -23,6 +31,10 @@ const EXAMPLE_DATA: { [key: string]: IExample } = {
    clusterArray: {
       name: "Cluster Arrays",
       description: "Come together / right now / over me.",
+   },
+   sequencer: {
+      name: "Sequencer",
+      description: "The ants go marching one by one hurrah, hurrah.",
    },
    portals: {
       name: "Portals",

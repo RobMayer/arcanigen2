@@ -2,7 +2,7 @@ import HexColorInput from "!/components/inputs/colorHexInput";
 import LengthInput from "!/components/inputs/LengthInput";
 import MathHelper from "!/utility/mathhelper";
 import { Color, Length } from "!/utility/types/units";
-import { useMemo, memo } from "react";
+import { useMemo } from "react";
 import ArcaneGraph from "../graph";
 import BaseNode from "../../nodeView/node";
 import { SocketIn } from "../../nodeView/socket";
@@ -30,7 +30,7 @@ interface IResultNode extends INodeDefinition {
 
 const nodeHelper = ArcaneGraph.nodeHooks<IResultNode>();
 
-const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
+const Controls = ({ nodeId, globals }: ControlRendererProps) => {
    const [canvasColor, setCanvasColor] = nodeHelper.useValueState(nodeId, "canvasColor");
    const [canvasWidth, setCanvasWidth] = nodeHelper.useValueState(nodeId, "canvasWidth");
    const [canvasHeight, setCanvasHeight] = nodeHelper.useValueState(nodeId, "canvasHeight");
@@ -78,7 +78,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          </SocketIn>
       </BaseNode>
    );
-});
+};
 
 const ResultNodeHelper: INodeHelper<IResultNode> = {
    name: "Result",

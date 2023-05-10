@@ -2,7 +2,7 @@ import { ComponentProps, memo, useCallback, useEffect, useRef, useState } from "
 import ArcaneGraph, { useNodePosition } from "../graph";
 import { INodeDefinition, INodeHelper, NodeTypes } from "../types";
 
-import { faClose, faUpDownLeftRight, faNoteSticky as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
+import { faClose, faNoteSticky as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 import { faNoteSticky as buttonIcon } from "@fortawesome/pro-light-svg-icons";
 import TextArea from "!/components/inputs/TextArea";
 import IconButton from "!/components/buttons/IconButton";
