@@ -10,6 +10,16 @@ export const FONT_DEFINITIONS: {
       format: "opentype" | "woff" | "woff2" | "truetype";
    };
 } = {
+   angerthas: {
+      family: "Angerthas",
+      url: "/fonts/angerthas.woff2",
+      format: "woff2",
+   },
+   futhark: {
+      family: "Futhark",
+      url: "/fonts/futhark.woff2",
+      format: "woff2",
+   },
    anayanka: {
       family: "Anayanka",
       url: "/fonts/anayanka.woff2",
