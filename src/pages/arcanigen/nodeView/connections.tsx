@@ -5,7 +5,7 @@ import { HTMLAttributes, useMemo, useRef, useState, useCallback, useEffect } fro
 import styled from "styled-components";
 import { useNodeGraphEventBus } from ".";
 import ArcaneGraph from "../definitions/graph";
-import { ILinkInstance, LinkTypes } from "../definitions/types";
+import { ILinkInstance } from "../definitions/types";
 
 const ConnectionCanvas = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) => {
    // <line x1="99.42857142857139" y1="-274.2857142857144" x2="-371.42857142857247" y2="-65.1428571428572"></line>
@@ -175,7 +175,7 @@ const Connection = ({ linkId, fromNode, toNode, fromSocket, toSocket, type }: IL
    });
 
    return (
-      <ThePath tabIndex={-1} ref={gRef} className={`type_${getLinkType(type)}`}>
+      <ThePath tabIndex={-1} ref={gRef} className={`type_${type}`}>
          <path d={shape} className={"part_display"} />
          <path d={shape} className={"part_special"} />
          <path d={shape} className={"part_select"} />
@@ -298,19 +298,3 @@ const WipPath = styled.path`
    stroke: var(--icon);
    stroke-width: 2px;
 `;
-
-const getLinkType = (type: LinkTypes): string => {
-   switch (type) {
-      case LinkTypes.SHAPE:
-         return "shape";
-      case LinkTypes.SEQUENCE:
-         return "sequence";
-      case LinkTypes.OTHER:
-         return "other";
-      case LinkTypes.PORTAL:
-         return "portal";
-      case LinkTypes.PATH:
-         return "path";
-   }
-   return "accent";
-};

@@ -1,21 +1,21 @@
 import { memo, useLayoutEffect, useRef } from "react";
 import ArcaneGraph from "../graph";
+import { ControlRendererProps, INodeDefinition, INodeHelper, NodePather, NodeRenderer, NodeRendererProps } from "../types";
 import {
-   ControlRendererProps,
-   INodeDefinition,
-   INodeHelper,
-   NodePather,
-   NodeRenderer,
-   NodeRendererProps,
-   NodeTypes,
-   STROKECAP_MODES,
-   SocketTypes,
+   STROKECAP_MODE_OPTIONS,
    StrokeCapMode,
-   TEXT_ALIGN_MODE,
-   TEXT_ANCHOR_MODE,
+   StrokeCapModes,
+   StrokeJoinMode,
+   StrokeJoinModes,
+   TEXT_ALIGN_MODE_OPTIONS,
+   TEXT_ANCHOR_MODE_OPTIONS,
    TextAlignMode,
+   TextAlignModes,
    TextAnchorMode,
-} from "../types";
+   TextAnchorModes,
+   NodeTypes,
+   SocketTypes,
+} from "../../../../utility/enums";
 import { faText as nodeIcon } from "@fortawesome/pro-regular-svg-icons";
 import { faText as buttonIcon } from "@fortawesome/pro-light-svg-icons";
 import { Color, Length } from "!/utility/types/units";
@@ -62,6 +62,7 @@ interface ITextPathNode extends INodeDefinition {
       strokeWidth: Length;
       strokeColor: Color;
       strokeCap: StrokeCapMode;
+      strokeJoin: StrokeJoinMode;
       strokeDash: string;
       strokeOffset: Length;
       fillColor: Color;
@@ -121,10 +122,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                </BaseNode.Input>
             </SocketIn>
             <BaseNode.Input label={"Align"}>
-               <ToggleList value={textAlign} onValue={setTextAlign} options={TEXT_ALIGN_MODE} />
+               <ToggleList value={textAlign} onValue={setTextAlign} options={TEXT_ALIGN_MODE_OPTIONS} />
             </BaseNode.Input>
             <BaseNode.Input label={"Anchor"}>
-               <ToggleList value={textAnchor} onValue={setTextAnchor} options={TEXT_ANCHOR_MODE} />
+               <ToggleList value={textAnchor} onValue={setTextAnchor} options={TEXT_ANCHOR_MODE_OPTIONS} />
             </BaseNode.Input>
             <SocketIn<ITextPathNode> nodeId={nodeId} socketId={"fontSpacing"} type={SocketTypes.LENGTH}>
                <BaseNode.Input label={"Font Spacing"}>
@@ -150,7 +151,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                </BaseNode.Input>
             </SocketIn>
             <BaseNode.Input label={"Stroke Cap"}>
-               <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODES} disabled={strokeDash === ""} />
+               <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODE_OPTIONS} disabled={strokeDash === ""} />
             </BaseNode.Input>
             <BaseNode.Input label={"Stroke Dash"}>
                <TextInput value={strokeDash} onValidValue={setStrokeDash} pattern={MathHelper.LENGTH_LIST_REGEX} />
@@ -183,6 +184,7 @@ const Renderer = memo(({ nodeId, globals, depth, overrides = {} }: NodeRendererP
    const strokeColor = nodeHooks.useCoalesce(nodeId, "strokeColor", "strokeColor", globals);
    const strokeDash = nodeHooks.useValue(nodeId, "strokeDash");
    const strokeCap = nodeHooks.useValue(nodeId, "strokeCap");
+   const strokeJoin = nodeHooks.useValue(nodeId, "strokeJoin");
    const strokeOffset = nodeHooks.useCoalesce(nodeId, "strokeOffset", "strokeOffset", globals);
    const textRotation = nodeHooks.useCoalesce(nodeId, "textRotation", "textRotation", globals);
 
@@ -214,6 +216,7 @@ const Renderer = memo(({ nodeId, globals, depth, overrides = {} }: NodeRendererP
             fillOpacity={MathHelper.colorToOpacity("fillColor" in overrides ? overrides.fillColor : fillColor)}
             strokeWidth={Math.max(0, MathHelper.lengthToPx("strokeWidth" in overrides ? overrides.strokeWidth : strokeWidth))}
             strokeLinecap={"strokeCap" in overrides ? overrides.strokeCap : strokeCap}
+            strokeLinejoin={"strokeJoin" in overrides ? overrides.strokeJoin : strokeJoin}
             strokeDashoffset={MathHelper.lengthToPx("strokeOffset" in overrides ? overrides.strokeOffset : strokeOffset)}
             strokeDasharray={MathHelper.listToLengths("strokeDash" in overrides ? overrides.strokeDash : strokeDash)
                .map(MathHelper.lengthToPx)
@@ -261,14 +264,15 @@ const TextPathNodeHelper: INodeHelper<ITextPathNode> = {
       fontFamily: "default",
       fontSize: { value: 12, unit: "pt" },
       fontSpacing: { value: 0, unit: "pt" },
-      textAlign: "start",
-      textAnchor: "middle",
+      textAlign: TextAlignModes.START,
+      textAnchor: TextAnchorModes.MIDDLE,
       textRotation: 0,
 
       strokeWidth: { value: 0, unit: "px" },
       strokeDash: "",
       strokeOffset: { value: 0, unit: "px" },
-      strokeCap: "butt",
+      strokeCap: StrokeCapModes.BUTT,
+      strokeJoin: StrokeJoinModes.MITER,
       fillColor: { r: 0, g: 0, b: 0, a: 1 },
       strokeColor: null as Color,
    }),
@@ -279,11 +283,10 @@ export default TextPathNodeHelper;
 
 const FONT_OPTIONS = { default: "Default", ...FONT_NAMES };
 
-const OFFSET = {
+const OFFSET: { [key in TextAlignMode]: number } = {
    start: 0,
    middle: 50,
    end: 100,
-   stretch: 0,
 };
 
 const Warning = styled.div`

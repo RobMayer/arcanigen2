@@ -1,5 +1,5 @@
 import ArcaneGraph from "!/pages/arcanigen/definitions/graph";
-import { Globals, NodeRenderer } from "!/pages/arcanigen/definitions/types";
+import { GraphGlobals, NodeRenderer } from "!/pages/arcanigen/definitions/types";
 import { useCallback } from "react";
 
 type IProps = {
@@ -11,7 +11,7 @@ type IProps = {
    startId?: string;
    midId?: string;
    endId?: string;
-   globals: Globals;
+   globals: GraphGlobals;
    align: boolean;
 };
 
@@ -67,7 +67,7 @@ const MarkersRenderer = ({ markStart: MarkStart, markMid: MarkMid, markEnd: Mark
 const useMarkers = (
    nodeHooks: ReturnType<(typeof ArcaneGraph)["nodeHooks"]>,
    nodeId: string,
-   globals: Globals,
+   globals: GraphGlobals,
    overrides: { [key: string]: any },
    depth: string
 ) => {

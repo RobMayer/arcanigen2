@@ -1,6 +1,7 @@
 import { memo } from "react";
 import ArcaneGraph from "../graph";
-import { BlendMode, ControlRendererProps, IArcaneGraph, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, NodeTypes, SocketTypes } from "../types";
+import { ControlRendererProps, IArcaneGraph, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps } from "../types";
+import { BlendMode, NodeTypes, SocketTypes } from "../../../../utility/enums";
 
 import { faMask as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 import { faMask as buttonIcon } from "@fortawesome/pro-light-svg-icons";

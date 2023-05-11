@@ -1,17 +1,6 @@
 import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
-import {
-   ControlRendererProps,
-   Globals,
-   IArcaneGraph,
-   INodeDefinition,
-   INodeHelper,
-   NodeRenderer,
-   NodeRendererProps,
-   NodeTypes,
-   Sequence,
-   SocketTypes,
-} from "../types";
+import { ControlRendererProps, GraphGlobals, IArcaneGraph, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, Sequence } from "../types";
 
 import { faRepeat as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 import { faRepeat as buttonIcon } from "@fortawesome/pro-light-svg-icons";
@@ -20,6 +9,7 @@ import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
 import lodash from "lodash";
 import { MetaPrefab } from "../../nodeView/prefabs";
+import { SocketTypes, NodeTypes } from "!/utility/enums";
 
 interface IRepeatArrayNode extends INodeDefinition {
    inputs: {
@@ -115,7 +105,7 @@ const RepeatArrayNodeHelper: INodeHelper<IRepeatArrayNode> = {
    nodeIcon,
    flavour: "danger",
    type: NodeTypes.ARRAY_REPEAT,
-   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IRepeatArrayNode["outputs"], globals: Globals) => {
+   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IRepeatArrayNode["outputs"], globals: GraphGlobals) => {
       switch (socket) {
          case "output":
             return Renderer;

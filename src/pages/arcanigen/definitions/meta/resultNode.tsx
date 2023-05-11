@@ -6,9 +6,10 @@ import { useMemo } from "react";
 import ArcaneGraph from "../graph";
 import BaseNode from "../../nodeView/node";
 import { SocketIn } from "../../nodeView/socket";
-import { ControlRendererProps, INodeDefinition, INodeHelper, NodeRenderer, NodeTypes, SocketTypes } from "../types";
+import { ControlRendererProps, INodeDefinition, INodeHelper, NodeRenderer } from "../types";
 import { faFlagCheckered as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 import { FONT_DEFINITIONS } from "../fonts";
+import { SocketTypes, NodeTypes } from "!/utility/enums";
 
 interface IResultNode extends INodeDefinition {
    inputs: {

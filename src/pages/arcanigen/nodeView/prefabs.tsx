@@ -3,11 +3,12 @@ import LengthInput from "!/components/inputs/LengthInput";
 import TextInput from "!/components/inputs/TextInput";
 import ToggleList from "!/components/selectors/ToggleList";
 import ArcaneGraph from "../definitions/graph";
-import { INodeDefinition, POSITION_MODES, SocketTypes } from "../definitions/types";
+import { INodeDefinition } from "../definitions/types";
+import { POSITION_MODE_OPTIONS, PositionModes, SocketTypes } from "../../../utility/enums";
 import BaseNode from "./node";
 import { SocketIn } from "./socket";
 
-const Meta = ({ nodeId, hooks }: { nodeId: string; hooks: ReturnType<typeof ArcaneGraph["nodeHooks"]> }) => {
+const Meta = ({ nodeId, hooks }: { nodeId: string; hooks: ReturnType<(typeof ArcaneGraph)["nodeHooks"]> }) => {
    const [name, setName] = hooks.useValueState(nodeId, "name");
    return (
       <BaseNode.Foldout panelId={"meta"} label={"Meta"} nodeId={nodeId} inputs={""} outputs={""}>
@@ -18,7 +19,7 @@ const Meta = ({ nodeId, hooks }: { nodeId: string; hooks: ReturnType<typeof Arca
    );
 };
 
-const TransformFull = <T extends INodeDefinition>({ nodeId, hooks }: { nodeId: string; hooks: ReturnType<typeof ArcaneGraph["nodeHooks"]> }) => {
+const TransformFull = <T extends INodeDefinition>({ nodeId, hooks }: { nodeId: string; hooks: ReturnType<(typeof ArcaneGraph)["nodeHooks"]> }) => {
    const [positionX, setPositionX] = hooks.useValueState(nodeId, "positionX");
    const [positionY, setPositionY] = hooks.useValueState(nodeId, "positionY");
    const [positionTheta, setPositionTheta] = hooks.useValueState(nodeId, "positionTheta");
@@ -41,26 +42,26 @@ const TransformFull = <T extends INodeDefinition>({ nodeId, hooks }: { nodeId: s
          outputs={""}
       >
          <BaseNode.Input label={"Position Mode"}>
-            <ToggleList value={positionMode} onValue={setPositionMode} options={POSITION_MODES} />
+            <ToggleList value={positionMode} onValue={setPositionMode} options={POSITION_MODE_OPTIONS} />
          </BaseNode.Input>
          <SocketIn<T> nodeId={nodeId} socketId={"positionX"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"X Coordinate"}>
-               <LengthInput value={positionX} onCommit={setPositionX} disabled={hasPositionX || positionMode === "polar"} />
+               <LengthInput value={positionX} onCommit={setPositionX} disabled={hasPositionX || positionMode === PositionModes.POLAR} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<T> nodeId={nodeId} socketId={"positionY"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Y Coordinate"}>
-               <LengthInput value={positionY} onCommit={setPositionY} disabled={hasPositionY || positionMode === "polar"} />
+               <LengthInput value={positionY} onCommit={setPositionY} disabled={hasPositionY || positionMode === PositionModes.POLAR} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<T> nodeId={nodeId} socketId={"positionRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
-               <LengthInput value={positionRadius} onCommit={setPositionRadius} disabled={hasPositionRadius || positionMode === "cartesian"} />
+               <LengthInput value={positionRadius} onCommit={setPositionRadius} disabled={hasPositionRadius || positionMode === PositionModes.CARTESIAN} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<T> nodeId={nodeId} socketId={"positionTheta"} type={SocketTypes.ANGLE}>
             <BaseNode.Input label={"θ Angle"}>
-               <AngleInput value={positionTheta} onValidValue={setPositionTheta} disabled={hasPositionTheta || positionMode === "cartesian"} />
+               <AngleInput value={positionTheta} onValidValue={setPositionTheta} disabled={hasPositionTheta || positionMode === PositionModes.CARTESIAN} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<T> nodeId={nodeId} socketId={"rotation"} type={SocketTypes.ANGLE}>
@@ -72,7 +73,7 @@ const TransformFull = <T extends INodeDefinition>({ nodeId, hooks }: { nodeId: s
    );
 };
 
-const TransformPos = <T extends INodeDefinition>({ nodeId, hooks }: { nodeId: string; hooks: ReturnType<typeof ArcaneGraph["nodeHooks"]> }) => {
+const TransformPos = <T extends INodeDefinition>({ nodeId, hooks }: { nodeId: string; hooks: ReturnType<(typeof ArcaneGraph)["nodeHooks"]> }) => {
    const [positionX, setPositionX] = hooks.useValueState(nodeId, "positionX");
    const [positionY, setPositionY] = hooks.useValueState(nodeId, "positionY");
    const [positionTheta, setPositionTheta] = hooks.useValueState(nodeId, "positionTheta");
@@ -87,26 +88,26 @@ const TransformPos = <T extends INodeDefinition>({ nodeId, hooks }: { nodeId: st
    return (
       <BaseNode.Foldout panelId={"transform"} label={"Transform"} nodeId={nodeId} inputs={"positionX positionY positionTheta positionRadius"} outputs={""}>
          <BaseNode.Input label={"Position Mode"}>
-            <ToggleList value={positionMode} onValue={setPositionMode} options={POSITION_MODES} />
+            <ToggleList value={positionMode} onValue={setPositionMode} options={POSITION_MODE_OPTIONS} />
          </BaseNode.Input>
          <SocketIn<T> nodeId={nodeId} socketId={"positionX"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"X Coordinate"}>
-               <LengthInput value={positionX} onCommit={setPositionX} disabled={hasPositionX || positionMode === "polar"} />
+               <LengthInput value={positionX} onCommit={setPositionX} disabled={hasPositionX || positionMode === PositionModes.POLAR} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<T> nodeId={nodeId} socketId={"positionY"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Y Coordinate"}>
-               <LengthInput value={positionY} onCommit={setPositionY} disabled={hasPositionY || positionMode === "polar"} />
+               <LengthInput value={positionY} onCommit={setPositionY} disabled={hasPositionY || positionMode === PositionModes.POLAR} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<T> nodeId={nodeId} socketId={"positionRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
-               <LengthInput value={positionRadius} onCommit={setPositionRadius} disabled={hasPositionRadius || positionMode === "cartesian"} />
+               <LengthInput value={positionRadius} onCommit={setPositionRadius} disabled={hasPositionRadius || positionMode === PositionModes.CARTESIAN} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<T> nodeId={nodeId} socketId={"positionTheta"} type={SocketTypes.ANGLE}>
             <BaseNode.Input label={"θ Angle"}>
-               <AngleInput value={positionTheta} onValidValue={setPositionTheta} disabled={hasPositionTheta || positionMode === "cartesian"} />
+               <AngleInput value={positionTheta} onValidValue={setPositionTheta} disabled={hasPositionTheta || positionMode === PositionModes.CARTESIAN} />
             </BaseNode.Input>
          </SocketIn>
       </BaseNode.Foldout>

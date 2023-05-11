@@ -1,20 +1,7 @@
 import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
-import {
-   IArcaneGraph,
-   INodeDefinition,
-   INodeHelper,
-   NodeTypes,
-   NodeRenderer,
-   ControlRendererProps,
-   NodeRendererProps,
-   StrokeCapMode,
-   PositionMode,
-   SocketTypes,
-   STROKECAP_MODES,
-   Sequence,
-   Globals,
-} from "../types";
+import { IArcaneGraph, INodeDefinition, INodeHelper, NodeRenderer, ControlRendererProps, NodeRendererProps, Sequence, GraphGlobals } from "../types";
+import { StrokeCapMode, PositionMode, STROKECAP_MODE_OPTIONS, StrokeCapModes, NodeTypes, SocketTypes, PositionModes } from "../../../../utility/enums";
 import MathHelper, { seededRandom } from "!/utility/mathhelper";
 
 import { faShareNodes as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
@@ -179,7 +166,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                </BaseNode.Input>
             </SocketIn>
             <BaseNode.Input label={"Stroke Cap"}>
-               <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODES} />
+               <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODE_OPTIONS} />
             </BaseNode.Input>
             <BaseNode.Input label={"Stroke Dash"}>
                <TextInput value={strokeDash} onValidValue={setStrokeDash} pattern={MathHelper.LENGTH_LIST_REGEX} />
@@ -359,7 +346,7 @@ const ClusterArrayNodeHelper: INodeHelper<IClusterArrayNode> = {
    nodeIcon,
    flavour: "danger",
    type: NodeTypes.ARRAY_CLUSTER,
-   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IClusterArrayNode["outputs"], globals: Globals) => {
+   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IClusterArrayNode["outputs"], globals: GraphGlobals) => {
       if (socket === "sequence") {
          const seed = nodeMethods.coalesce(graph, nodeId, "seed", "seed", globals);
          const minCount = nodeMethods.coalesce(graph, nodeId, "minCount", "minCount", globals);
@@ -416,14 +403,14 @@ const ClusterArrayNodeHelper: INodeHelper<IClusterArrayNode> = {
          strokeWidth: { value: 1, unit: "px" },
          strokeDash: "",
          strokeOffset: { value: 0, unit: "px" },
-         strokeCap: "butt",
+         strokeCap: StrokeCapModes.BUTT,
          strokeColor: { r: 0, g: 0, b: 0, a: 1 },
 
          positionX: { value: 0, unit: "px" },
          positionY: { value: 0, unit: "px" },
          positionRadius: { value: 0, unit: "px" },
          positionTheta: 0,
-         positionMode: "cartesian",
+         positionMode: PositionModes.CARTESIAN,
          rotation: 0,
       };
    },

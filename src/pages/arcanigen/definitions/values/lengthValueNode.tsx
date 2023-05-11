@@ -1,6 +1,6 @@
 import { memo } from "react";
 import ArcaneGraph from "../graph";
-import { ControlRendererProps, IArcaneGraph, INodeDefinition, INodeHelper, NodeTypes, SocketTypes } from "../types";
+import { ControlRendererProps, IArcaneGraph, INodeDefinition, INodeHelper } from "../types";
 import MathHelper from "!/utility/mathhelper";
 
 import { faRuler as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
@@ -10,6 +10,7 @@ import { Length } from "!/utility/types/units";
 import BaseNode from "../../nodeView/node";
 import { SocketOut } from "../../nodeView/socket";
 import { MetaPrefab } from "../../nodeView/prefabs";
+import { SocketTypes, NodeTypes } from "!/utility/enums";
 
 interface ILengthValueNode extends INodeDefinition {
    inputs: {};

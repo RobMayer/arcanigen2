@@ -1,6 +1,6 @@
 import { memo } from "react";
 import ArcaneGraph from "../graph";
-import { ControlRendererProps, Globals, IArcaneGraph, INodeDefinition, INodeHelper, NodeTypes, SocketTypes } from "../types";
+import { ControlRendererProps, GraphGlobals, IArcaneGraph, INodeDefinition, INodeHelper } from "../types";
 
 import { faMinus as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 import { faMinus as buttonIcon } from "@fortawesome/pro-light-svg-icons";
@@ -8,6 +8,7 @@ import NumberInput from "!/components/inputs/NumberInput";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
 import { MetaPrefab } from "../../nodeView/prefabs";
+import { SocketTypes, NodeTypes } from "!/utility/enums";
 
 interface IMathSubNode extends INodeDefinition {
    inputs: {
@@ -61,7 +62,7 @@ const MathSubNodeHelper: INodeHelper<IMathSubNode> = {
    nodeIcon,
    flavour: "accent",
    type: NodeTypes.MATH_SUB,
-   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IMathSubNode["outputs"], globals: Globals) => {
+   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IMathSubNode["outputs"], globals: GraphGlobals) => {
       const b = nodeMethods.coalesce(graph, nodeId, "bIn", "b", globals);
       const a = nodeMethods.coalesce(graph, nodeId, "aIn", "a", globals);
       return a - b;

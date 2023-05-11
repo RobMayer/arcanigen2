@@ -6,21 +6,27 @@ import {
    INodeHelper,
    NodeRenderer,
    NodeRendererProps,
-   NodeTypes,
-   PositionMode,
-   SocketTypes,
-   StrokeCapMode,
-   STROKECAP_MODES,
-   ThetaMode,
-   THETA_MODES,
-   RADIAL_MODES,
-   RadialMode,
    NodePather,
-   Globals,
+   GraphGlobals,
    IArcaneGraph,
    NodePatherProps,
    Interpolator,
 } from "../types";
+import {
+   PositionMode,
+   StrokeCapMode,
+   STROKECAP_MODE_OPTIONS,
+   ThetaMode,
+   THETA_MODE_OPTIONS,
+   RADIAL_MODE_OPTIONS,
+   RadialMode,
+   RadialModes,
+   ThetaModes,
+   StrokeCapModes,
+   NodeTypes,
+   SocketTypes,
+   PositionModes,
+} from "../../../../utility/enums";
 import MathHelper from "!/utility/mathhelper";
 
 import { faStarOfLife as nodeIcon } from "@fortawesome/pro-regular-svg-icons";
@@ -147,48 +153,48 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             </BaseNode.Input>
          </SocketIn>
          <BaseNode.Input label={"Radial Mode"}>
-            <ToggleList value={radialMode} onValue={setRadialMode} options={RADIAL_MODES} />
+            <ToggleList value={radialMode} onValue={setRadialMode} options={RADIAL_MODE_OPTIONS} />
          </BaseNode.Input>
          <SocketIn<IBurstNode> nodeId={nodeId} socketId={"majorRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Major Radius"}>
-               <LengthInput value={majorRadius} onValidValue={setMajorRadius} disabled={hasMajorRadius || radialMode === "deviation"} />
+               <LengthInput value={majorRadius} onValidValue={setMajorRadius} disabled={hasMajorRadius || radialMode === RadialModes.DEVIATION} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IBurstNode> nodeId={nodeId} socketId={"minorRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Minor Radius"}>
-               <LengthInput value={minorRadius} onValidValue={setMinorRadius} disabled={hasMinorRadius || radialMode === "deviation"} />
+               <LengthInput value={minorRadius} onValidValue={setMinorRadius} disabled={hasMinorRadius || radialMode === RadialModes.DEVIATION} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IBurstNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
-               <LengthInput value={radius} onValidValue={setRadius} disabled={hasRadius || radialMode === "majorminor"} />
+               <LengthInput value={radius} onValidValue={setRadius} disabled={hasRadius || radialMode === RadialModes.MAJORMINOR} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IBurstNode> nodeId={nodeId} socketId={"deviation"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Deviation"}>
-               <LengthInput value={deviation} onValidValue={setDeviation} disabled={hasDeviation || radialMode === "majorminor"} />
+               <LengthInput value={deviation} onValidValue={setDeviation} disabled={hasDeviation || radialMode === RadialModes.MAJORMINOR} />
             </BaseNode.Input>
          </SocketIn>
          <hr />
          <BaseNode.Input label={"Theta Mode"}>
-            <ToggleList value={thetaMode} onValue={setThetaMode} options={THETA_MODES} />
+            <ToggleList value={thetaMode} onValue={setThetaMode} options={THETA_MODE_OPTIONS} />
          </BaseNode.Input>
          <SocketIn<IBurstNode> nodeId={nodeId} socketId={"thetaSteps"} type={SocketTypes.ANGLE}>
             <BaseNode.Input label={"Incremental θ"}>
-               <AngleInput value={thetaSteps} onValidValue={setThetaSteps} disabled={hasThetaSteps || thetaMode === "startstop"} wrap />
+               <AngleInput value={thetaSteps} onValidValue={setThetaSteps} disabled={hasThetaSteps || thetaMode === ThetaModes.STARTSTOP} wrap />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IBurstNode> nodeId={nodeId} socketId={"thetaStart"} type={SocketTypes.ANGLE}>
             <BaseNode.Input label={"Start θ"}>
-               <AngleInput value={thetaStart} onValidValue={setThetaStart} disabled={hasThetaStart || thetaMode === "incremental"} wrap />
+               <AngleInput value={thetaStart} onValidValue={setThetaStart} disabled={hasThetaStart || thetaMode === ThetaModes.INCREMENTAL} wrap />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IBurstNode> nodeId={nodeId} socketId={"thetaEnd"} type={SocketTypes.ANGLE}>
             <BaseNode.Input label={"End θ"}>
-               <AngleInput value={thetaEnd} onValidValue={setThetaEnd} disabled={hasThetaEnd || thetaMode === "incremental"} wrap />
+               <AngleInput value={thetaEnd} onValidValue={setThetaEnd} disabled={hasThetaEnd || thetaMode === ThetaModes.INCREMENTAL} wrap />
             </BaseNode.Input>
          </SocketIn>
-         <Checkbox checked={thetaInclusive} onToggle={setThetaInclusive} disabled={thetaMode === "incremental"}>
+         <Checkbox checked={thetaInclusive} onToggle={setThetaInclusive} disabled={thetaMode === ThetaModes.INCREMENTAL}>
             Inclusive End θ
          </Checkbox>
          <SocketIn<IBurstNode> nodeId={nodeId} socketId={"thetaCurve"} type={SocketTypes.CURVE}>
@@ -213,7 +219,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                </BaseNode.Input>
             </SocketIn>
             <BaseNode.Input label={"Stroke Cap"}>
-               <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODES} />
+               <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODE_OPTIONS} />
             </BaseNode.Input>
             <BaseNode.Input label={"Stroke Dash"}>
                <TextInput value={strokeDash} onValidValue={setStrokeDash} pattern={MathHelper.LENGTH_LIST_REGEX} />
@@ -269,8 +275,8 @@ const Pather = memo(({ nodeId, depth, globals, pathLength, pathId }: NodePatherP
    const thetaInclusive = nodeHooks.useValue(nodeId, "thetaInclusive");
    const thetaCurve = nodeHooks.useInput(nodeId, "thetaCurve", globals);
 
-   const rI = radialMode === "majorminor" ? MathHelper.lengthToPx(minorRadius) : MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(deviation) / 2;
-   const rO = radialMode === "majorminor" ? MathHelper.lengthToPx(majorRadius) : MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(deviation) / 2;
+   const rI = radialMode === RadialModes.MAJORMINOR ? MathHelper.lengthToPx(minorRadius) : MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(deviation) / 2;
+   const rO = radialMode === RadialModes.MAJORMINOR ? MathHelper.lengthToPx(majorRadius) : MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(deviation) / 2;
 
    const points = useMemo(() => {
       return lodash
@@ -278,7 +284,7 @@ const Pather = memo(({ nodeId, depth, globals, pathLength, pathId }: NodePatherP
          .map((n) => {
             const coeff = MathHelper.delerp(n, 0, thetaInclusive ? spurCount - 1 : spurCount);
             const angle =
-               thetaMode === "startstop"
+               thetaMode === ThetaModes.STARTSTOP
                   ? MathHelper.lerp(coeff, 1 * thetaStart, 1 * thetaEnd, thetaCurve ?? MathHelper.DEFUALT_INTERPOLATOR)
                   : MathHelper.lerp(coeff, 0, spurCount * thetaSteps, thetaCurve ?? MathHelper.DEFUALT_INTERPOLATOR);
             const c = Math.cos(MathHelper.deg2rad(angle - 90));
@@ -326,14 +332,14 @@ const Renderer = memo(({ nodeId, depth, globals, overrides = {} }: NodeRendererP
    const strokeCap = nodeHooks.useValue(nodeId, "strokeCap");
    const strokeOffset = nodeHooks.useCoalesce(nodeId, "strokeOffset", "strokeOffset", globals);
 
-   const rI = radialMode === "majorminor" ? MathHelper.lengthToPx(minorRadius) : MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(deviation) / 2;
-   const rO = radialMode === "majorminor" ? MathHelper.lengthToPx(majorRadius) : MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(deviation) / 2;
+   const rI = radialMode === RadialModes.MAJORMINOR ? MathHelper.lengthToPx(minorRadius) : MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(deviation) / 2;
+   const rO = radialMode === RadialModes.MAJORMINOR ? MathHelper.lengthToPx(majorRadius) : MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(deviation) / 2;
 
    const points = useMemo(() => {
       return lodash.range(spurCount).map((n) => {
          const coeff = MathHelper.delerp(n, 0, thetaInclusive ? spurCount - 1 : spurCount);
          const angle =
-            thetaMode === "startstop"
+            thetaMode === ThetaModes.STARTSTOP
                ? MathHelper.lerp(coeff, 1 * thetaStart, 1 * thetaEnd, thetaCurve ?? MathHelper.DEFUALT_INTERPOLATOR)
                : MathHelper.lerp(coeff, 0, spurCount * thetaSteps, thetaCurve ?? MathHelper.DEFUALT_INTERPOLATOR);
          const c = Math.cos(MathHelper.deg2rad(angle - 90));
@@ -372,7 +378,7 @@ const BurstNodeHelper: INodeHelper<IBurstNode> = {
    nodeIcon,
    flavour: "emphasis",
    type: NodeTypes.SHAPE_BURST,
-   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IBurstNode["outputs"], globals: Globals) => {
+   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IBurstNode["outputs"], globals: GraphGlobals) => {
       switch (socket) {
          case "output":
             return Renderer;
@@ -383,8 +389,8 @@ const BurstNodeHelper: INodeHelper<IBurstNode> = {
    initialize: () => ({
       radius: { value: 150, unit: "px" },
       deviation: { value: 20, unit: "px" },
-      radialMode: "majorminor",
-      thetaMode: "incremental",
+      radialMode: RadialModes.MAJORMINOR,
+      thetaMode: ThetaModes.INCREMENTAL,
       spurCount: 5,
       minorRadius: { value: 140, unit: "px" },
       majorRadius: { value: 160, unit: "px" },
@@ -396,7 +402,7 @@ const BurstNodeHelper: INodeHelper<IBurstNode> = {
       strokeWidth: { value: 1, unit: "px" },
       strokeDash: "",
       strokeOffset: { value: 0, unit: "px" },
-      strokeCap: "butt",
+      strokeCap: StrokeCapModes.BUTT,
       strokeColor: { r: 0, g: 0, b: 0, a: 1 },
       strokeMarkAlign: true,
 
@@ -404,7 +410,7 @@ const BurstNodeHelper: INodeHelper<IBurstNode> = {
       positionY: { value: 0, unit: "px" },
       positionRadius: { value: 0, unit: "px" },
       positionTheta: 0,
-      positionMode: "cartesian",
+      positionMode: PositionModes.CARTESIAN,
       rotation: 0,
    }),
    controls: Controls,

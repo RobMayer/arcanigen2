@@ -1,17 +1,7 @@
 import { memo } from "react";
 import ArcaneGraph from "../graph";
-import {
-   ControlRendererProps,
-   INodeDefinition,
-   INodeHelper,
-   NodeRenderer,
-   NodeRendererProps,
-   NodeTypes,
-   PositionMode,
-   STROKECAP_MODES,
-   SocketTypes,
-   StrokeCapMode,
-} from "../types";
+import { ControlRendererProps, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps } from "../types";
+import { PositionMode, STROKECAP_MODE_OPTIONS, StrokeCapMode, StrokeCapModes, NodeTypes, SocketTypes, PositionModes } from "../../../../utility/enums";
 import { faSquare as nodeIcon } from "@fortawesome/pro-regular-svg-icons";
 import { faSquare as buttonIcon } from "@fortawesome/pro-light-svg-icons";
 import { Color, Length } from "!/utility/types/units";
@@ -116,7 +106,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                </BaseNode.Input>
             </SocketIn>
             <BaseNode.Input label={"Stroke Cap"}>
-               <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODES} disabled={strokeDash === ""} />
+               <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODE_OPTIONS} disabled={strokeDash === ""} />
             </BaseNode.Input>
             <BaseNode.Input label={"Stroke Dash"}>
                <TextInput value={strokeDash} onValidValue={setStrokeDash} pattern={MathHelper.LENGTH_LIST_REGEX} />
@@ -197,7 +187,7 @@ const RectangleNodeHelper: INodeHelper<IRectangleNode> = {
       strokeWidth: { value: 1, unit: "px" },
       strokeDash: "",
       strokeOffset: { value: 0, unit: "px" },
-      strokeCap: "butt",
+      strokeCap: StrokeCapModes.BUTT,
       strokeColor: { r: 0, g: 0, b: 0, a: 1 },
       fillColor: null as Color,
 
@@ -205,7 +195,7 @@ const RectangleNodeHelper: INodeHelper<IRectangleNode> = {
       positionY: { value: 0, unit: "px" },
       positionRadius: { value: 0, unit: "px" },
       positionTheta: 0,
-      positionMode: "cartesian",
+      positionMode: PositionModes.CARTESIAN,
    }),
    controls: Controls,
 };

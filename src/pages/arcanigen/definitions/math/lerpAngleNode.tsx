@@ -1,18 +1,7 @@
 import { memo, useEffect } from "react";
 import ArcaneGraph from "../graph";
-import {
-   AngleLerpMode,
-   ANGLE_LERP_MODES,
-   ControlRendererProps,
-   Globals,
-   IArcaneGraph,
-   INodeDefinition,
-   INodeHelper,
-   NodeTypes,
-   Sequence,
-   SocketTypes,
-   Interpolator,
-} from "../types";
+import { ControlRendererProps, GraphGlobals, IArcaneGraph, INodeDefinition, INodeHelper, Sequence, Interpolator } from "../types";
+import { AngleLerpMode, ANGLE_LERP_MODE_OPTIONS, AngleLerpModes, NodeTypes, SocketTypes } from "../../../../utility/enums";
 import MathHelper from "!/utility/mathhelper";
 
 import { faGaugeMed as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
@@ -88,7 +77,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             Bounded (0-360)
          </Checkbox>
          <BaseNode.Input label={"Hue Direction"}>
-            <Dropdown value={mode} onValue={setMode} options={ANGLE_LERP_MODES} disabled={!bounded} />
+            <Dropdown value={mode} onValue={setMode} options={ANGLE_LERP_MODE_OPTIONS} disabled={!bounded} />
          </BaseNode.Input>
          <Checkbox checked={isInclusive} onToggle={setIsInclusive} disabled={!hasSequence}>
             Inclusive
@@ -109,7 +98,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
 
 const nodeMethods = ArcaneGraph.nodeMethods<ILerpAngleNode>();
 
-const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof ILerpAngleNode["outputs"], globals: Globals) => {
+const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof ILerpAngleNode["outputs"], globals: GraphGlobals) => {
    const sequence = nodeMethods.getInput(graph, nodeId, "sequence", globals);
 
    const percent = nodeMethods.coalesce(graph, nodeId, "percent", "percent", globals);
@@ -143,7 +132,7 @@ const LerpAngleNodeHelper: INodeHelper<ILerpAngleNode> = {
       from: 0,
       to: 180,
       percent: 0,
-      mode: "closestCW",
+      mode: AngleLerpModes.CLOSEST_CW,
       bounded: true,
       isInclusive: true,
    }),

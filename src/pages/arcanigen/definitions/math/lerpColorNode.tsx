@@ -1,20 +1,7 @@
 import { memo } from "react";
 import ArcaneGraph from "../graph";
-import {
-   AngleLerpMode,
-   ANGLE_LERP_MODES,
-   ColorSpace,
-   COLOR_SPACES,
-   ControlRendererProps,
-   Globals,
-   IArcaneGraph,
-   INodeDefinition,
-   INodeHelper,
-   NodeTypes,
-   Sequence,
-   SocketTypes,
-   Interpolator,
-} from "../types";
+import { ControlRendererProps, GraphGlobals, IArcaneGraph, INodeDefinition, INodeHelper, Sequence, Interpolator } from "../types";
+import { AngleLerpMode, ANGLE_LERP_MODE_OPTIONS, ColorSpace, COLOR_SPACE_OPTIONS, AngleLerpModes, NodeTypes, SocketTypes } from "../../../../utility/enums";
 import MathHelper from "!/utility/mathhelper";
 
 import { faExclamationCircle, faGaugeMed as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
@@ -96,10 +83,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          </SocketIn>
          <hr />
          <BaseNode.Input label={"Color Space"}>
-            <Dropdown value={colorSpace} onValue={setColorSpace} options={COLOR_SPACES} />
+            <Dropdown value={colorSpace} onValue={setColorSpace} options={COLOR_SPACE_OPTIONS} />
          </BaseNode.Input>
          <BaseNode.Input label={"Hue Direction"}>
-            <Dropdown value={hueMode} onValue={setHueMode} options={ANGLE_LERP_MODES} disabled={!HAS_HUE.includes(colorSpace)} />
+            <Dropdown value={hueMode} onValue={setHueMode} options={ANGLE_LERP_MODE_OPTIONS} disabled={!HAS_HUE.includes(colorSpace)} />
          </BaseNode.Input>
          <Checkbox checked={isInclusive} onToggle={setIsInclusive} disabled={!hasSequence}>
             Inclusive
@@ -120,7 +107,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
 
 const nodeMethods = ArcaneGraph.nodeMethods<ILerpColorNode>();
 
-const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof ILerpColorNode["outputs"], globals: Globals) => {
+const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof ILerpColorNode["outputs"], globals: GraphGlobals) => {
    const sequence = nodeMethods.getInput(graph, nodeId, "sequence", globals);
 
    const percent = nodeMethods.coalesce(graph, nodeId, "percent", "percent", globals);
@@ -156,7 +143,7 @@ const LerpColorNodeHelper: INodeHelper<ILerpColorNode> = {
       to: { r: 1, g: 1, b: 1, a: 1 },
       percent: 0,
       colorSpace: "RGB",
-      hueMode: "closestCW",
+      hueMode: AngleLerpModes.CLOSEST_CW,
       isInclusive: true,
    }),
    controls: Controls,

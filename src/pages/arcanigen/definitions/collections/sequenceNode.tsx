@@ -4,17 +4,14 @@ import {
    IArcaneGraph,
    INodeDefinition,
    INodeHelper,
-   NodeTypes,
    NodeRendererProps,
    NodeRenderer,
    INodeInstance,
-   SocketTypes,
    Sequence,
-   SequenceMode,
-   SEQUENCE_MODES,
    ControlRendererProps,
    ILinkInstance,
 } from "../types";
+import { SequenceMode, SEQUENCE_MODE_OPTIONS, SequenceModes, NodeTypes, SocketTypes } from "../../../../utility/enums";
 import { v4 as uuid } from "uuid";
 
 import { faClose, faPlus, faTimeline as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
@@ -126,7 +123,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          </SocketIn>
          <hr />
          <BaseNode.Input label={"Sequence Mode"}>
-            <Dropdown value={mode} onValue={setMode} options={SEQUENCE_MODES} />
+            <Dropdown value={mode} onValue={setMode} options={SEQUENCE_MODE_OPTIONS} />
          </BaseNode.Input>
          <Checkbox checked={reverse} onToggle={setReverse}>
             Reverse Steps
@@ -174,15 +171,15 @@ const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps)
       if (reverse) {
          sTemp.reverse();
       }
-      if (mode === "wrap") {
+      if (mode === SequenceModes.WRAP) {
          return lodash.range(sequence.max).map((n) => sTemp[n % sockets.length]);
       }
-      if (mode === "truncate") {
+      if (mode === SequenceModes.TRUNCATE) {
          return lodash.range(sequence.max).map((n) => {
             return n >= sTemp.length ? "" : sTemp[n];
          });
       }
-      if (mode === "clamp") {
+      if (mode === SequenceModes.CLAMP) {
          return lodash.range(sequence.max).map((n) => {
             if (n > sTemp.length - 1) {
                return sTemp[sTemp.length - 1];
@@ -190,7 +187,7 @@ const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps)
             return sTemp[n];
          });
       }
-      if (mode === "bounce") {
+      if (mode === SequenceModes.BOUNCE) {
          const temp = [...sockets, ...sockets.slice(1, -1).reverse()];
          if (reverse) {
             temp.reverse();
@@ -226,7 +223,7 @@ const SequencerNodeHelper: INodeHelper<ISequencerNode> = {
       const socketId = uuid();
       return {
          sockets: [socketId],
-         mode: "wrap",
+         mode: SequenceModes.WRAP,
          reverse: false,
          in: {
             sequence: null,

@@ -1,6 +1,6 @@
 import { memo } from "react";
 import ArcaneGraph from "../graph";
-import { ControlRendererProps, IArcaneGraph, INodeDefinition, INodeHelper, NodeTypes, SocketTypes } from "../types";
+import { ControlRendererProps, IArcaneGraph, INodeDefinition, INodeHelper } from "../types";
 
 import { faPalette as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 import { faPalette as buttonIcon } from "@fortawesome/pro-light-svg-icons";
@@ -9,6 +9,7 @@ import { Color } from "!/utility/types/units";
 import BaseNode from "../../nodeView/node";
 import { SocketOut } from "../../nodeView/socket";
 import { MetaPrefab } from "../../nodeView/prefabs";
+import { SocketTypes, NodeTypes } from "!/utility/enums";
 
 interface IHexColorNode extends INodeDefinition {
    inputs: {};

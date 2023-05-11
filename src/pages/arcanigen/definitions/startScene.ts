@@ -1,5 +1,6 @@
 import { v4 as uuid } from "uuid";
-import { IArcaneGraph, IArcanePos, IArcaneToggle, NodeTypes } from "./types";
+import { IArcaneGraph, IArcanePos, IArcaneToggle } from "./types";
+import { BlendModes, LinkTypes, NodeTypes, PositionModes, ScribeModes, StrokeCapModes, StrokeJoinModes } from "../../../utility/enums";
 
 const EXAMPLE_TEXT = `Navigation
 -----------
@@ -68,9 +69,9 @@ export const getStartScene = () => {
          [layersId]: {
             sockets: [layerSocket1, layerSocket2, layerSocket3],
             modes: {
-               [layerSocket1]: "normal",
-               [layerSocket2]: "normal",
-               [layerSocket3]: "normal",
+               [layerSocket1]: BlendModes.NORMAL,
+               [layerSocket2]: BlendModes.NORMAL,
+               [layerSocket3]: BlendModes.NORMAL,
             },
             enabled: {
                [layerSocket1]: true,
@@ -103,7 +104,7 @@ export const getStartScene = () => {
                value: 0,
                unit: "px",
             },
-            strokeCap: "butt",
+            strokeCap: StrokeCapModes.BUTT,
             strokeColor: {
                r: 0,
                g: 0,
@@ -124,7 +125,7 @@ export const getStartScene = () => {
                unit: "px",
             },
             positionTheta: 0,
-            positionMode: "cartesian",
+            positionMode: PositionModes.CARTESIAN,
             rotation: 0,
             name: "",
             in: {},
@@ -144,8 +145,8 @@ export const getStartScene = () => {
                unit: "px",
             },
             pointCount: 3,
-            strokeJoin: "miter",
-            rScribe: "inscribe",
+            strokeJoin: StrokeJoinModes.MITER,
+            rScribe: ScribeModes.INSCRIBE,
             strokeColor: {
                r: 0,
                g: 0,
@@ -157,7 +158,7 @@ export const getStartScene = () => {
                value: 0,
                unit: "px",
             },
-            strokeCap: "butt",
+            strokeCap: StrokeCapModes.BUTT,
             fillColor: null,
             positionX: {
                value: 0,
@@ -172,7 +173,7 @@ export const getStartScene = () => {
                unit: "px",
             },
             positionTheta: 0,
-            positionMode: "cartesian",
+            positionMode: PositionModes.CARTESIAN,
             rotation: 0,
             name: "",
             in: {},
@@ -199,7 +200,7 @@ export const getStartScene = () => {
             fromSocket: "output",
             toNode: layersId,
             toSocket: layerSocket1,
-            type: 2,
+            type: LinkTypes.SHAPE,
          },
          [linkLayerToPolygon]: {
             linkId: linkLayerToPolygon,
@@ -207,7 +208,7 @@ export const getStartScene = () => {
             fromSocket: "output",
             toNode: layersId,
             toSocket: layerSocket2,
-            type: 2,
+            type: LinkTypes.SHAPE,
          },
          [linkResultToLayer]: {
             linkId: linkResultToLayer,
@@ -215,7 +216,7 @@ export const getStartScene = () => {
             fromSocket: "output",
             toNode: "ROOT",
             toSocket: "input",
-            type: 2,
+            type: LinkTypes.SHAPE,
          },
       } as IArcaneGraph["links"],
       positions: {

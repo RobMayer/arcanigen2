@@ -1,22 +1,18 @@
 import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
+import { ControlRendererProps, IArcaneGraph, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, NodePatherProps, NodePather } from "../types";
 import {
-   ControlRendererProps,
-   IArcaneGraph,
-   INodeDefinition,
-   INodeHelper,
-   NodeRenderer,
-   NodeRendererProps,
-   NodeTypes,
    PositionMode,
-   SocketTypes,
    StrokeCapMode,
-   STROKECAP_MODES,
+   STROKECAP_MODE_OPTIONS,
    RadialMode,
-   RADIAL_MODES,
-   NodePatherProps,
-   NodePather,
-} from "../types";
+   RADIAL_MODE_OPTIONS,
+   RadialModes,
+   StrokeCapModes,
+   NodeTypes,
+   SocketTypes,
+   PositionModes,
+} from "../../../../utility/enums";
 import MathHelper from "!/utility/mathhelper";
 
 import { Length, Color } from "!/utility/types/units";
@@ -128,26 +124,26 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          </SocketOut>
          <hr />
          <BaseNode.Input label={"Radial Mode"}>
-            <ToggleList value={radialMode} onValue={setRadialMode} options={RADIAL_MODES} />
+            <ToggleList value={radialMode} onValue={setRadialMode} options={RADIAL_MODE_OPTIONS} />
          </BaseNode.Input>
          <SocketIn<ISpiralNode> nodeId={nodeId} socketId={"majorRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Major Radius"}>
-               <LengthInput value={majorRadius} onValidValue={setMajorRadius} disabled={hasMajorRadius || radialMode === "deviation"} />
+               <LengthInput value={majorRadius} onValidValue={setMajorRadius} disabled={hasMajorRadius || radialMode === RadialModes.DEVIATION} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<ISpiralNode> nodeId={nodeId} socketId={"minorRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Minor Radius"}>
-               <LengthInput value={minorRadius} onValidValue={setMinorRadius} disabled={hasMinorRadius || radialMode === "deviation"} />
+               <LengthInput value={minorRadius} onValidValue={setMinorRadius} disabled={hasMinorRadius || radialMode === RadialModes.DEVIATION} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<ISpiralNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
-               <LengthInput value={radius} onValidValue={setRadius} disabled={hasRadius || radialMode === "majorminor"} />
+               <LengthInput value={radius} onValidValue={setRadius} disabled={hasRadius || radialMode === RadialModes.MAJORMINOR} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<ISpiralNode> nodeId={nodeId} socketId={"deviation"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Deviation"}>
-               <LengthInput value={deviation} onValidValue={setDeviation} disabled={hasDeviation || radialMode === "majorminor"} />
+               <LengthInput value={deviation} onValidValue={setDeviation} disabled={hasDeviation || radialMode === RadialModes.MAJORMINOR} />
             </BaseNode.Input>
          </SocketIn>
          <hr />
@@ -174,7 +170,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                </BaseNode.Input>
             </SocketIn>
             <BaseNode.Input label={"Stroke Cap"}>
-               <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODES} />
+               <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODE_OPTIONS} />
             </BaseNode.Input>
             <BaseNode.Input label={"Stroke Dash"}>
                <TextInput value={strokeDash} onValidValue={setStrokeDash} pattern={MathHelper.LENGTH_LIST_REGEX} />
@@ -230,8 +226,8 @@ const Pather = memo(({ nodeId, depth, globals, pathId, pathLength }: NodePatherP
    const positionRadius = nodeHooks.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
    const rotation = nodeHooks.useCoalesce(nodeId, "rotation", "rotation", globals);
 
-   const rI = radialMode === "majorminor" ? MathHelper.lengthToPx(minorRadius) : MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(deviation) / 2;
-   const rO = radialMode === "majorminor" ? MathHelper.lengthToPx(majorRadius) : MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(deviation) / 2;
+   const rI = radialMode === RadialModes.MAJORMINOR ? MathHelper.lengthToPx(minorRadius) : MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(deviation) / 2;
+   const rO = radialMode === RadialModes.MAJORMINOR ? MathHelper.lengthToPx(majorRadius) : MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(deviation) / 2;
 
    const pathD = useMemo(() => {
       const c = 2 + Math.floor(Math.abs(thetaEnd - thetaStart) / 10);
@@ -286,8 +282,8 @@ const Renderer = memo(({ nodeId, depth, globals, overrides = {} }: NodeRendererP
    const positionRadius = nodeHooks.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
    const rotation = nodeHooks.useCoalesce(nodeId, "rotation", "rotation", globals);
 
-   const rI = radialMode === "majorminor" ? MathHelper.lengthToPx(minorRadius) : MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(deviation) / 2;
-   const rO = radialMode === "majorminor" ? MathHelper.lengthToPx(majorRadius) : MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(deviation) / 2;
+   const rI = radialMode === RadialModes.MAJORMINOR ? MathHelper.lengthToPx(minorRadius) : MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(deviation) / 2;
+   const rO = radialMode === RadialModes.MAJORMINOR ? MathHelper.lengthToPx(majorRadius) : MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(deviation) / 2;
 
    const pathD = useMemo(() => {
       const c = 2 + Math.floor(Math.abs(thetaEnd - thetaStart) / 10);
@@ -353,11 +349,11 @@ const SpiralNodeHelper: INodeHelper<ISpiralNode> = {
       minorRadius: { value: 120, unit: "px" },
       majorRadius: { value: 180, unit: "px" },
       deviation: { value: 20, unit: "px" },
-      radialMode: "majorminor",
+      radialMode: RadialModes.MAJORMINOR,
       strokeWidth: { value: 1, unit: "px" },
       strokeDash: "",
       strokeOffset: { value: 0, unit: "px" },
-      strokeCap: "butt",
+      strokeCap: StrokeCapModes.BUTT,
       strokeColor: { r: 0, g: 0, b: 0, a: 1 },
       fillColor: null as Color,
       strokeMarkAlign: true,
@@ -368,7 +364,7 @@ const SpiralNodeHelper: INodeHelper<ISpiralNode> = {
       positionY: { value: 0, unit: "px" },
       positionRadius: { value: 0, unit: "px" },
       positionTheta: 0,
-      positionMode: "cartesian",
+      positionMode: PositionModes.CARTESIAN,
       rotation: 0,
    }),
    controls: Controls,

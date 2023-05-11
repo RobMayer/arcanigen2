@@ -1,21 +1,16 @@
 import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
+import { ControlRendererProps, IArcaneGraph, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, NodePather, NodePatherProps } from "../types";
 import {
-   ControlRendererProps,
-   IArcaneGraph,
-   INodeDefinition,
-   INodeHelper,
-   NodeRenderer,
-   NodeRendererProps,
-   NodeTypes,
    PositionMode,
-   SocketTypes,
    StrokeCapMode,
-   STROKECAP_MODES,
-   POSITION_MODES,
-   NodePather,
-   NodePatherProps,
-} from "../types";
+   STROKECAP_MODE_OPTIONS,
+   POSITION_MODE_OPTIONS,
+   StrokeCapModes,
+   NodeTypes,
+   SocketTypes,
+   PositionModes,
+} from "../../../../utility/enums";
 import MathHelper from "!/utility/mathhelper";
 
 import { Length, Color } from "!/utility/types/units";
@@ -142,52 +137,52 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
 
          <BaseNode.Foldout panelId={"startPoint"} label={"Start Point"} nodeId={nodeId} inputs={"startX startY startTheta startRadius"} outputs={""} startOpen>
             <BaseNode.Input label={"Position Mode"}>
-               <ToggleList value={startMode} onValue={setStartMode} options={POSITION_MODES} />
+               <ToggleList value={startMode} onValue={setStartMode} options={POSITION_MODE_OPTIONS} />
             </BaseNode.Input>
             <SocketIn<ISegmentNode> nodeId={nodeId} socketId={"startX"} type={SocketTypes.LENGTH}>
                <BaseNode.Input label={"X Coordinate"}>
-                  <LengthInput value={startX} onCommit={setStartX} disabled={hasStartX || startMode === "polar"} />
+                  <LengthInput value={startX} onCommit={setStartX} disabled={hasStartX || startMode === PositionModes.POLAR} />
                </BaseNode.Input>
             </SocketIn>
             <SocketIn<ISegmentNode> nodeId={nodeId} socketId={"startY"} type={SocketTypes.LENGTH}>
                <BaseNode.Input label={"Y Coordinate"}>
-                  <LengthInput value={startY} onCommit={setStartY} disabled={hasStartY || startMode === "polar"} />
+                  <LengthInput value={startY} onCommit={setStartY} disabled={hasStartY || startMode === PositionModes.POLAR} />
                </BaseNode.Input>
             </SocketIn>
             <SocketIn<ISegmentNode> nodeId={nodeId} socketId={"startRadius"} type={SocketTypes.LENGTH}>
                <BaseNode.Input label={"Radius"}>
-                  <LengthInput value={startRadius} onCommit={setStartRadius} disabled={hasStartRadius || startMode === "cartesian"} />
+                  <LengthInput value={startRadius} onCommit={setStartRadius} disabled={hasStartRadius || startMode === PositionModes.CARTESIAN} />
                </BaseNode.Input>
             </SocketIn>
             <SocketIn<ISegmentNode> nodeId={nodeId} socketId={"startTheta"} type={SocketTypes.ANGLE}>
                <BaseNode.Input label={"θ Angle"}>
-                  <AngleInput value={startTheta} onValidValue={setStartTheta} disabled={hasStartTheta || startMode === "cartesian"} />
+                  <AngleInput value={startTheta} onValidValue={setStartTheta} disabled={hasStartTheta || startMode === PositionModes.CARTESIAN} />
                </BaseNode.Input>
             </SocketIn>
          </BaseNode.Foldout>
 
          <BaseNode.Foldout panelId={"endPoint"} label={"End Point"} nodeId={nodeId} inputs={"endX endY endTheta endRadius"} outputs={""} startOpen>
             <BaseNode.Input label={"Position Mode"}>
-               <ToggleList value={endMode} onValue={setEndMode} options={POSITION_MODES} />
+               <ToggleList value={endMode} onValue={setEndMode} options={POSITION_MODE_OPTIONS} />
             </BaseNode.Input>
             <SocketIn<ISegmentNode> nodeId={nodeId} socketId={"endX"} type={SocketTypes.LENGTH}>
                <BaseNode.Input label={"X Coordinate"}>
-                  <LengthInput value={endX} onCommit={setEndX} disabled={hasEndX || endMode === "polar"} />
+                  <LengthInput value={endX} onCommit={setEndX} disabled={hasEndX || endMode === PositionModes.POLAR} />
                </BaseNode.Input>
             </SocketIn>
             <SocketIn<ISegmentNode> nodeId={nodeId} socketId={"endY"} type={SocketTypes.LENGTH}>
                <BaseNode.Input label={"Y Coordinate"}>
-                  <LengthInput value={endY} onCommit={setEndY} disabled={hasEndY || endMode === "polar"} />
+                  <LengthInput value={endY} onCommit={setEndY} disabled={hasEndY || endMode === PositionModes.POLAR} />
                </BaseNode.Input>
             </SocketIn>
             <SocketIn<ISegmentNode> nodeId={nodeId} socketId={"endRadius"} type={SocketTypes.LENGTH}>
                <BaseNode.Input label={"Radius"}>
-                  <LengthInput value={endRadius} onCommit={setEndRadius} disabled={hasEndRadius || endMode === "cartesian"} />
+                  <LengthInput value={endRadius} onCommit={setEndRadius} disabled={hasEndRadius || endMode === PositionModes.CARTESIAN} />
                </BaseNode.Input>
             </SocketIn>
             <SocketIn<ISegmentNode> nodeId={nodeId} socketId={"endTheta"} type={SocketTypes.ANGLE}>
                <BaseNode.Input label={"θ Angle"}>
-                  <AngleInput value={endTheta} onValidValue={setEndTheta} disabled={hasEndTheta || endMode === "cartesian"} />
+                  <AngleInput value={endTheta} onValidValue={setEndTheta} disabled={hasEndTheta || endMode === PositionModes.CARTESIAN} />
                </BaseNode.Input>
             </SocketIn>
          </BaseNode.Foldout>
@@ -204,7 +199,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                </BaseNode.Input>
             </SocketIn>
             <BaseNode.Input label={"Stroke Cap"}>
-               <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODES} />
+               <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODE_OPTIONS} />
             </BaseNode.Input>
             <BaseNode.Input label={"Stroke Dash"}>
                <TextInput value={strokeDash} onValidValue={setStrokeDash} pattern={MathHelper.LENGTH_LIST_REGEX} />
@@ -262,20 +257,28 @@ const Pather = memo(({ nodeId, depth, globals, pathId, pathLength }: NodePatherP
    const rotation = nodeHooks.useCoalesce(nodeId, "rotation", "rotation", globals);
 
    const x1 = useMemo(
-      () => (startMode === "cartesian" ? MathHelper.lengthToPx(startX) : MathHelper.lengthToPx(startRadius) * Math.cos(((startTheta - 90) * Math.PI) / 180)),
+      () =>
+         startMode === PositionModes.CARTESIAN
+            ? MathHelper.lengthToPx(startX)
+            : MathHelper.lengthToPx(startRadius) * Math.cos(((startTheta - 90) * Math.PI) / 180),
       [startMode, startRadius, startTheta, startX]
    );
    const y1 = useMemo(
-      () => (startMode === "cartesian" ? MathHelper.lengthToPx(startY) : MathHelper.lengthToPx(startRadius) * Math.sin(((startTheta - 90) * Math.PI) / 180)),
+      () =>
+         startMode === PositionModes.CARTESIAN
+            ? MathHelper.lengthToPx(startY)
+            : MathHelper.lengthToPx(startRadius) * Math.sin(((startTheta - 90) * Math.PI) / 180),
       [startMode, startRadius, startTheta, startY]
    );
 
    const x2 = useMemo(
-      () => (endMode === "cartesian" ? MathHelper.lengthToPx(endX) : MathHelper.lengthToPx(endRadius) * Math.cos(((endTheta - 90) * Math.PI) / 180)),
+      () =>
+         endMode === PositionModes.CARTESIAN ? MathHelper.lengthToPx(endX) : MathHelper.lengthToPx(endRadius) * Math.cos(((endTheta - 90) * Math.PI) / 180),
       [endMode, endRadius, endTheta, endX]
    );
    const y2 = useMemo(
-      () => (endMode === "cartesian" ? MathHelper.lengthToPx(endY) : MathHelper.lengthToPx(endRadius) * Math.sin(((endTheta - 90) * Math.PI) / 180)),
+      () =>
+         endMode === PositionModes.CARTESIAN ? MathHelper.lengthToPx(endY) : MathHelper.lengthToPx(endRadius) * Math.sin(((endTheta - 90) * Math.PI) / 180),
       [endMode, endRadius, endTheta, endY]
    );
 
@@ -318,20 +321,28 @@ const Renderer = memo(({ nodeId, depth, globals, overrides = {} }: NodeRendererP
    const rotation = nodeHooks.useCoalesce(nodeId, "rotation", "rotation", globals);
 
    const x1 = useMemo(
-      () => (startMode === "cartesian" ? MathHelper.lengthToPx(startX) : MathHelper.lengthToPx(startRadius) * Math.cos(((startTheta - 90) * Math.PI) / 180)),
+      () =>
+         startMode === PositionModes.CARTESIAN
+            ? MathHelper.lengthToPx(startX)
+            : MathHelper.lengthToPx(startRadius) * Math.cos(((startTheta - 90) * Math.PI) / 180),
       [startMode, startRadius, startTheta, startX]
    );
    const y1 = useMemo(
-      () => (startMode === "cartesian" ? MathHelper.lengthToPx(startY) : MathHelper.lengthToPx(startRadius) * Math.sin(((startTheta - 90) * Math.PI) / 180)),
+      () =>
+         startMode === PositionModes.CARTESIAN
+            ? MathHelper.lengthToPx(startY)
+            : MathHelper.lengthToPx(startRadius) * Math.sin(((startTheta - 90) * Math.PI) / 180),
       [startMode, startRadius, startTheta, startY]
    );
 
    const x2 = useMemo(
-      () => (endMode === "cartesian" ? MathHelper.lengthToPx(endX) : MathHelper.lengthToPx(endRadius) * Math.cos(((endTheta - 90) * Math.PI) / 180)),
+      () =>
+         endMode === PositionModes.CARTESIAN ? MathHelper.lengthToPx(endX) : MathHelper.lengthToPx(endRadius) * Math.cos(((endTheta - 90) * Math.PI) / 180),
       [endMode, endRadius, endTheta, endX]
    );
    const y2 = useMemo(
-      () => (endMode === "cartesian" ? MathHelper.lengthToPx(endY) : MathHelper.lengthToPx(endRadius) * Math.sin(((endTheta - 90) * Math.PI) / 180)),
+      () =>
+         endMode === PositionModes.CARTESIAN ? MathHelper.lengthToPx(endY) : MathHelper.lengthToPx(endRadius) * Math.sin(((endTheta - 90) * Math.PI) / 180),
       [endMode, endRadius, endTheta, endY]
    );
 
@@ -386,13 +397,13 @@ const SegmentNodeHelper: INodeHelper<ISegmentNode> = {
       endRadius: { value: 100, unit: "px" },
       endTheta: 180,
 
-      startMode: "cartesian",
-      endMode: "cartesian",
+      startMode: PositionModes.CARTESIAN,
+      endMode: PositionModes.CARTESIAN,
 
       strokeWidth: { value: 1, unit: "px" },
       strokeDash: "",
       strokeOffset: { value: 0, unit: "px" },
-      strokeCap: "butt",
+      strokeCap: StrokeCapModes.BUTT,
       strokeColor: { r: 0, g: 0, b: 0, a: 1 },
       fillColor: null as Color,
       strokeMarkAlign: true,
@@ -403,7 +414,7 @@ const SegmentNodeHelper: INodeHelper<ISegmentNode> = {
       positionY: { value: 0, unit: "px" },
       positionRadius: { value: 0, unit: "px" },
       positionTheta: 0,
-      positionMode: "cartesian",
+      positionMode: PositionModes.CARTESIAN,
       rotation: 0,
    }),
    controls: Controls,

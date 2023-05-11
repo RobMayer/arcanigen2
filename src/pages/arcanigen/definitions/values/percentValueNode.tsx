@@ -1,6 +1,6 @@
 import { memo } from "react";
 import ArcaneGraph from "../graph";
-import { ControlRendererProps, IArcaneGraph, INodeDefinition, INodeHelper, NodeTypes, SocketTypes } from "../types";
+import { ControlRendererProps, IArcaneGraph, INodeDefinition, INodeHelper } from "../types";
 
 import { faPercentage as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 import { faPercentage as buttonIcon } from "@fortawesome/pro-light-svg-icons";
@@ -9,6 +9,7 @@ import BaseNode from "../../nodeView/node";
 import MathHelper from "!/utility/mathhelper";
 import SliderInput from "!/components/inputs/SliderInput";
 import { MetaPrefab } from "../../nodeView/prefabs";
+import { SocketTypes, NodeTypes } from "!/utility/enums";
 
 interface IPercentValueNode extends INodeDefinition {
    inputs: {};

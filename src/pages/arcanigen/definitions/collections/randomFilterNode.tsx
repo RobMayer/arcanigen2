@@ -1,6 +1,6 @@
 import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
-import { ControlRendererProps, IArcaneGraph, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, NodeTypes, SocketTypes } from "../types";
+import { ControlRendererProps, IArcaneGraph, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps } from "../types";
 
 import { faFilter as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 import { faFilter as buttonIcon } from "@fortawesome/pro-light-svg-icons";
@@ -10,6 +10,7 @@ import { MetaPrefab } from "../../nodeView/prefabs";
 import MathHelper from "!/utility/mathhelper";
 import SliderInput from "!/components/inputs/SliderInput";
 import NumberInput from "!/components/inputs/NumberInput";
+import { SocketTypes, NodeTypes } from "!/utility/enums";
 
 interface IRandomFilterNode extends INodeDefinition {
    inputs: {

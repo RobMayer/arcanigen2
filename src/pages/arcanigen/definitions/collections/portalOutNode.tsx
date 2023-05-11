@@ -3,13 +3,11 @@ import {
    INodeDefinition,
    NodeRenderer,
    INodeHelper,
-   NodeTypes,
    INodeInstance,
-   SocketTypes,
    NodeRendererProps,
    ControlRendererProps,
    PortalBus,
-   Globals,
+   GraphGlobals,
    IArcaneGraph,
    ILinkInstance,
 } from "../types";
@@ -25,6 +23,7 @@ import { SocketIn, SocketOut } from "../../nodeView/socket";
 import styled from "styled-components";
 import NumberInput from "!/components/inputs/NumberInput";
 import { MetaPrefab } from "../../nodeView/prefabs";
+import { SocketTypes, NodeTypes } from "!/utility/enums";
 
 interface IPortalOutNode extends INodeDefinition {
    values: {
@@ -176,7 +175,7 @@ const PortalOutNodeHelper: INodeHelper<IPortalOutNode> = {
    flavour: "danger",
    nodeIcon,
    type: NodeTypes.COL_PORTAL_OUT,
-   getOutput: (theGraph: IArcaneGraph, myNode: string, requestedSocket: string, theGlobals: Globals) => {
+   getOutput: (theGraph: IArcaneGraph, myNode: string, requestedSocket: string, theGlobals: GraphGlobals) => {
       const channels = nodeMethods.getValue(theGraph, myNode, "channels") ?? {};
       const channelId = channels[requestedSocket] ?? null;
 

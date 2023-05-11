@@ -1,17 +1,6 @@
 import { v4 as uuid } from "uuid";
-import {
-   INodeDefinition,
-   NodeRenderer,
-   INodeHelper,
-   NodeTypes,
-   BlendMode,
-   INodeInstance,
-   BLEND_MODES,
-   SocketTypes,
-   NodeRendererProps,
-   ControlRendererProps,
-   ILinkInstance,
-} from "../types";
+import { INodeDefinition, NodeRenderer, INodeHelper, INodeInstance, NodeRendererProps, ControlRendererProps, ILinkInstance } from "../types";
+import { BlendMode, BLEND_MODE_OPTIONS, BlendModes, NodeTypes, SocketTypes } from "../../../../utility/enums";
 import { faClose, faLayerGroup as nodeIcon, faPlus, faUpDown } from "@fortawesome/pro-solid-svg-icons";
 import { faLayerGroup as buttonIcon } from "@fortawesome/pro-light-svg-icons";
 import ArcaneGraph from "../graph";
@@ -56,7 +45,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          return {
             ...p,
             sockets: [...p.sockets, sId],
-            modes: { ...p.modes, [sId]: "normal" },
+            modes: { ...p.modes, [sId]: BlendModes.NORMAL },
             enabled: { ...p.enabled, [sId]: true },
             in: {
                ...p.in,
@@ -213,7 +202,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                         />
                         <Dropdown
                            value={node.modes[id]}
-                           options={BLEND_MODES}
+                           options={BLEND_MODE_OPTIONS}
                            onValue={(e) => {
                               setLayerMode(id, e);
                            }}
@@ -295,7 +284,7 @@ const Each = ({
    const [Comp, childId] = nodeHooks.useInputNode(nodeId, socketId, newGlobalsglobals);
    const styles = useMemo(
       () => ({
-         mixBlendMode: blendMode ?? "normal",
+         mixBlendMode: blendMode ?? BlendModes.NORMAL,
       }),
       [blendMode]
    );
@@ -318,7 +307,7 @@ const LayersNodeHelper: INodeHelper<ILayersNode> = {
       const socketId = uuid();
       return {
          sockets: [socketId],
-         modes: { [socketId]: "normal" },
+         modes: { [socketId]: BlendModes.NORMAL },
          enabled: { [socketId]: true },
          in: {
             [socketId]: null,

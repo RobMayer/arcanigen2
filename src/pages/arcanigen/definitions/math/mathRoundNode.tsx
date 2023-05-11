@@ -1,6 +1,7 @@
 import { memo } from "react";
 import ArcaneGraph from "../graph";
-import { ControlRendererProps, Globals, IArcaneGraph, INodeDefinition, INodeHelper, NodeTypes, RoundingMode, ROUNDING_MODES, SocketTypes } from "../types";
+import { ControlRendererProps, GraphGlobals, IArcaneGraph, INodeDefinition, INodeHelper } from "../types";
+import { RoundingMode, ROUNDING_MODE_OPTIONS, RoundingModes, NodeTypes, SocketTypes } from "../../../../utility/enums";
 import { faBracketsSquare as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 import { faBracketsSquare as buttonIcon } from "@fortawesome/pro-light-svg-icons";
 import Dropdown from "!/components/selectors/Dropdown";
@@ -36,14 +37,14 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             Output
          </SocketOut>
          <BaseNode.Input label={"Rounding Method"}>
-            <Dropdown value={roundingMode} options={ROUNDING_MODES} onValue={setRoundingMode} />
+            <Dropdown value={roundingMode} options={ROUNDING_MODE_OPTIONS} onValue={setRoundingMode} />
          </BaseNode.Input>
          <MetaPrefab nodeId={nodeId} hooks={nodeHooks} />
       </BaseNode>
    );
 });
 
-const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof IMathRndNode["outputs"], globals: Globals) => {
+const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof IMathRndNode["outputs"], globals: GraphGlobals) => {
    const value = nodeMethods.getInput(graph, nodeId, "input", globals) ?? 0;
    return MathHelper.round(value, nodeMethods.getValue(graph, nodeId, "roundingMode"));
 };
@@ -58,7 +59,7 @@ const MathRndNodeHelper: INodeHelper<IMathRndNode> = {
    type: NodeTypes.MATH_RND,
    getOutput,
    initialize: () => ({
-      roundingMode: "nearestUp",
+      roundingMode: RoundingModes.NEAREST_UP,
    }),
    controls: Controls,
 };

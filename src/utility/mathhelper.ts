@@ -1,4 +1,5 @@
-import { AngleLerpMode, Interpolator, RoundingMode } from "!/pages/arcanigen/definitions/types";
+import { Interpolator } from "!/pages/arcanigen/definitions/types";
+import { AngleLerpMode, AngleLerpModes, PositionMode, PositionModes, RoundingMode, RoundingModes } from "!/utility/enums";
 import lodash from "lodash";
 import ColorConvert, { ColorFields } from "./colorconvert";
 import { Length, Color } from "./types/units";
@@ -96,17 +97,17 @@ export const angleLerp = (t: number, a: number, b: number, mode: AngleLerpMode, 
    const cw = mod(lerp(t, a, b + (a > b ? 1 : 0), interpolator), 1);
    const ccw = mod(lerp(t, a + (a < b ? 1 : 0), b, interpolator), 1);
    switch (mode) {
-      case "closestCW":
+      case AngleLerpModes.CLOSEST_CW:
          return Math.abs(b - a) > 0.5 ? ccw : cw;
-      case "closestCCW":
+      case AngleLerpModes.CLOSEST_CCW:
          return Math.abs(b - a) >= 0.5 ? ccw : cw;
-      case "farthestCW":
+      case AngleLerpModes.FARTHEST_CW:
          return Math.abs(b - a) >= 0.5 ? cw : ccw;
-      case "farthestCCW":
+      case AngleLerpModes.FARTHEST_CCW:
          return Math.abs(b - a) > 0.5 ? cw : ccw;
-      case "clockwise":
+      case AngleLerpModes.CLOCKWISE:
          return cw;
-      case "counter":
+      case AngleLerpModes.COUNTER:
          return ccw;
    }
 };
@@ -207,8 +208,8 @@ export const colorToOpacity = (color: Color, fallback: number = 1) => {
 export const WHITE = { r: 1.0, g: 1.0, b: 1.0, a: 1.0 };
 export const BLACK = { r: 0.0, g: 0.0, b: 0.0, a: 1.0 };
 
-const getPosition = (mode: "cartesian" | "polar", x: Length, y: Length, theta: number, r: Length) => {
-   if (mode === "polar") {
+const getPosition = (mode: PositionMode, x: Length, y: Length, theta: number, r: Length) => {
+   if (mode === PositionModes.POLAR) {
       const nX = lengthToPx(r) * Math.cos(((theta - 90) * Math.PI) / 180);
       const nY = lengthToPx(r) * Math.sin(((theta - 90) * Math.PI) / 180);
 
@@ -246,7 +247,7 @@ export const colorLerp = <T extends keyof ColorFields>(
    from: Color,
    to: Color,
    colorSpace: T = "RGB" as T,
-   hueMode: AngleLerpMode = "closestCW",
+   hueMode: AngleLerpMode = AngleLerpModes.CLOSEST_CW,
    distribution: Interpolator = DEFUALT_INTERPOLATOR
 ) => {
    const a = ColorConvert[`color2${colorSpace}`](from) as ColorFields[T];
@@ -271,21 +272,21 @@ export const colorLerp = <T extends keyof ColorFields>(
 
 export const round = (t: number, method: RoundingMode) => {
    switch (method) {
-      case "nearestUp":
+      case RoundingModes.NEAREST_UP:
          return Math.round(t);
-      case "nearestDown":
+      case RoundingModes.NEAREST_DOWN:
          return mod(t, 1) === 0.5 ? Math.floor(t) : Math.round(t);
-      case "ceiling":
+      case RoundingModes.CEILING:
          return Math.ceil(t);
-      case "floor":
+      case RoundingModes.FLOOR:
          return Math.floor(t);
-      case "nearestTowards":
+      case RoundingModes.NEAREST_TOWARDS:
          return mod(t, 1) === 0.5 ? (t > 0 ? Math.floor(t) : Math.ceil(t)) : Math.round(t);
-      case "nearestAway":
+      case RoundingModes.NEAREST_AWAY:
          return mod(t, 1) === 0.5 ? (t > 0 ? Math.ceil(t) : Math.floor(t)) : Math.round(t);
-      case "towards":
+      case RoundingModes.TOWARDS:
          return t > 0 ? Math.floor(t) : Math.ceil(t);
-      case "away":
+      case RoundingModes.AWAY:
          return t > 0 ? Math.ceil(t) : Math.floor(t);
    }
 };

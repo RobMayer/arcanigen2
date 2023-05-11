@@ -1,6 +1,6 @@
 import { memo } from "react";
 import ArcaneGraph from "../graph";
-import { ControlRendererProps, Globals, IArcaneGraph, INodeDefinition, INodeHelper, NodeTypes, SocketTypes } from "../types";
+import { ControlRendererProps, GraphGlobals, IArcaneGraph, INodeDefinition, INodeHelper } from "../types";
 
 import { faSplit as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 import { faSplit as buttonIcon } from "@fortawesome/pro-light-svg-icons";
@@ -10,6 +10,7 @@ import BaseNode from "../../nodeView/node";
 import { SocketIn, SocketOut } from "../../nodeView/socket";
 import { colorComponents } from "!/utility/colorconvert";
 import { MetaPrefab } from "../../nodeView/prefabs";
+import { SocketTypes, NodeTypes } from "!/utility/enums";
 
 interface ISplitColorNode extends INodeDefinition {
    inputs: {
@@ -120,7 +121,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    );
 });
 
-const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof ISplitColorNode["outputs"], globals: Globals) => {
+const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof ISplitColorNode["outputs"], globals: GraphGlobals) => {
    const v = nodeMethods.coalesce(graph, nodeId, "input", "value", globals);
    return colorComponents(v)[socket];
 };

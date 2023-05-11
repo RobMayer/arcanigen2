@@ -1,6 +1,6 @@
 import { memo } from "react";
 import ArcaneGraph from "../graph";
-import { ControlRendererProps, Globals, IArcaneGraph, INodeDefinition, INodeHelper, NodeTypes, SocketTypes } from "../types";
+import { ControlRendererProps, GraphGlobals, IArcaneGraph, INodeDefinition, INodeHelper } from "../types";
 
 import { faValueAbsolute as nodeIcon } from "@fortawesome/pro-regular-svg-icons";
 import { faValueAbsolute as buttonIcon } from "@fortawesome/pro-light-svg-icons";
@@ -8,6 +8,7 @@ import NumberInput from "!/components/inputs/NumberInput";
 import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
 import { MetaPrefab } from "../../nodeView/prefabs";
+import { SocketTypes, NodeTypes } from "!/utility/enums";
 
 interface IMathAbsNode extends INodeDefinition {
    inputs: {
@@ -51,7 +52,7 @@ const MathAbsNodeHelper: INodeHelper<IMathAbsNode> = {
    nodeIcon,
    flavour: "accent",
    type: NodeTypes.MATH_ABS,
-   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IMathAbsNode["outputs"], globals: Globals) => {
+   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IMathAbsNode["outputs"], globals: GraphGlobals) => {
       const a = nodeMethods.coalesce(graph, nodeId, "aIn", "a", globals);
       return Math.abs(a);
    },

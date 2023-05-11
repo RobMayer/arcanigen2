@@ -9,10 +9,11 @@ import { createContext, ReactNode, RefObject, useCallback, useContext, useEffect
 import styled from "styled-components";
 import { getNodeHelper } from "../definitions";
 import ArcaneGraph, { areSocketsCompatible } from "../definitions/graph";
-import { NodeMoveEvent, LinkEvent, ConnectionEvent, NodeTypes, LinkTypes, SocketTypes } from "../definitions/types";
+import { NodeMoveEvent, LinkEvent, ConnectionEvent } from "../definitions/types";
 import ConnectionCanvas from "./connections";
 import useDroppable from "!/utility/hooks/useDroppable";
 import useUIState from "!/utility/hooks/useUIState";
+import { NodeTypes, SocketTypes, LinkTypes, LinkType, SocketType, NodeType } from "!/utility/enums";
 
 type NodeGraphEvents = {
    [key: `node[${string}].move`]: NodeMoveEvent;
@@ -53,7 +54,7 @@ const NodeView = () => {
                   if (origin.current && canvasRef.current) {
                      const obb = origin.current.getBoundingClientRect();
                      const zoom = canvasRef.current.getZoom();
-                     addNode(type as NodeTypes, { x: (ev.clientX - obb.left) / zoom, y: (ev.clientY - obb.top) / zoom });
+                     addNode(type as NodeType, { x: (ev.clientX - obb.left) / zoom, y: (ev.clientY - obb.top) / zoom });
                   }
                },
             ],
@@ -116,7 +117,7 @@ const NodeView = () => {
    }, [connect]);
 
    const handleAdd = useCallback(
-      (type: NodeTypes) => {
+      (type: NodeType) => {
          if (origin.current && canvasRef.current) {
             const el = canvasRef.current.getElement();
             if (el) {
@@ -192,7 +193,7 @@ const Canvas = styled(DragCanvas)`
    border: 1px solid var(--effect-border-highlight);
 `;
 
-const EachNode = ({ type, nodeId }: { type: NodeTypes; nodeId: string }) => {
+const EachNode = ({ type, nodeId }: { type: NodeType; nodeId: string }) => {
    const helper = useMemo(() => getNodeHelper(type), [type]);
    const ControlsComponent = useMemo(() => helper.controls, [helper]);
    return <ControlsComponent nodeId={nodeId} globals={TMP_GLOBALS} />;
@@ -203,7 +204,7 @@ const TMP_GLOBALS = {
    portalData: {},
 };
 
-const getLinkType = (a: SocketTypes, b: SocketTypes): LinkTypes => {
+const getLinkType = (a: SocketType, b: SocketType): LinkType => {
    if (a === SocketTypes.PORTAL && b === SocketTypes.PORTAL) {
       return LinkTypes.PORTAL;
    }
@@ -221,7 +222,7 @@ const getLinkType = (a: SocketTypes, b: SocketTypes): LinkTypes => {
 
 export const useNodeGraphEventBus = () => useContext(EventCTX)!;
 
-const NodeButton = ({ children, type, onClick }: { children?: ReactNode; type: NodeTypes; onClick: (type: NodeTypes) => void }) => {
+const NodeButton = ({ children, type, onClick }: { children?: ReactNode; type: NodeType; onClick: (type: NodeType) => void }) => {
    const handleClick = useCallback(() => {
       onClick(type);
    }, [type, onClick]);

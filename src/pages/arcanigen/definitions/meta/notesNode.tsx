@@ -1,6 +1,6 @@
 import { ComponentProps, memo, useCallback, useEffect, useRef, useState } from "react";
 import ArcaneGraph, { useNodePosition } from "../graph";
-import { INodeDefinition, INodeHelper, NodeTypes } from "../types";
+import { INodeDefinition, INodeHelper } from "../types";
 
 import { faClose, faNoteSticky as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 import { faNoteSticky as buttonIcon } from "@fortawesome/pro-light-svg-icons";
@@ -10,6 +10,7 @@ import { useDragCanvasEvents } from "!/components/containers/DragCanvas";
 import styled from "styled-components";
 import { useNodeGraphEventBus } from "../../nodeView";
 import TextInput from "!/components/inputs/TextInput";
+import { NodeTypes } from "!/utility/enums";
 
 interface INotesNode extends INodeDefinition {
    inputs: {};

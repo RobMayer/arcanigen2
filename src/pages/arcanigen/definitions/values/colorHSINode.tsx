@@ -1,6 +1,6 @@
 import { HTMLAttributes, memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
-import { ControlRendererProps, Globals, IArcaneGraph, INodeDefinition, INodeHelper, NodeTypes, SocketTypes } from "../types";
+import { ControlRendererProps, GraphGlobals, IArcaneGraph, INodeDefinition, INodeHelper } from "../types";
 
 import { faPalette as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 import { faPalette as buttonIcon } from "@fortawesome/pro-light-svg-icons";
@@ -13,6 +13,7 @@ import styled from "styled-components";
 import MathHelper from "!/utility/mathhelper";
 import AngleInput from "!/components/inputs/AngleInput";
 import { MetaPrefab } from "../../nodeView/prefabs";
+import { SocketTypes, NodeTypes } from "!/utility/enums";
 
 interface IColorHSINode extends INodeDefinition {
    inputs: {
@@ -94,7 +95,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
 
 const nodeMethods = ArcaneGraph.nodeMethods<IColorHSINode>();
 
-const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof IColorHSINode["outputs"], globals: Globals) => {
+const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof IColorHSINode["outputs"], globals: GraphGlobals) => {
    const h = MathHelper.mod(nodeMethods.coalesce(graph, nodeId, "hIn", "h", globals), 360);
    const s = Math.max(0, Math.min(1, nodeMethods.coalesce(graph, nodeId, "sIn", "s", globals)));
    const i = Math.max(0, Math.min(1, nodeMethods.coalesce(graph, nodeId, "iIn", "i", globals)));

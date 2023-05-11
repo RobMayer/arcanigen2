@@ -2,25 +2,33 @@ import { memo, useEffect, useMemo } from "react";
 import ArcaneGraph from "../graph";
 import {
    ControlRendererProps,
-   Globals,
+   GraphGlobals,
    IArcaneGraph,
    INodeDefinition,
    INodeHelper,
    NodeRenderer,
    NodeRendererProps,
-   NodeTypes,
-   PositionMode,
-   ScribeMode,
-   SCRIBE_MODES,
-   SocketTypes,
-   StrokeJoinMode,
-   STROKEJOIN_MODES,
-   STROKECAP_MODES,
-   StrokeCapMode,
    NodePather,
    NodePatherProps,
    Interpolator,
 } from "../types";
+import {
+   PositionMode,
+   ScribeMode,
+   SCRIBE_MODE_OPTIONS,
+   StrokeJoinMode,
+   STROKEJOIN_MODE_OPTIONS,
+   STROKECAP_MODE_OPTIONS,
+   StrokeCapMode,
+   ScribeModes,
+   CrossScribeMode,
+   CrossScribeModes,
+   StrokeCapModes,
+   StrokeJoinModes,
+   NodeTypes,
+   SocketTypes,
+   PositionModes,
+} from "../../../../utility/enums";
 import MathHelper from "!/utility/mathhelper";
 
 import nodeIcon from "!/components/icons/faPentagram";
@@ -147,7 +155,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          <SocketIn<IPolygramNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
                <LengthInput value={radius} onValidValue={setRadius} disabled={hasRadius} />
-               <Dropdown value={rScribeMode} onValue={setRScribeMode} options={SCRIBE_MODES} />
+               <Dropdown value={rScribeMode} onValue={setRScribeMode} options={SCRIBE_MODE_OPTIONS} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IPolygramNode> nodeId={nodeId} socketId={"thetaCurve"} type={SocketTypes.CURVE}>
@@ -167,10 +175,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                </BaseNode.Input>
             </SocketIn>
             <BaseNode.Input label={"Stroke Join"}>
-               <ToggleList value={strokeJoin} onValue={setStrokeJoin} options={STROKEJOIN_MODES} />
+               <ToggleList value={strokeJoin} onValue={setStrokeJoin} options={STROKEJOIN_MODE_OPTIONS} />
             </BaseNode.Input>
             <BaseNode.Input label={"Stroke Cap"}>
-               <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODES} />
+               <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODE_OPTIONS} />
             </BaseNode.Input>
             <BaseNode.Input label={"Stroke Dash"}>
                <TextInput value={strokeDash} onValidValue={setStrokeDash} pattern={MathHelper.LENGTH_LIST_REGEX} />
@@ -341,7 +349,7 @@ const PolygramNodeHelper: INodeHelper<IPolygramNode> = {
    nodeIcon,
    flavour: "emphasis",
    type: NodeTypes.SHAPE_POLYGRAM,
-   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IPolygramNode["outputs"], globals: Globals) => {
+   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IPolygramNode["outputs"], globals: GraphGlobals) => {
       if (socket === "output") {
          return Renderer;
       }
@@ -357,11 +365,11 @@ const PolygramNodeHelper: INodeHelper<IPolygramNode> = {
 
       switch (socket) {
          case "rTangents":
-            return MathHelper.pxToLength(getPassedRadius(tR, "tangents", pointCount, skipCount));
+            return MathHelper.pxToLength(getPassedRadius(tR, CrossScribeModes.TANGENTS, pointCount, skipCount));
          case "rPoints":
-            return MathHelper.pxToLength(getPassedRadius(tR, "points", pointCount, skipCount));
+            return MathHelper.pxToLength(getPassedRadius(tR, CrossScribeModes.POINTS, pointCount, skipCount));
          case "rMiddle":
-            return MathHelper.pxToLength(getPassedRadius(tR, "middle", pointCount, skipCount));
+            return MathHelper.pxToLength(getPassedRadius(tR, CrossScribeModes.MIDDLE, pointCount, skipCount));
       }
    },
    initialize: () => ({
@@ -369,19 +377,19 @@ const PolygramNodeHelper: INodeHelper<IPolygramNode> = {
       strokeWidth: { value: 1, unit: "px" },
       pointCount: 5,
       skipCount: 1,
-      strokeJoin: "miter",
-      rScribeMode: "inscribe",
+      rScribeMode: ScribeModes.INSCRIBE,
       strokeColor: { r: 0, g: 0, b: 0, a: 1 },
       strokeDash: "",
       strokeOffset: { value: 0, unit: "px" },
-      strokeCap: "butt",
+      strokeCap: StrokeCapModes.BUTT,
+      strokeJoin: StrokeJoinModes.MITER,
       fillColor: null as Color,
 
       positionX: { value: 0, unit: "px" },
       positionY: { value: 0, unit: "px" },
       positionRadius: { value: 0, unit: "px" },
       positionTheta: 0,
-      positionMode: "cartesian",
+      positionMode: PositionModes.CARTESIAN,
       rotation: 0,
    }),
    controls: Controls,
@@ -391,17 +399,17 @@ export default PolygramNodeHelper;
 
 const getTrueRadius = (r: number, scribe: ScribeMode, sides: number) => {
    switch (scribe) {
-      case "middle":
+      case ScribeModes.MIDDLE:
          return (r + r / Math.cos(Math.PI / sides)) / 2;
-      case "circumscribe":
+      case ScribeModes.CIRCUMSCRIBE:
          return r / Math.cos(Math.PI / sides);
-      case "inscribe":
+      case ScribeModes.INSCRIBE:
          return r;
    }
 };
 
-const getPassedRadius = (r: number, desired: "middle" | "points" | "tangents", pointCount: number, skipCount: number) => {
-   if (desired === "points") {
+const getPassedRadius = (r: number, desired: CrossScribeMode, pointCount: number, skipCount: number) => {
+   if (desired === CrossScribeModes.POINTS) {
       return r;
    }
 
@@ -417,9 +425,9 @@ const getPassedRadius = (r: number, desired: "middle" | "points" | "tangents", p
    const tR = Math.sqrt(((start.x + end.x) / 2) * ((start.x + end.x) / 2) + ((start.y + end.y) / 2) * ((start.y + end.y) / 2));
 
    switch (desired) {
-      case "middle":
+      case CrossScribeModes.MIDDLE:
          return (r + tR) / 2;
-      case "tangents":
+      case CrossScribeModes.TANGENTS:
          return tR;
    }
 };

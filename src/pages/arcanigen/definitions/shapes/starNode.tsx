@@ -7,21 +7,28 @@ import {
    INodeHelper,
    NodeRenderer,
    NodeRendererProps,
-   NodeTypes,
-   PositionMode,
-   SocketTypes,
-   StrokeJoinMode,
-   STROKEJOIN_MODES,
-   SCRIBE_MODES,
-   ScribeMode,
-   RadialMode,
-   RADIAL_MODES,
-   Globals,
-   STROKECAP_MODES,
-   StrokeCapMode,
+   GraphGlobals,
    NodePatherProps,
    Interpolator,
 } from "../types";
+import {
+   PositionMode,
+   StrokeJoinMode,
+   STROKEJOIN_MODE_OPTIONS,
+   SCRIBE_MODE_OPTIONS,
+   ScribeMode,
+   RadialMode,
+   RADIAL_MODE_OPTIONS,
+   STROKECAP_MODE_OPTIONS,
+   StrokeCapMode,
+   ScribeModes,
+   RadialModes,
+   NodeTypes,
+   SocketTypes,
+   PositionModes,
+   StrokeCapModes,
+   StrokeJoinModes,
+} from "../../../../utility/enums";
 import MathHelper from "!/utility/mathhelper";
 
 import { faStar as nodeIcon } from "@fortawesome/pro-regular-svg-icons";
@@ -155,29 +162,29 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             </BaseNode.Input>
          </SocketIn>
          <BaseNode.Input label={"Radial Mode"}>
-            <ToggleList value={radialMode} onValue={setRadialMode} options={RADIAL_MODES} />
+            <ToggleList value={radialMode} onValue={setRadialMode} options={RADIAL_MODE_OPTIONS} />
          </BaseNode.Input>
          <SocketIn<IStarNode> nodeId={nodeId} socketId={"majorRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Major Radius"}>
-               <LengthInput value={majorRadius} onValidValue={setMajorRadius} disabled={hasMajorRadius || radialMode === "deviation"} />
-               <Dropdown value={majorScribeMode} onValue={setMajorScribeMode} options={SCRIBE_MODES} disabled={radialMode === "deviation"} />
+               <LengthInput value={majorRadius} onValidValue={setMajorRadius} disabled={hasMajorRadius || radialMode === RadialModes.DEVIATION} />
+               <Dropdown value={majorScribeMode} onValue={setMajorScribeMode} options={SCRIBE_MODE_OPTIONS} disabled={radialMode === RadialModes.DEVIATION} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IStarNode> nodeId={nodeId} socketId={"minorRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Minor Radius"}>
-               <LengthInput value={minorRadius} onValidValue={setMinorRadius} disabled={hasMinorRadius || radialMode === "deviation"} />
-               <Dropdown value={minorScribeMode} onValue={setMinorScribeMode} options={SCRIBE_MODES} disabled={radialMode === "deviation"} />
+               <LengthInput value={minorRadius} onValidValue={setMinorRadius} disabled={hasMinorRadius || radialMode === RadialModes.DEVIATION} />
+               <Dropdown value={minorScribeMode} onValue={setMinorScribeMode} options={SCRIBE_MODE_OPTIONS} disabled={radialMode === RadialModes.DEVIATION} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IStarNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
-               <LengthInput value={radius} onValidValue={setRadius} disabled={hasRadius || radialMode === "majorminor"} />
-               <Dropdown value={rScribeMode} onValue={setRScribeMode} options={SCRIBE_MODES} disabled={radialMode === "majorminor"} />
+               <LengthInput value={radius} onValidValue={setRadius} disabled={hasRadius || radialMode === RadialModes.MAJORMINOR} />
+               <Dropdown value={rScribeMode} onValue={setRScribeMode} options={SCRIBE_MODE_OPTIONS} disabled={radialMode === RadialModes.MAJORMINOR} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IStarNode> nodeId={nodeId} socketId={"deviation"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Deviation"}>
-               <LengthInput value={deviation} onValidValue={setDeviation} disabled={hasDeviation || radialMode === "majorminor"} />
+               <LengthInput value={deviation} onValidValue={setDeviation} disabled={hasDeviation || radialMode === RadialModes.MAJORMINOR} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IStarNode> nodeId={nodeId} socketId={"smoothing"} type={SocketTypes.PERCENT}>
@@ -207,10 +214,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                </BaseNode.Input>
             </SocketIn>
             <BaseNode.Input label={"Stroke Join"}>
-               <ToggleList value={strokeJoin} onValue={setStrokeJoin} options={STROKEJOIN_MODES} />
+               <ToggleList value={strokeJoin} onValue={setStrokeJoin} options={STROKEJOIN_MODE_OPTIONS} />
             </BaseNode.Input>
             <BaseNode.Input label={"Stroke Cap"}>
-               <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODES} />
+               <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODE_OPTIONS} />
             </BaseNode.Input>
             <BaseNode.Input label={"Stroke Dash"}>
                <TextInput value={strokeDash} onValidValue={setStrokeDash} pattern={MathHelper.LENGTH_LIST_REGEX} />
@@ -296,11 +303,11 @@ const Pather = memo(({ nodeId, globals, pathId, pathLength }: NodePatherProps) =
 
    const points = useMemo(() => {
       const rI =
-         radialMode === "majorminor"
+         radialMode === RadialModes.MAJORMINOR
             ? getTrueRadius(MathHelper.lengthToPx(minorRadius), minorScribeMode, pointCount)
             : getTrueRadius(MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(deviation), rScribeMode, pointCount);
       const rO =
-         radialMode === "majorminor"
+         radialMode === RadialModes.MAJORMINOR
             ? getTrueRadius(MathHelper.lengthToPx(majorRadius), majorScribeMode, pointCount)
             : getTrueRadius(MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(deviation), rScribeMode, pointCount);
 
@@ -398,11 +405,11 @@ const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) =
 
    const points = useMemo(() => {
       const rI =
-         radialMode === "majorminor"
+         radialMode === RadialModes.MAJORMINOR
             ? getTrueRadius(MathHelper.lengthToPx(minorRadius), minorScribeMode, pointCount)
             : getTrueRadius(MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(deviation), rScribeMode, pointCount);
       const rO =
-         radialMode === "majorminor"
+         radialMode === RadialModes.MAJORMINOR
             ? getTrueRadius(MathHelper.lengthToPx(majorRadius), majorScribeMode, pointCount)
             : getTrueRadius(MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(deviation), rScribeMode, pointCount);
 
@@ -487,7 +494,7 @@ const StarNodeHelper: INodeHelper<IStarNode> = {
    nodeIcon,
    flavour: "emphasis",
    type: NodeTypes.SHAPE_STAR,
-   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IStarNode["outputs"], globals: Globals) => {
+   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IStarNode["outputs"], globals: GraphGlobals) => {
       if (socket === "output") {
          return Renderer;
       }
@@ -508,11 +515,11 @@ const StarNodeHelper: INodeHelper<IStarNode> = {
       const pointCount = nodeMethods.getValue(graph, nodeId, "pointCount");
 
       const tI =
-         radialMode === "majorminor"
+         radialMode === RadialModes.MAJORMINOR
             ? getTrueRadius(MathHelper.lengthToPx(minorRadius), minorScribeMode, pointCount)
             : getTrueRadius(MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(deviation), rScribeMode, pointCount);
       const tO =
-         radialMode === "majorminor"
+         radialMode === RadialModes.MAJORMINOR
             ? getTrueRadius(MathHelper.lengthToPx(majorRadius), majorScribeMode, pointCount)
             : getTrueRadius(MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(deviation), rScribeMode, pointCount);
 
@@ -520,43 +527,43 @@ const StarNodeHelper: INodeHelper<IStarNode> = {
 
       switch (socket) {
          case "cInscribe":
-            return MathHelper.pxToLength(getPassedRadius(tR, "inscribe", pointCount));
+            return MathHelper.pxToLength(getPassedRadius(tR, ScribeModes.INSCRIBE, pointCount));
          case "cCircumscribe":
-            return MathHelper.pxToLength(getPassedRadius(tR, "circumscribe", pointCount));
+            return MathHelper.pxToLength(getPassedRadius(tR, ScribeModes.CIRCUMSCRIBE, pointCount));
          case "cMiddle":
-            return MathHelper.pxToLength(getPassedRadius(tR, "middle", pointCount));
+            return MathHelper.pxToLength(getPassedRadius(tR, ScribeModes.MIDDLE, pointCount));
          case "oInscribe":
-            return MathHelper.pxToLength(getPassedRadius(tO, "inscribe", pointCount));
+            return MathHelper.pxToLength(getPassedRadius(tO, ScribeModes.INSCRIBE, pointCount));
          case "oCircumscribe":
-            return MathHelper.pxToLength(getPassedRadius(tO, "circumscribe", pointCount));
+            return MathHelper.pxToLength(getPassedRadius(tO, ScribeModes.CIRCUMSCRIBE, pointCount));
          case "oMiddle":
-            return MathHelper.pxToLength(getPassedRadius(tO, "middle", pointCount));
+            return MathHelper.pxToLength(getPassedRadius(tO, ScribeModes.MIDDLE, pointCount));
          case "iInscribe":
-            return MathHelper.pxToLength(getPassedRadius(tI, "inscribe", pointCount));
+            return MathHelper.pxToLength(getPassedRadius(tI, ScribeModes.INSCRIBE, pointCount));
          case "iCircumscribe":
-            return MathHelper.pxToLength(getPassedRadius(tI, "circumscribe", pointCount));
+            return MathHelper.pxToLength(getPassedRadius(tI, ScribeModes.CIRCUMSCRIBE, pointCount));
          case "iMiddle":
-            return MathHelper.pxToLength(getPassedRadius(tI, "middle", pointCount));
+            return MathHelper.pxToLength(getPassedRadius(tI, ScribeModes.MIDDLE, pointCount));
       }
    },
    initialize: () => ({
       radius: { value: 110, unit: "px" },
       deviation: { value: 50, unit: "px" },
-      radialMode: "majorminor",
+      radialMode: RadialModes.MAJORMINOR,
       pointCount: 5,
       minorRadius: { value: 60, unit: "px" },
       majorRadius: { value: 160, unit: "px" },
       smoothing: 0,
       cusping: 0,
-      rScribeMode: "inscribe",
-      minorScribeMode: "inscribe",
-      majorScribeMode: "inscribe",
+      rScribeMode: ScribeModes.INSCRIBE,
+      minorScribeMode: ScribeModes.INSCRIBE,
+      majorScribeMode: ScribeModes.INSCRIBE,
 
       strokeWidth: { value: 1, unit: "px" },
-      strokeJoin: "miter",
+      strokeJoin: StrokeJoinModes.MITER,
       strokeDash: "",
       strokeOffset: { value: 0, unit: "px" },
-      strokeCap: "butt",
+      strokeCap: StrokeCapModes.BUTT,
       strokeColor: { r: 0, g: 0, b: 0, a: 1 },
       fillColor: null as Color,
 
@@ -564,7 +571,7 @@ const StarNodeHelper: INodeHelper<IStarNode> = {
       positionY: { value: 0, unit: "px" },
       positionRadius: { value: 0, unit: "px" },
       positionTheta: 0,
-      positionMode: "cartesian",
+      positionMode: PositionModes.CARTESIAN,
       rotation: 0,
    }),
    controls: Controls,
@@ -574,22 +581,22 @@ export default StarNodeHelper;
 
 const getTrueRadius = (r: number, scribe: ScribeMode, sides: number) => {
    switch (scribe) {
-      case "middle":
+      case ScribeModes.MIDDLE:
          return (r + r / Math.cos(Math.PI / sides)) / 2;
-      case "circumscribe":
+      case ScribeModes.CIRCUMSCRIBE:
          return r / Math.cos(Math.PI / sides);
-      case "inscribe":
+      case ScribeModes.INSCRIBE:
          return r;
    }
 };
 
 const getPassedRadius = (r: number, desired: ScribeMode, sides: number) => {
    switch (desired) {
-      case "middle":
+      case ScribeModes.MIDDLE:
          return (r + r * Math.cos(Math.PI / sides)) / 2;
-      case "circumscribe":
+      case ScribeModes.CIRCUMSCRIBE:
          return r;
-      case "inscribe":
+      case ScribeModes.INSCRIBE:
          return r * Math.cos(Math.PI / sides);
    }
 };

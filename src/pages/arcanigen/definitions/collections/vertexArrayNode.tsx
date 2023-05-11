@@ -2,20 +2,16 @@ import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
 import {
    ControlRendererProps,
-   Globals,
+   GraphGlobals,
    IArcaneGraph,
    INodeDefinition,
    INodeHelper,
    NodeRenderer,
    NodeRendererProps,
-   NodeTypes,
-   PositionMode,
-   ScribeMode,
-   SCRIBE_MODES,
    Sequence,
-   SocketTypes,
    Interpolator,
 } from "../types";
+import { PositionMode, ScribeMode, SCRIBE_MODE_OPTIONS, ScribeModes, NodeTypes, SocketTypes, PositionModes } from "../../../../utility/enums";
 import MathHelper from "!/utility/mathhelper";
 
 import { faVectorCircle as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
@@ -91,7 +87,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          <SocketIn<IVertexArrayNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
                <LengthInput value={radius} onValidValue={setRadius} disabled={hasRadius} />
-               <Dropdown value={rScribeMode} onValue={setRScribeMode} options={SCRIBE_MODES} />
+               <Dropdown value={rScribeMode} onValue={setRScribeMode} options={SCRIBE_MODE_OPTIONS} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IVertexArrayNode> nodeId={nodeId} socketId={"thetaCurve"} type={SocketTypes.CURVE}>
@@ -177,7 +173,7 @@ const VertexArrayNodeHelper: INodeHelper<IVertexArrayNode> = {
    nodeIcon,
    flavour: "danger",
    type: NodeTypes.ARRAY_VERTEX,
-   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IVertexArrayNode["outputs"], globals: Globals) => {
+   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IVertexArrayNode["outputs"], globals: GraphGlobals) => {
       switch (socket) {
          case "output":
             return Renderer;
@@ -191,7 +187,7 @@ const VertexArrayNodeHelper: INodeHelper<IVertexArrayNode> = {
    },
    initialize: () => ({
       radius: { value: 100, unit: "px" },
-      rScribeMode: "inscribe",
+      rScribeMode: ScribeModes.INSCRIBE,
       pointCount: 5,
       isRotating: true,
 
@@ -199,7 +195,7 @@ const VertexArrayNodeHelper: INodeHelper<IVertexArrayNode> = {
       positionY: { value: 0, unit: "px" },
       positionRadius: { value: 0, unit: "px" },
       positionTheta: 0,
-      positionMode: "cartesian",
+      positionMode: PositionModes.CARTESIAN,
       rotation: 0,
    }),
    controls: Controls,
@@ -209,11 +205,11 @@ export default VertexArrayNodeHelper;
 
 const getTrueRadius = (r: number, scribe: ScribeMode, sides: number) => {
    switch (scribe) {
-      case "middle":
+      case ScribeModes.MIDDLE:
          return (r + r / Math.cos(Math.PI / sides)) / 2;
-      case "circumscribe":
+      case ScribeModes.CIRCUMSCRIBE:
          return r / Math.cos(Math.PI / sides);
-      case "inscribe":
+      case ScribeModes.INSCRIBE:
          return r;
    }
 };

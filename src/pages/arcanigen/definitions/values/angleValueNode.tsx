@@ -1,6 +1,6 @@
 import { memo, useEffect } from "react";
 import ArcaneGraph from "../graph";
-import { ControlRendererProps, IArcaneGraph, INodeDefinition, INodeHelper, NodeTypes, SocketTypes } from "../types";
+import { ControlRendererProps, IArcaneGraph, INodeDefinition, INodeHelper } from "../types";
 
 import { faAngle as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 import { faAngle as buttonIcon } from "@fortawesome/pro-light-svg-icons";
@@ -10,6 +10,7 @@ import AngleInput from "!/components/inputs/AngleInput";
 import MathHelper from "!/utility/mathhelper";
 import Checkbox from "!/components/buttons/Checkbox";
 import { MetaPrefab } from "../../nodeView/prefabs";
+import { SocketTypes, NodeTypes } from "!/utility/enums";
 
 interface IAngleValueNode extends INodeDefinition {
    inputs: {};

@@ -1,11 +1,12 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
-import { Globals, IArcaneGraph, IArcanePos, IArcaneToggle, INodeDefinition, INodeHelper, INodeInstance, LinkTypes, NodeTypes, SocketTypes } from "./types";
+import { GraphGlobals, IArcaneGraph, IArcanePos, IArcaneToggle, INodeDefinition, INodeHelper, INodeInstance } from "./types";
 import { v4 as uuid } from "uuid";
 import fp from "lodash/fp";
 import lodash from "lodash";
 import { getNodeHelper } from ".";
 import migrateLoadedFile, { SAVE_VERSION } from "./migration";
 import { getStartScene } from "./startScene";
+import { NodeTypes, LinkType, SocketType, NodeType } from "!/utility/enums";
 
 const resetGraphState = () => {
    return {
@@ -100,7 +101,7 @@ const useStoreData = () => {
       toggleListeners.current.forEach((callback) => callback());
    }, []);
 
-   const connect = useCallback((fromNode: string, fromSocket: string, toNode: string, toSocket: string, type: LinkTypes) => {
+   const connect = useCallback((fromNode: string, fromSocket: string, toNode: string, toSocket: string, type: LinkType) => {
       graphStore.current = GraphHelper.connect(graphStore.current, uuid(), fromNode, fromSocket, toNode, toSocket, type);
       graphListeners.current.forEach((callback) => callback());
    }, []);
@@ -148,7 +149,7 @@ const useStoreData = () => {
       toggleListeners.current.forEach((callback) => callback());
    }, []);
 
-   const addNode = useCallback((type: NodeTypes, at?: { x: number; y: number }) => {
+   const addNode = useCallback((type: NodeType, at?: { x: number; y: number }) => {
       const nodeId = uuid();
       graphStore.current = GraphHelper.append(graphStore.current, nodeId, type, { ...getNodeHelper(type).initialize(), name: "" });
       posStore.current = { ...posStore.current, [nodeId]: at ?? { x: 0, y: 0 } };
@@ -288,7 +289,7 @@ const nodeHooks = <T extends INodeDefinition>() => {
       return useSyncExternalStore(store.subToGraph, () => getNodeValue<T, K>(store.getGraph(), nodeId, key));
    };
 
-   const useInput = <K extends keyof T["inputs"]>(nodeId: string, socket: K, globals: Globals) => {
+   const useInput = <K extends keyof T["inputs"]>(nodeId: string, socket: K, globals: GraphGlobals) => {
       const store = useContext(StoreContext)!;
 
       const graph = useSyncExternalStore(store.subToGraph, () => store.getGraph());
@@ -299,7 +300,7 @@ const nodeHooks = <T extends INodeDefinition>() => {
       }, [graph, nodeId, socket, globals]) as T["inputs"][K];
    };
 
-   const useInputNode = <K extends keyof T["inputs"]>(nodeId: string, socket: K, globals: Globals): [T["inputs"][K], string] | [null, null] => {
+   const useInputNode = <K extends keyof T["inputs"]>(nodeId: string, socket: K, globals: GraphGlobals): [T["inputs"][K], string] | [null, null] => {
       const store = useContext(StoreContext)!;
 
       const graph = useSyncExternalStore(store.subToGraph, () => store.getGraph());
@@ -319,7 +320,7 @@ const nodeHooks = <T extends INodeDefinition>() => {
       return [value, otherNode ?? null];
    };
 
-   const useCoalesce = <K extends keyof T["inputs"], J extends keyof T["values"]>(nodeId: string, socket: K, key: J, globals: Globals) => {
+   const useCoalesce = <K extends keyof T["inputs"], J extends keyof T["values"]>(nodeId: string, socket: K, key: J, globals: GraphGlobals) => {
       const input = useInput<K>(nodeId, socket, globals);
       const value = useValue<J>(nodeId, key);
 
@@ -377,7 +378,7 @@ const nodeMethods = <T extends INodeDefinition>() => {
       return getNodeValue<T, K>(graph, nodeId, key);
    };
 
-   const getInput = <K extends keyof T["inputs"]>(graph: IArcaneGraph, nodeId: string, socket: K, globals: Globals) => {
+   const getInput = <K extends keyof T["inputs"]>(graph: IArcaneGraph, nodeId: string, socket: K, globals: GraphGlobals) => {
       return getNodeInput<T, K>(graph, nodeId, socket, globals);
    };
 
@@ -385,7 +386,13 @@ const nodeMethods = <T extends INodeDefinition>() => {
       return !!(graph.nodes?.[nodeId] as INodeInstance<T>)?.in?.[socket];
    };
 
-   const coalesce = <K extends keyof T["inputs"], J extends keyof T["values"]>(graph: IArcaneGraph, nodeId: string, socket: K, key: J, globals: Globals) => {
+   const coalesce = <K extends keyof T["inputs"], J extends keyof T["values"]>(
+      graph: IArcaneGraph,
+      nodeId: string,
+      socket: K,
+      key: J,
+      globals: GraphGlobals
+   ) => {
       return getNodeInput<T, K>(graph, nodeId, socket, globals) ?? getNodeValue<T, J>(graph, nodeId, key);
    };
 
@@ -434,7 +441,7 @@ const getNodeValue = <T extends INodeDefinition, K extends keyof T["values"]>(gr
    return (graph.nodes?.[nodeId] as INodeInstance<T>)?.[key];
 };
 
-const getNodeInput = <T extends INodeDefinition, K extends keyof T["inputs"]>(graph: IArcaneGraph, nodeId: string, socket: K, globals: Globals) => {
+const getNodeInput = <T extends INodeDefinition, K extends keyof T["inputs"]>(graph: IArcaneGraph, nodeId: string, socket: K, globals: GraphGlobals) => {
    const linkId = (graph.nodes?.[nodeId] as INodeInstance<T>)?.in?.[socket];
    if (linkId) {
       const { fromSocket, fromNode } = graph.links?.[linkId] ?? {};
@@ -448,7 +455,7 @@ const getNodeInput = <T extends INodeDefinition, K extends keyof T["inputs"]>(gr
    }
 };
 
-export const areSocketsCompatible = (a: SocketTypes, b: SocketTypes) => {
+export const areSocketsCompatible = (a: SocketType, b: SocketType) => {
    return (a & b) > 0;
 };
 
@@ -488,7 +495,7 @@ export const useNodePanelToggle = (nodeId: string, panel: string, def: boolean) 
 };
 
 const GraphHelper = {
-   connect: (graph: IArcaneGraph, linkId: string, fromNode: string, fromSocket: string, toNode: string, toSocket: string, type: LinkTypes): IArcaneGraph => {
+   connect: (graph: IArcaneGraph, linkId: string, fromNode: string, fromSocket: string, toNode: string, toSocket: string, type: LinkType): IArcaneGraph => {
       const prevLink = graph.nodes?.[toNode].in?.[toSocket];
 
       if (prevLink) {
@@ -587,7 +594,7 @@ const GraphHelper = {
    append: <T extends INodeInstance<any>>(
       graph: IArcaneGraph,
       nodeId: string,
-      type: NodeTypes,
+      type: NodeType,
       data: Partial<Omit<INodeInstance<any>, "type" | "nodeId">> & Omit<T, keyof INodeInstance<any>>
    ): IArcaneGraph => {
       return {

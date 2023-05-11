@@ -1,6 +1,6 @@
 import { memo } from "react";
 import ArcaneGraph from "../graph";
-import { ControlRendererProps, Globals, IArcaneGraph, INodeDefinition, INodeHelper, NodeTypes, SocketTypes } from "../types";
+import { ControlRendererProps, GraphGlobals, IArcaneGraph, INodeDefinition, INodeHelper } from "../types";
 import { faMicrochip as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 import { faMicrochip as buttonIcon } from "@fortawesome/pro-light-svg-icons";
 import Dropdown from "!/components/selectors/Dropdown";
@@ -11,6 +11,7 @@ import Checkbox from "!/components/buttons/Checkbox";
 import MathHelper from "!/utility/mathhelper";
 import NumberInput from "!/components/inputs/NumberInput";
 import { MetaPrefab } from "../../nodeView/prefabs";
+import { SocketTypes, NodeTypes } from "!/utility/enums";
 
 interface IConvertNode extends INodeDefinition {
    inputs: {
@@ -180,7 +181,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    );
 });
 
-const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof IConvertNode["outputs"], globals: Globals) => {
+const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof IConvertNode["outputs"], globals: GraphGlobals) => {
    const inputNumber = nodeMethods.getInput(graph, nodeId, "inputNumber", globals) ?? 0;
    const percentLower = nodeMethods.coalesce(graph, nodeId, "numberToPercentLower", "numberToPercentLower", globals) ?? 0;
    const percentUpper = nodeMethods.coalesce(graph, nodeId, "numberToPercentUpper", "numberToPercentUpper", globals) ?? 1;

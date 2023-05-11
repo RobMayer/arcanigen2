@@ -2,22 +2,27 @@ import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
 import {
    ControlRendererProps,
-   Globals,
+   GraphGlobals,
    IArcaneGraph,
    INodeDefinition,
    INodeHelper,
    NodeRenderer,
    NodeRendererProps,
-   NodeTypes,
-   PositionMode,
-   SpanMode,
-   SPAN_MODES,
    Sequence,
-   SocketTypes,
-   ThetaMode,
-   THETA_MODES,
    Interpolator,
 } from "../types";
+import {
+   PositionMode,
+   SpanMode,
+   SPAN_MODE_OPTIONS,
+   ThetaMode,
+   THETA_MODE_OPTIONS,
+   SpanModes,
+   ThetaModes,
+   NodeTypes,
+   SocketTypes,
+   PositionModes,
+} from "../../../../utility/enums";
 import MathHelper from "!/utility/mathhelper";
 
 import { faBezierCurve as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
@@ -124,26 +129,26 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             </BaseNode.Input>
          </SocketIn>
          <BaseNode.Input label={"Radial Mode"}>
-            <ToggleList value={radialMode} onValue={setRadialMode} options={SPAN_MODES} />
+            <ToggleList value={radialMode} onValue={setRadialMode} options={SPAN_MODE_OPTIONS} />
          </BaseNode.Input>
          <SocketIn<ISpiralArrayNode> nodeId={nodeId} socketId={"innerRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Inner Radius"}>
-               <LengthInput value={innerRadius} onValidValue={setInnerRadius} disabled={hasInnerRadius || radialMode === "spread"} />
+               <LengthInput value={innerRadius} onValidValue={setInnerRadius} disabled={hasInnerRadius || radialMode === SpanModes.SPREAD} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<ISpiralArrayNode> nodeId={nodeId} socketId={"outerRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Outer Radius"}>
-               <LengthInput value={outerRadius} onValidValue={setOuterRadius} disabled={hasOuterRadius || radialMode === "spread"} />
+               <LengthInput value={outerRadius} onValidValue={setOuterRadius} disabled={hasOuterRadius || radialMode === SpanModes.SPREAD} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<ISpiralArrayNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
-               <LengthInput value={radius} onValidValue={setRadius} disabled={hasRadius || radialMode === "inout"} />
+               <LengthInput value={radius} onValidValue={setRadius} disabled={hasRadius || radialMode === SpanModes.INOUT} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<ISpiralArrayNode> nodeId={nodeId} socketId={"spread"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Spread"}>
-               <LengthInput value={spread} onValidValue={setSpread} disabled={hasSpread || radialMode === "inout"} />
+               <LengthInput value={spread} onValidValue={setSpread} disabled={hasSpread || radialMode === SpanModes.INOUT} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<ISpiralArrayNode> nodeId={nodeId} socketId={"radialCurve"} type={SocketTypes.CURVE}>
@@ -151,24 +156,24 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          </SocketIn>
          <hr />
          <BaseNode.Input label={"Theta Mode"}>
-            <ToggleList value={thetaMode} onValue={setThetaMode} options={THETA_MODES} />
+            <ToggleList value={thetaMode} onValue={setThetaMode} options={THETA_MODE_OPTIONS} />
          </BaseNode.Input>
          <SocketIn<ISpiralArrayNode> nodeId={nodeId} socketId={"thetaSteps"} type={SocketTypes.ANGLE}>
             <BaseNode.Input label={"Incremental θ"}>
-               <AngleInput value={thetaSteps} onValidValue={setThetaSteps} disabled={hasThetaSteps || thetaMode === "startstop"} wrap />
+               <AngleInput value={thetaSteps} onValidValue={setThetaSteps} disabled={hasThetaSteps || thetaMode === ThetaModes.STARTSTOP} wrap />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<ISpiralArrayNode> nodeId={nodeId} socketId={"thetaStart"} type={SocketTypes.ANGLE}>
             <BaseNode.Input label={"Start θ"}>
-               <AngleInput value={thetaStart} onValidValue={setThetaStart} disabled={hasThetaStart || thetaMode === "incremental"} wrap />
+               <AngleInput value={thetaStart} onValidValue={setThetaStart} disabled={hasThetaStart || thetaMode === ThetaModes.INCREMENTAL} wrap />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<ISpiralArrayNode> nodeId={nodeId} socketId={"thetaEnd"} type={SocketTypes.ANGLE}>
             <BaseNode.Input label={"End θ"}>
-               <AngleInput value={thetaEnd} onValidValue={setThetaEnd} disabled={hasThetaEnd || thetaMode === "incremental"} wrap />
+               <AngleInput value={thetaEnd} onValidValue={setThetaEnd} disabled={hasThetaEnd || thetaMode === ThetaModes.INCREMENTAL} wrap />
             </BaseNode.Input>
          </SocketIn>
-         <Checkbox checked={thetaInclusive} onToggle={setThetaInclusive} disabled={thetaMode === "incremental"}>
+         <Checkbox checked={thetaInclusive} onToggle={setThetaInclusive} disabled={thetaMode === ThetaModes.INCREMENTAL}>
             Inclusive End θ
          </Checkbox>
          <SocketIn<ISpiralArrayNode> nodeId={nodeId} socketId={"thetaCurve"} type={SocketTypes.CURVE}>
@@ -215,14 +220,14 @@ const Renderer = memo(({ nodeId, depth, globals, overrides }: NodeRendererProps)
    const thetaCurve = nodeHooks.useInput(nodeId, "thetaCurve", globals);
    const radialCurve = nodeHooks.useInput(nodeId, "radialCurve", globals);
 
-   const rI = radialMode === "inout" ? MathHelper.lengthToPx(innerRadius) : MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(spread) / 2;
-   const rO = radialMode === "inout" ? MathHelper.lengthToPx(outerRadius) : MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(spread) / 2;
+   const rI = radialMode === SpanModes.INOUT ? MathHelper.lengthToPx(innerRadius) : MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(spread) / 2;
+   const rO = radialMode === SpanModes.INOUT ? MathHelper.lengthToPx(outerRadius) : MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(spread) / 2;
 
    const children = useMemo(() => {
       return lodash.range(pointCount).map((n, i) => {
          const coeff = MathHelper.delerp(n, 0, thetaInclusive ? pointCount - 1 : pointCount);
          const rot =
-            thetaMode === "startstop"
+            thetaMode === ThetaModes.STARTSTOP
                ? MathHelper.lerp(coeff, 1 * thetaStart, 1 * thetaEnd, thetaCurve ?? MathHelper.DEFUALT_INTERPOLATOR)
                : MathHelper.lerp(coeff, 0, pointCount * thetaSteps, thetaCurve ?? MathHelper.DEFUALT_INTERPOLATOR);
 
@@ -292,7 +297,7 @@ const SpiralArrayNodeHelper: INodeHelper<ISpiralArrayNode> = {
    nodeIcon,
    flavour: "danger",
    type: NodeTypes.ARRAY_SPIRAL,
-   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof ISpiralArrayNode["outputs"], globals: Globals) => {
+   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof ISpiralArrayNode["outputs"], globals: GraphGlobals) => {
       switch (socket) {
          case "output":
             return Renderer;
@@ -309,8 +314,8 @@ const SpiralArrayNodeHelper: INodeHelper<ISpiralArrayNode> = {
       isRotating: true,
       radius: { value: 150, unit: "px" },
       spread: { value: 20, unit: "px" },
-      radialMode: "inout",
-      thetaMode: "incremental",
+      radialMode: SpanModes.INOUT,
+      thetaMode: ThetaModes.INCREMENTAL,
       spurCount: 5,
       innerRadius: { value: 140, unit: "px" },
       outerRadius: { value: 160, unit: "px" },
@@ -323,7 +328,7 @@ const SpiralArrayNodeHelper: INodeHelper<ISpiralArrayNode> = {
       positionY: { value: 0, unit: "px" },
       positionRadius: { value: 0, unit: "px" },
       positionTheta: 0,
-      positionMode: "cartesian",
+      positionMode: PositionModes.CARTESIAN,
       rotation: 0,
    }),
    controls: Controls,

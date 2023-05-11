@@ -1,7 +1,8 @@
+import { LinkType, NodeTypes } from "!/utility/enums";
 import { ILayersNode } from "./collections/layersNode";
-import { IArcaneGraph, NodeTypes, INodeInstance, IArcanePos, IArcaneToggle } from "./types";
+import { IArcaneGraph, INodeInstance, IArcanePos, IArcaneToggle } from "./types";
 
-export const SAVE_VERSION = "0.0.2";
+export const SAVE_VERSION = "0.0.3";
 
 const migrateLoadedFile = (version: string, data: IArcaneGraph & { positions: IArcanePos } & { toggles: IArcaneToggle }) => {
    if (version === SAVE_VERSION) {
@@ -25,6 +26,17 @@ const migrateLoadedFile = (version: string, data: IArcaneGraph & { positions: IA
          }
          return acc;
       }, {} as IArcaneGraph["nodes"]);
+   }
+   if (version === "0.0.2") {
+      version = "0.0.3";
+      const LINKTYPE_CONVERT: LinkType[] = ["other", "sequence", "shape", "portal", "path"];
+      data.links = Object.entries(data.links).reduce((acc, [key, link]) => {
+         acc[key] = {
+            ...link,
+            type: LINKTYPE_CONVERT[link.type as unknown as number],
+         };
+         return acc;
+      }, {} as IArcaneGraph["links"]);
    }
    return data;
 };

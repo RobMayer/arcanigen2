@@ -1,3 +1,4 @@
+import { ColorSpace } from "!/utility/enums";
 import { Color } from "./types/units";
 
 const SRGB = {
@@ -6,7 +7,7 @@ const SRGB = {
    b: 0.0722,
 };
 
-const CHANNELS = {
+const CHANNELS: { [key in ColorSpace]: readonly string[] } = {
    RGB: ["r", "g", "b", "a"],
    CMYK: ["c", "m", "y", "k", "a"],
    HSL: ["h", "s", "l", "a"],
@@ -14,7 +15,7 @@ const CHANNELS = {
    HWK: ["h", "w", "k", "a"],
    HSI: ["h", "s", "i", "a"],
    HCY: ["h", "c", "y", "a"],
-};
+} as const;
 
 // prettier-ignore
 export type ColorFields = {

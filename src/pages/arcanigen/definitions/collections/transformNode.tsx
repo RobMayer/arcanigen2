@@ -1,6 +1,7 @@
 import { memo } from "react";
 import ArcaneGraph from "../graph";
-import { INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, NodeTypes, PositionMode, POSITION_MODES, SocketTypes } from "../types";
+import { INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps } from "../types";
+import { PositionMode, POSITION_MODE_OPTIONS, NodeTypes, SocketTypes, PositionModes } from "../../../../utility/enums";
 import MathHelper from "!/utility/mathhelper";
 
 import { faCube as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
@@ -83,26 +84,26 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
             Input
          </SocketIn>
          <BaseNode.Input label={"Position Mode"}>
-            <ToggleList value={positionMode} onValue={setPositionMode} options={POSITION_MODES} />
+            <ToggleList value={positionMode} onValue={setPositionMode} options={POSITION_MODE_OPTIONS} />
          </BaseNode.Input>
          <SocketIn<ITransformNode> nodeId={nodeId} socketId={"positionX"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"X Coordinate"}>
-               <LengthInput value={positionX} onCommit={setPositionX} disabled={hasPositionX || positionMode === "polar"} />
+               <LengthInput value={positionX} onCommit={setPositionX} disabled={hasPositionX || positionMode === PositionModes.POLAR} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<ITransformNode> nodeId={nodeId} socketId={"positionY"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Y Coordinate"}>
-               <LengthInput value={positionY} onCommit={setPositionY} disabled={hasPositionY || positionMode === "polar"} />
+               <LengthInput value={positionY} onCommit={setPositionY} disabled={hasPositionY || positionMode === PositionModes.POLAR} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<ITransformNode> nodeId={nodeId} socketId={"positionRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
-               <LengthInput value={positionRadius} onCommit={setPositionRadius} disabled={hasPositionRadius || positionMode === "cartesian"} />
+               <LengthInput value={positionRadius} onCommit={setPositionRadius} disabled={hasPositionRadius || positionMode === PositionModes.CARTESIAN} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<ITransformNode> nodeId={nodeId} socketId={"positionTheta"} type={SocketTypes.ANGLE}>
             <BaseNode.Input label={"θ Angle"}>
-               <AngleInput value={positionTheta} onValidValue={setPositionTheta} disabled={hasPositionTheta || positionMode === "cartesian"} />
+               <AngleInput value={positionTheta} onValidValue={setPositionTheta} disabled={hasPositionTheta || positionMode === PositionModes.CARTESIAN} />
             </BaseNode.Input>
          </SocketIn>
          <hr />
@@ -185,7 +186,7 @@ const TransformNodeHelper: INodeHelper<ITransformNode> = {
       positionY: { value: 0, unit: "px" },
       positionRadius: { value: 0, unit: "px" },
       positionTheta: 0,
-      positionMode: "cartesian",
+      positionMode: PositionModes.CARTESIAN,
       preRotation: 0,
       postRotation: 0,
       scaleX: 100,

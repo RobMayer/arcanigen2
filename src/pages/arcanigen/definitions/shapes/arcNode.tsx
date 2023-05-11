@@ -1,22 +1,18 @@
 import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
+import { ControlRendererProps, IArcaneGraph, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, NodePather, NodePatherProps } from "../types";
 import {
-   ControlRendererProps,
-   IArcaneGraph,
-   INodeDefinition,
-   INodeHelper,
-   NodeRenderer,
-   NodeRendererProps,
-   NodeTypes,
    PositionMode,
-   SocketTypes,
    StrokeCapMode,
-   STROKECAP_MODES,
+   STROKECAP_MODE_OPTIONS,
    StrokeJoinMode,
-   STROKEJOIN_MODES,
-   NodePather,
-   NodePatherProps,
-} from "../types";
+   STROKEJOIN_MODE_OPTIONS,
+   StrokeCapModes,
+   StrokeJoinModes,
+   NodeTypes,
+   SocketTypes,
+   PositionModes,
+} from "../../../../utility/enums";
 import MathHelper from "!/utility/mathhelper";
 
 import { faCircleThreeQuarters as nodeIcon } from "@fortawesome/pro-regular-svg-icons";
@@ -151,10 +147,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                </BaseNode.Input>
             </SocketIn>
             <BaseNode.Input label={"Stroke Join"}>
-               <ToggleList value={strokeJoin} onValue={setStrokeJoin} options={STROKEJOIN_MODES} />
+               <ToggleList value={strokeJoin} onValue={setStrokeJoin} options={STROKEJOIN_MODE_OPTIONS} />
             </BaseNode.Input>
             <BaseNode.Input label={"Stroke Cap"}>
-               <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODES} />
+               <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODE_OPTIONS} />
             </BaseNode.Input>
             <BaseNode.Input label={"Stroke Dash"}>
                <TextInput value={strokeDash} onValidValue={setStrokeDash} pattern={MathHelper.LENGTH_LIST_REGEX} />
@@ -318,8 +314,8 @@ const ArcNodeHelper: INodeHelper<IArcNode> = {
       strokeWidth: { value: 1, unit: "px" },
       strokeDash: "",
       strokeOffset: { value: 0, unit: "px" },
-      strokeCap: "butt",
-      strokeJoin: "miter",
+      strokeCap: StrokeCapModes.BUTT,
+      strokeJoin: StrokeJoinModes.MITER,
       strokeColor: { r: 0, g: 0, b: 0, a: 1 },
       fillColor: null as Color,
       thetaStart: 0,
@@ -330,7 +326,7 @@ const ArcNodeHelper: INodeHelper<IArcNode> = {
       positionY: { value: 0, unit: "px" },
       positionRadius: { value: 0, unit: "px" },
       positionTheta: 0,
-      positionMode: "cartesian",
+      positionMode: PositionModes.CARTESIAN,
       rotation: 0,
    }),
    controls: Controls,

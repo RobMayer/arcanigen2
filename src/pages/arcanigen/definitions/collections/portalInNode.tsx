@@ -3,14 +3,12 @@ import {
    INodeDefinition,
    NodeRenderer,
    INodeHelper,
-   NodeTypes,
    INodeInstance,
-   SocketTypes,
    NodeRendererProps,
    ControlRendererProps,
    PortalBus,
    IArcaneGraph,
-   Globals,
+   GraphGlobals,
    ILinkInstance,
 } from "../types";
 import { faClose, faArrowRightToBracket as nodeIcon, faPlus } from "@fortawesome/pro-solid-svg-icons";
@@ -25,6 +23,7 @@ import { SocketIn, SocketOut } from "../../nodeView/socket";
 import styled from "styled-components";
 import NumberInput from "!/components/inputs/NumberInput";
 import { MetaPrefab } from "../../nodeView/prefabs";
+import { SocketTypes, NodeTypes } from "!/utility/enums";
 
 interface IPortalInNode extends INodeDefinition {
    inputs: {
@@ -224,7 +223,7 @@ const PortalInNodeHelper: INodeHelper<IPortalInNode> = {
    flavour: "danger",
    nodeIcon,
    type: NodeTypes.COL_PORTAL_IN,
-   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IPortalInNode["outputs"], globals: Globals) => {
+   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IPortalInNode["outputs"], globals: GraphGlobals) => {
       if (socket === "portalBus") {
          return {
             senderId: nodeId,

@@ -1,17 +1,16 @@
 import { memo } from "react";
 import ArcaneGraph from "../graph";
+import { IArcaneGraph, INodeDefinition, INodeHelper, Interpolator } from "../types";
 import {
    CurvePreset,
-   CURVE_PRESETS,
+   CURVE_PRESET_OPTIONS,
    EasingMode,
-   EASING_MODES,
-   IArcaneGraph,
-   INodeDefinition,
-   INodeHelper,
+   EASING_MODE_OPTIONS,
+   CurvePresets,
+   EasingModes,
    NodeTypes,
    SocketTypes,
-   Interpolator,
-} from "../types";
+} from "../../../../utility/enums";
 
 import { faFunction as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 import { faFunction as buttonIcon } from "@fortawesome/pro-light-svg-icons";
@@ -48,10 +47,10 @@ const Controls = memo(({ nodeId }: { nodeId: string }) => {
          </SocketOut>
          <hr />
          <BaseNode.Input label={"Curve"}>
-            <Dropdown value={curveFn} onValue={setCurveFn} options={CURVE_PRESETS} />
+            <Dropdown value={curveFn} onValue={setCurveFn} options={CURVE_PRESET_OPTIONS} />
          </BaseNode.Input>
          <BaseNode.Input label={"Easing"}>
-            <ToggleList value={easing} onValue={setEasing} options={EASING_MODES} />
+            <ToggleList value={easing} onValue={setEasing} options={EASING_MODE_OPTIONS} />
          </BaseNode.Input>
          <BaseNode.Input label={"Intensity"}>
             <SliderInput value={intensity} onValidValue={setIntensity} min={0} max={1} />
@@ -79,8 +78,8 @@ const CurveNodeHelper: INodeHelper<ICurveNode> = {
    type: NodeTypes.VALUE_CURVE,
    getOutput,
    initialize: () => ({
-      curveFn: "linear",
-      easing: "in",
+      curveFn: CurvePresets.LINEAR,
+      easing: EasingModes.IN,
       intensity: 1,
    }),
    controls: Controls,
@@ -96,25 +95,25 @@ const getPrefabInterpolator = (curve: CurvePreset, easing: EasingMode, i: number
 };
 
 const CURVE_HANDLERS: { [keys in CurvePreset]: (t: number) => number } = {
-   linear: (t: number) => t,
-   semiquadratic: (t: number) => Math.pow(t, 1.5),
-   quadratic: (t: number) => Math.pow(t, 2),
-   cubic: (t: number) => Math.pow(t, 3),
-   exponential: (t: number) => Math.pow(2, t) - 1,
-   sinusoidal: (t: number) => Math.sin(t * (Math.PI / 2)),
-   rootic: (t: number) => Math.sqrt(t),
-   circular: (t: number) => 1 - Math.sqrt(1 - Math.pow(t, 2)),
+   [CurvePresets.LINEAR]: (t: number) => t,
+   [CurvePresets.SEMIQUADRATIC]: (t: number) => Math.pow(t, 1.5),
+   [CurvePresets.QUADRATIC]: (t: number) => Math.pow(t, 2),
+   [CurvePresets.CUBIC]: (t: number) => Math.pow(t, 3),
+   [CurvePresets.EXPONENTIAL]: (t: number) => Math.pow(2, t) - 1,
+   [CurvePresets.SINUSOIDAL]: (t: number) => Math.sin(t * (Math.PI / 2)),
+   [CurvePresets.ROOTIC]: (t: number) => Math.sqrt(t),
+   [CurvePresets.CIRCULAR]: (t: number) => 1 - Math.sqrt(1 - Math.pow(t, 2)),
 };
 
 const getEasedCurve = (e: EasingMode, func: (t: number) => number) => {
    switch (e) {
-      case "in":
+      case EasingModes.IN:
          return (a: number) => func(a);
-      case "out":
+      case EasingModes.OUT:
          return (a: number) => 1 - func(1 - a);
-      case "inout":
+      case EasingModes.INOUT:
          return (a: number) => (a < 0.5 ? func(a * 2) / 2 : a > 0.5 ? 1 - func(a * -2 + 2) / 2 : 0.5);
-      case "outin":
+      case EasingModes.OUTIN:
          return (a: number) => (a < 0.5 ? 0.5 - func(1 - a * 2) / 2 : a > 0.5 ? 0.5 + func(a * 2 - 1) / 2 : 0.5);
    }
 };

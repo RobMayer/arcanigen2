@@ -2,25 +2,31 @@ import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
 import {
    ControlRendererProps,
-   Globals,
+   GraphGlobals,
    IArcaneGraph,
    INodeDefinition,
    INodeHelper,
    NodeRenderer,
    NodeRendererProps,
-   NodeTypes,
-   PositionMode,
-   ScribeMode,
-   SCRIBE_MODES,
-   SocketTypes,
-   StrokeJoinMode,
-   STROKEJOIN_MODES,
-   STROKECAP_MODES,
-   StrokeCapMode,
    NodePatherProps,
    NodePather,
    Interpolator,
 } from "../types";
+import {
+   PositionMode,
+   ScribeMode,
+   SCRIBE_MODE_OPTIONS,
+   StrokeJoinMode,
+   STROKEJOIN_MODE_OPTIONS,
+   STROKECAP_MODE_OPTIONS,
+   StrokeCapMode,
+   ScribeModes,
+   StrokeCapModes,
+   StrokeJoinModes,
+   NodeTypes,
+   SocketTypes,
+   PositionModes,
+} from "../../../../utility/enums";
 import MathHelper from "!/utility/mathhelper";
 
 import { faTriangle as nodeIcon } from "@fortawesome/pro-regular-svg-icons";
@@ -118,7 +124,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          <SocketIn<IPolygonNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
                <LengthInput value={radius} onValidValue={setRadius} disabled={hasRadius} />
-               <Dropdown value={rScribe} onValue={setRScribe} options={SCRIBE_MODES} />
+               <Dropdown value={rScribe} onValue={setRScribe} options={SCRIBE_MODE_OPTIONS} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IPolygonNode> nodeId={nodeId} socketId={"thetaCurve"} type={SocketTypes.CURVE}>
@@ -137,10 +143,10 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                </BaseNode.Input>
             </SocketIn>
             <BaseNode.Input label={"Stroke Join"}>
-               <ToggleList value={strokeJoin} onValue={setStrokeJoin} options={STROKEJOIN_MODES} />
+               <ToggleList value={strokeJoin} onValue={setStrokeJoin} options={STROKEJOIN_MODE_OPTIONS} />
             </BaseNode.Input>
             <BaseNode.Input label={"Stroke Cap"}>
-               <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODES} />
+               <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODE_OPTIONS} />
             </BaseNode.Input>
             <BaseNode.Input label={"Stroke Dash"}>
                <TextInput value={strokeDash} onValidValue={setStrokeDash} pattern={MathHelper.LENGTH_LIST_REGEX} />
@@ -275,7 +281,7 @@ const PolygonNodeHelper: INodeHelper<IPolygonNode> = {
    nodeIcon,
    flavour: "emphasis",
    type: NodeTypes.SHAPE_POLYGON,
-   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IPolygonNode["outputs"], globals: Globals) => {
+   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IPolygonNode["outputs"], globals: GraphGlobals) => {
       if (socket === "output") {
          return Renderer;
       }
@@ -290,30 +296,30 @@ const PolygonNodeHelper: INodeHelper<IPolygonNode> = {
 
       switch (socket) {
          case "rInscribe":
-            return MathHelper.pxToLength(getPassedRadius(tR, "inscribe", pointCount));
+            return MathHelper.pxToLength(getPassedRadius(tR, ScribeModes.INSCRIBE, pointCount));
          case "rCircumscribe":
-            return MathHelper.pxToLength(getPassedRadius(tR, "circumscribe", pointCount));
+            return MathHelper.pxToLength(getPassedRadius(tR, ScribeModes.CIRCUMSCRIBE, pointCount));
          case "rMiddle":
-            return MathHelper.pxToLength(getPassedRadius(tR, "middle", pointCount));
+            return MathHelper.pxToLength(getPassedRadius(tR, ScribeModes.MIDDLE, pointCount));
       }
    },
    initialize: () => ({
       radius: { value: 100, unit: "px" },
       strokeWidth: { value: 1, unit: "px" },
       pointCount: 3,
-      strokeJoin: "miter",
-      rScribe: "inscribe",
+      rScribe: ScribeModes.INSCRIBE,
       strokeColor: { r: 0, g: 0, b: 0, a: 1 },
       strokeDash: "",
       strokeOffset: { value: 0, unit: "px" },
-      strokeCap: "butt",
+      strokeCap: StrokeCapModes.BUTT,
+      strokeJoin: StrokeJoinModes.MITER,
       fillColor: null as Color,
 
       positionX: { value: 0, unit: "px" },
       positionY: { value: 0, unit: "px" },
       positionRadius: { value: 0, unit: "px" },
       positionTheta: 0,
-      positionMode: "cartesian",
+      positionMode: PositionModes.CARTESIAN,
       rotation: 0,
    }),
    controls: Controls,
@@ -323,22 +329,22 @@ export default PolygonNodeHelper;
 
 const getTrueRadius = (r: number, scribe: ScribeMode, sides: number) => {
    switch (scribe) {
-      case "middle":
+      case ScribeModes.MIDDLE:
          return (r + r / Math.cos(Math.PI / sides)) / 2;
-      case "circumscribe":
+      case ScribeModes.CIRCUMSCRIBE:
          return r / Math.cos(Math.PI / sides);
-      case "inscribe":
+      case ScribeModes.INSCRIBE:
          return r;
    }
 };
 
 const getPassedRadius = (r: number, desired: ScribeMode, sides: number) => {
    switch (desired) {
-      case "middle":
+      case ScribeModes.MIDDLE:
          return (r + r * Math.cos(Math.PI / sides)) / 2;
-      case "circumscribe":
+      case ScribeModes.CIRCUMSCRIBE:
          return r;
-      case "inscribe":
+      case ScribeModes.INSCRIBE:
          return r * Math.cos(Math.PI / sides);
    }
 };

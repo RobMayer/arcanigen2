@@ -1,6 +1,6 @@
 import { memo } from "react";
 import ArcaneGraph from "../graph";
-import { ControlRendererProps, Globals, IArcaneGraph, INodeDefinition, INodeHelper, Interpolator, NodeTypes, Sequence, SocketTypes } from "../types";
+import { ControlRendererProps, GraphGlobals, IArcaneGraph, INodeDefinition, INodeHelper, Interpolator, Sequence } from "../types";
 import MathHelper from "!/utility/mathhelper";
 
 import { faGaugeMed as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
@@ -12,6 +12,7 @@ import { Length } from "!/utility/types/units";
 import LengthInput from "!/components/inputs/LengthInput";
 import Checkbox from "!/components/buttons/Checkbox";
 import { MetaPrefab } from "../../nodeView/prefabs";
+import { SocketTypes, NodeTypes } from "!/utility/enums";
 
 interface ILerpLengthNode extends INodeDefinition {
    inputs: {
@@ -80,7 +81,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
 
 const nodeMethods = ArcaneGraph.nodeMethods<ILerpLengthNode>();
 
-const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof ILerpLengthNode["outputs"], globals: Globals) => {
+const getOutput = (graph: IArcaneGraph, nodeId: string, socket: keyof ILerpLengthNode["outputs"], globals: GraphGlobals) => {
    const sequence = nodeMethods.getInput(graph, nodeId, "sequence", globals);
 
    const percent = nodeMethods.coalesce(graph, nodeId, "percent", "percent", globals);

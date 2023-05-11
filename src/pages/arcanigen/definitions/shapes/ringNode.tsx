@@ -1,21 +1,21 @@
 import { memo } from "react";
 import ArcaneGraph from "../graph";
+import { ControlRendererProps, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps } from "../types";
 import {
-   ControlRendererProps,
-   INodeDefinition,
-   INodeHelper,
-   NodeRenderer,
-   NodeRendererProps,
-   NodeTypes,
    PositionMode,
    SpanMode,
-   SPAN_MODES,
-   SocketTypes,
-   SPREAD_ALIGN_MODES,
+   SPAN_MODE_OPTIONS,
+   SPREAD_ALIGN_MODE_OPTIONS,
    SpreadAlignMode,
-   STROKECAP_MODES,
+   STROKECAP_MODE_OPTIONS,
    StrokeCapMode,
-} from "../types";
+   SpanModes,
+   SpreadAlignModes,
+   StrokeCapModes,
+   NodeTypes,
+   SocketTypes,
+   PositionModes,
+} from "../../../../utility/enums";
 import MathHelper from "!/utility/mathhelper";
 import { faCircleDot as nodeIcon } from "@fortawesome/pro-regular-svg-icons";
 import { faCircleDot as buttonIcon } from "@fortawesome/pro-light-svg-icons";
@@ -102,30 +102,30 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          </SocketOut>
          <hr />
          <BaseNode.Input label={"Span Mode"}>
-            <ToggleList value={spanMode} onValue={setSpanMode} options={SPAN_MODES} />
+            <ToggleList value={spanMode} onValue={setSpanMode} options={SPAN_MODE_OPTIONS} />
          </BaseNode.Input>
          <SocketIn<IRingNode> nodeId={nodeId} socketId={"outerRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Outer Radius"}>
-               <LengthInput value={outerRadius} onValidValue={setOuterRadius} disabled={hasOuterRadius || spanMode === "spread"} />
+               <LengthInput value={outerRadius} onValidValue={setOuterRadius} disabled={hasOuterRadius || spanMode === SpanModes.SPREAD} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IRingNode> nodeId={nodeId} socketId={"innerRadius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Inner Radius"}>
-               <LengthInput value={innerRadius} onValidValue={setInnerRadius} disabled={hasInnerRadius || spanMode === "spread"} />
+               <LengthInput value={innerRadius} onValidValue={setInnerRadius} disabled={hasInnerRadius || spanMode === SpanModes.SPREAD} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IRingNode> nodeId={nodeId} socketId={"radius"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Radius"}>
-               <LengthInput value={radius} onValidValue={setRadius} disabled={hasRadius || spanMode === "inout"} />
+               <LengthInput value={radius} onValidValue={setRadius} disabled={hasRadius || spanMode === SpanModes.INOUT} />
             </BaseNode.Input>
          </SocketIn>
          <SocketIn<IRingNode> nodeId={nodeId} socketId={"spread"} type={SocketTypes.LENGTH}>
             <BaseNode.Input label={"Spread"}>
-               <LengthInput value={spread} onValidValue={setSpread} disabled={hasSpread || spanMode === "inout"} />
+               <LengthInput value={spread} onValidValue={setSpread} disabled={hasSpread || spanMode === SpanModes.INOUT} />
             </BaseNode.Input>
          </SocketIn>
          <BaseNode.Input label={"Spread Align Mode"}>
-            <ToggleList value={spreadAlignMode} onValue={setSpreadAlignMode} options={SPREAD_ALIGN_MODES} disabled={spanMode === "inout"} />
+            <ToggleList value={spreadAlignMode} onValue={setSpreadAlignMode} options={SPREAD_ALIGN_MODE_OPTIONS} disabled={spanMode === SpanModes.INOUT} />
          </BaseNode.Input>
          <hr />
          <BaseNode.Foldout panelId={"appearance"} label={"Appearance"} nodeId={nodeId} inputs={"strokeWidth strokeColor fillColor"} outputs={""}>
@@ -140,7 +140,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
                </BaseNode.Input>
             </SocketIn>
             <BaseNode.Input label={"Stroke Cap"}>
-               <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODES} />
+               <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODE_OPTIONS} />
             </BaseNode.Input>
             <BaseNode.Input label={"Stroke Dash"}>
                <TextInput value={strokeDash} onValidValue={setStrokeDash} pattern={MathHelper.LENGTH_LIST_REGEX} />
@@ -184,24 +184,24 @@ const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) =
    const positionRadius = nodeHooks.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
 
    const tIMod =
-      spanMode === "inout"
+      spanMode === SpanModes.INOUT
          ? 0
-         : spreadAlignMode === "center"
+         : spreadAlignMode === SpreadAlignModes.CENTER
          ? MathHelper.lengthToPx(spread) / 2
-         : spreadAlignMode === "inward"
+         : spreadAlignMode === SpreadAlignModes.INWARD
          ? MathHelper.lengthToPx(spread)
          : 0;
    const tOMod =
-      spanMode === "inout"
+      spanMode === SpanModes.INOUT
          ? 0
-         : spreadAlignMode === "center"
+         : spreadAlignMode === SpreadAlignModes.CENTER
          ? MathHelper.lengthToPx(spread) / 2
-         : spreadAlignMode === "outward"
+         : spreadAlignMode === SpreadAlignModes.OUTWARD
          ? MathHelper.lengthToPx(spread)
          : 0;
 
-   const rI = spanMode === "inout" ? MathHelper.lengthToPx(innerRadius) : MathHelper.lengthToPx(radius) - tIMod;
-   const rO = spanMode === "inout" ? MathHelper.lengthToPx(outerRadius) : MathHelper.lengthToPx(radius) + tOMod;
+   const rI = spanMode === SpanModes.INOUT ? MathHelper.lengthToPx(innerRadius) : MathHelper.lengthToPx(radius) - tIMod;
+   const rO = spanMode === SpanModes.INOUT ? MathHelper.lengthToPx(outerRadius) : MathHelper.lengthToPx(radius) + tOMod;
 
    return (
       <g transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)}`}>
@@ -236,22 +236,22 @@ const RingNodeHelper: INodeHelper<IRingNode> = {
    initialize: () => ({
       radius: { value: 150, unit: "px" },
       spread: { value: 20, unit: "px" },
-      spreadAlignMode: "center",
-      spanMode: "inout",
+      spreadAlignMode: SpreadAlignModes.CENTER,
+      spanMode: SpanModes.INOUT,
       innerRadius: { value: 140, unit: "px" },
       outerRadius: { value: 160, unit: "px" },
       strokeWidth: { value: 1, unit: "px" },
       strokeColor: { r: 0, g: 0, b: 0, a: 1 },
       strokeDash: "",
       strokeOffset: { value: 0, unit: "px" },
-      strokeCap: "butt",
+      strokeCap: StrokeCapModes.BUTT,
       fillColor: null as Color,
 
       positionX: { value: 0, unit: "px" },
       positionY: { value: 0, unit: "px" },
       positionRadius: { value: 0, unit: "px" },
       positionTheta: 0,
-      positionMode: "cartesian",
+      positionMode: PositionModes.CARTESIAN,
    }),
    controls: Controls,
 };

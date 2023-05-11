@@ -21,7 +21,6 @@ import PolygonNodeHelper from "./shapes/polygonNode";
 import PolygramNodeHelper from "./shapes/polygramNode";
 import RingNodeHelper from "./shapes/ringNode";
 import StarNodeHelper from "./shapes/starNode";
-import { NodeTypes } from "./types";
 import HexColorNodeHelper from "./values/hexColorNode";
 import LengthValueNodeHelper from "./values/lengthValueNode";
 import RandomValueNodeHelper from "./values/randomValueNode";
@@ -60,9 +59,10 @@ import RandomFilterNodeHelper from "./collections/randomFilterNode";
 import TextPathNodeHelper from "./shapes/textPathNode";
 import ClusterArrayNodeHelper from "./collections/clusterArrayNode";
 import NotesNodeHelper from "./meta/notesNode";
+import { NodeType, NodeTypes } from "!/utility/enums";
 
 // prettier-ignore
-export const getNodeHelper = (key: NodeTypes) => {
+export const getNodeHelper = (key: NodeType) => {
    switch (key) {
       case NodeTypes.META_RESULT: return ResultNodeHelper;
       

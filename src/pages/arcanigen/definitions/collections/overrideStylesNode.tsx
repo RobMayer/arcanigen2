@@ -1,19 +1,16 @@
 import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
+import { ControlRendererProps, IArcaneGraph, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps } from "../types";
 import {
-   ControlRendererProps,
-   IArcaneGraph,
-   INodeDefinition,
-   INodeHelper,
-   NodeRenderer,
-   NodeRendererProps,
-   NodeTypes,
-   STROKECAP_MODES,
-   STROKEJOIN_MODES,
-   SocketTypes,
+   STROKECAP_MODE_OPTIONS,
+   STROKEJOIN_MODE_OPTIONS,
    StrokeCapMode,
+   StrokeCapModes,
    StrokeJoinMode,
-} from "../types";
+   StrokeJoinModes,
+   NodeTypes,
+   SocketTypes,
+} from "../../../../utility/enums";
 
 import { faPencilPaintbrush as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 import { faPencilPaintbrush as buttonIcon } from "@fortawesome/pro-light-svg-icons";
@@ -126,13 +123,13 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
          <BaseNode.Input label={"Stroke Cap"}>
             <ToggleDiv>
                <Checkbox checked={isStrokeCap} onToggle={setIsStrokeCap} title={"Enabled?"} />
-               <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODES} />
+               <ToggleList value={strokeCap} onValue={setStrokeCap} options={STROKECAP_MODE_OPTIONS} />
             </ToggleDiv>
          </BaseNode.Input>
          <BaseNode.Input label={"Stroke Join"}>
             <ToggleDiv>
                <Checkbox checked={isStrokeJoin} onToggle={setIsStrokeJoin} title={"Enabled?"} />
-               <ToggleList value={strokeJoin} onValue={setStrokeJoin} options={STROKEJOIN_MODES} />
+               <ToggleList value={strokeJoin} onValue={setStrokeJoin} options={STROKEJOIN_MODE_OPTIONS} />
             </ToggleDiv>
          </BaseNode.Input>
          <BaseNode.Input label={"Stroke Dash"}>
@@ -291,8 +288,8 @@ const OverrideStylesNodeHelper: INodeHelper<IOverrideStylesNode> = {
    getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IOverrideStylesNode["outputs"]) => Renderer,
    initialize: () => ({
       strokeWidth: { value: 1, unit: "px" },
-      strokeCap: "butt",
-      strokeJoin: "miter",
+      strokeCap: StrokeCapModes.BUTT,
+      strokeJoin: StrokeJoinModes.MITER,
       strokeColor: { r: 0, g: 0, b: 0, a: 1 },
       strokeDash: "",
       strokeOffset: { value: 0, unit: "px" },

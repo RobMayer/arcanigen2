@@ -3,12 +3,13 @@ import { HTMLAttributes, ReactNode, useEffect, useMemo, useRef, useState } from 
 import styled from "styled-components";
 import { areSocketsCompatible } from "../definitions/graph";
 import { useNodeGraphEventBus } from ".";
-import { ConnectionEvent, INodeDefinition, LinkEvent, SocketTypes } from "../definitions/types";
+import { ConnectionEvent, INodeDefinition, LinkEvent } from "../definitions/types";
+import { SOCKET_TYPE_NAMES, SocketType, SocketTypes } from "!/utility/enums";
 
 type IProps<T extends INodeDefinition, D extends "inputs" | "outputs"> = {
    nodeId: string;
    socketId: keyof T[D];
-   type: SocketTypes;
+   type: SocketType;
    children?: ReactNode;
 };
 
@@ -16,7 +17,7 @@ type IPropsBoth<T extends INodeDefinition> = {
    nodeId: string;
    socketIn: keyof T["inputs"];
    socketOut: keyof T["outputs"];
-   type: SocketTypes;
+   type: SocketType;
    children?: ReactNode;
 };
 
@@ -76,7 +77,7 @@ const Label = styled.div`
 type IOrbProps = {
    nodeId: string;
    socketId: string;
-   type: SocketTypes;
+   type: SocketType;
    children?: ReactNode;
 };
 
@@ -143,6 +144,10 @@ const Orb = styled(({ nodeId, socketId, type, className, mode, ...rest }: IOrbPr
       return getSocketFlavour(type);
    }, [type]);
 
+   const socketName = useMemo(() => {
+      return getSocketName(type);
+   }, [type]);
+
    return (
       <div
          {...rest}
@@ -154,7 +159,7 @@ const Orb = styled(({ nodeId, socketId, type, className, mode, ...rest }: IOrbPr
        flavour-${flavour}
     `}
          ref={ref}
-         title={SocketTypes[type]}
+         title={socketName}
          data-trh-graph-sockethost={nodeId}
          data-trh-graph-socket={socketId}
       />
@@ -194,7 +199,21 @@ const Orb = styled(({ nodeId, socketId, type, className, mode, ...rest }: IOrbPr
    }
 `;
 
-const getSocketFlavour = (type: SocketTypes): Flavour => {
+const getSocketName = (type: SocketType): string => {
+   if (type in SOCKET_TYPE_NAMES) {
+      return SOCKET_TYPE_NAMES[type as (typeof SocketTypes)[keyof typeof SocketTypes]];
+   }
+   return Object.values(SocketTypes)
+      .reduce((acc, t) => {
+         if ((type & t) === t) {
+            acc.push(SOCKET_TYPE_NAMES[t]);
+         }
+         return acc;
+      }, [] as string[])
+      .join(" or ");
+};
+
+const getSocketFlavour = (type: SocketType): Flavour => {
    switch (type) {
       case SocketTypes.COLOR:
       case SocketTypes.ANGLE:

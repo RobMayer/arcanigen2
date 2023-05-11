@@ -1,6 +1,6 @@
 import { memo } from "react";
 import ArcaneGraph from "../graph";
-import { ControlRendererProps, IArcaneGraph, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, NodeTypes, SocketTypes } from "../types";
+import { ControlRendererProps, IArcaneGraph, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps } from "../types";
 
 import { faPenAlt as nodeIcon } from "@fortawesome/pro-solid-svg-icons";
 import { faPenAlt as buttonIcon } from "@fortawesome/pro-light-svg-icons";
@@ -11,6 +11,7 @@ import BaseNode from "../../nodeView/node";
 import { SocketOut, SocketIn } from "../../nodeView/socket";
 import MathHelper from "!/utility/mathhelper";
 import { MetaPrefab } from "../../nodeView/prefabs";
+import { SocketTypes, NodeTypes } from "!/utility/enums";
 
 interface IPenEffectNode extends INodeDefinition {
    inputs: {
