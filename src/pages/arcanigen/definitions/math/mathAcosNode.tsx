@@ -10,7 +10,7 @@ import { SocketOut, SocketIn } from "../../nodeView/socket";
 import { MetaPrefab } from "../../nodeView/prefabs";
 import { SocketTypes, NodeTypes } from "!/utility/enums";
 
-interface IMathCosNode extends INodeDefinition {
+interface IMathAcosNode extends INodeDefinition {
    inputs: {
       aIn: number;
    };
@@ -22,19 +22,19 @@ interface IMathCosNode extends INodeDefinition {
    };
 }
 
-const nodeHooks = ArcaneGraph.nodeHooks<IMathCosNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<IMathAcosNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [a, setA] = nodeHooks.useValueState(nodeId, "a");
    const aIn = nodeHooks.useInput(nodeId, "aIn", globals);
    const hasA = nodeHooks.useHasLink(nodeId, "aIn");
    return (
-      <BaseNode<IMathCosNode> nodeId={nodeId} helper={MathCosNodeHelper} hooks={nodeHooks}>
-         <SocketOut<IMathCosNode> nodeId={nodeId} socketId={"result"} type={SocketTypes.FLOAT}>
-            <BaseNode.Output label={"Result"}>{Math.cos((hasA ? aIn : a) ?? 0)}</BaseNode.Output>
+      <BaseNode<IMathAcosNode> nodeId={nodeId} helper={MathACosNodeHelper} hooks={nodeHooks}>
+         <SocketOut<IMathAcosNode> nodeId={nodeId} socketId={"result"} type={SocketTypes.FLOAT}>
+            <BaseNode.Output label={"Result"}>{Math.acos((hasA ? aIn : a) ?? 0)}</BaseNode.Output>
          </SocketOut>
          <hr />
-         <SocketIn<IMathCosNode> nodeId={nodeId} socketId={"aIn"} type={SocketTypes.NUMBER}>
+         <SocketIn<IMathAcosNode> nodeId={nodeId} socketId={"aIn"} type={SocketTypes.NUMBER}>
             <BaseNode.Input label={"A"}>
                <NumberInput value={hasA ? aIn : a} onValidValue={setA} disabled={hasA} />
             </BaseNode.Input>
@@ -44,17 +44,17 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    );
 });
 
-const nodeMethods = ArcaneGraph.nodeMethods<IMathCosNode>();
+const nodeMethods = ArcaneGraph.nodeMethods<IMathAcosNode>();
 
-const MathCosNodeHelper: INodeHelper<IMathCosNode> = {
-   name: "Cosine",
+const MathACosNodeHelper: INodeHelper<IMathAcosNode> = {
+   name: "Arc Cosine",
    buttonIcon,
    nodeIcon,
    flavour: "accent",
-   type: NodeTypes.MATH_COS,
-   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IMathCosNode["outputs"], globals: GraphGlobals) => {
+   type: NodeTypes.MATH_ACOS,
+   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IMathAcosNode["outputs"], globals: GraphGlobals) => {
       const a = nodeMethods.coalesce(graph, nodeId, "aIn", "a", globals);
-      return Math.cos(a);
+      return Math.acos(a);
    },
    initialize: () => ({
       a: 0,
@@ -63,4 +63,4 @@ const MathCosNodeHelper: INodeHelper<IMathCosNode> = {
    controls: Controls,
 };
 
-export default MathCosNodeHelper;
+export default MathACosNodeHelper;

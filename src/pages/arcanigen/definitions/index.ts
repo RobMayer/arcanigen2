@@ -63,6 +63,9 @@ import { NodeType, NodeTypes } from "!/utility/enums";
 import MathSinNodeHelper from "./math/mathSinNode";
 import MathCosNodeHelper from "./math/mathCosNode";
 import MathTanNodeHelper from "./math/mathTanNode";
+import MathASinNodeHelper from "./math/mathAsinNode";
+import MathATanNodeHelper from "./math/mathAtanNode";
+import MathACosNodeHelper from "./math/mathAcosNode";
 
 // prettier-ignore
 export const getNodeHelper = (key: NodeType) => {
@@ -120,6 +123,10 @@ export const getNodeHelper = (key: NodeType) => {
       case NodeTypes.MATH_SIN: return MathSinNodeHelper;
       case NodeTypes.MATH_COS: return MathCosNodeHelper;
       case NodeTypes.MATH_TAN: return MathTanNodeHelper;
+
+      case NodeTypes.MATH_ASIN: return MathASinNodeHelper;
+      case NodeTypes.MATH_ACOS: return MathACosNodeHelper;
+      case NodeTypes.MATH_ATAN: return MathATanNodeHelper;
 
       case NodeTypes.EFFECT_BRUSH: return BrushEffectNodeHelper;
       case NodeTypes.EFFECT_PENCIL: return PencilEffectNodeHelper;

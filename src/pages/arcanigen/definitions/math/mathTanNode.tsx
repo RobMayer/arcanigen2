@@ -31,7 +31,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    return (
       <BaseNode<IMathTanNode> nodeId={nodeId} helper={MathTanNodeHelper} hooks={nodeHooks}>
          <SocketOut<IMathTanNode> nodeId={nodeId} socketId={"result"} type={SocketTypes.FLOAT}>
-            <BaseNode.Output label={"Result"}>{Math.sin((hasA ? aIn : a) ?? 0)}</BaseNode.Output>
+            <BaseNode.Output label={"Result"}>{Math.tan((hasA ? aIn : a) ?? 0)}</BaseNode.Output>
          </SocketOut>
          <hr />
          <SocketIn<IMathTanNode> nodeId={nodeId} socketId={"aIn"} type={SocketTypes.NUMBER}>

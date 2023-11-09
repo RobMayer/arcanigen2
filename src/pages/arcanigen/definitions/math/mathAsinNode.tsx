@@ -10,7 +10,7 @@ import { SocketOut, SocketIn } from "../../nodeView/socket";
 import { MetaPrefab } from "../../nodeView/prefabs";
 import { SocketTypes, NodeTypes } from "!/utility/enums";
 
-interface IMathCosNode extends INodeDefinition {
+interface IMathASinNode extends INodeDefinition {
    inputs: {
       aIn: number;
    };
@@ -22,19 +22,19 @@ interface IMathCosNode extends INodeDefinition {
    };
 }
 
-const nodeHooks = ArcaneGraph.nodeHooks<IMathCosNode>();
+const nodeHooks = ArcaneGraph.nodeHooks<IMathASinNode>();
 
 const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    const [a, setA] = nodeHooks.useValueState(nodeId, "a");
    const aIn = nodeHooks.useInput(nodeId, "aIn", globals);
    const hasA = nodeHooks.useHasLink(nodeId, "aIn");
    return (
-      <BaseNode<IMathCosNode> nodeId={nodeId} helper={MathCosNodeHelper} hooks={nodeHooks}>
-         <SocketOut<IMathCosNode> nodeId={nodeId} socketId={"result"} type={SocketTypes.FLOAT}>
-            <BaseNode.Output label={"Result"}>{Math.cos((hasA ? aIn : a) ?? 0)}</BaseNode.Output>
+      <BaseNode<IMathASinNode> nodeId={nodeId} helper={MathASinNodeHelper} hooks={nodeHooks}>
+         <SocketOut<IMathASinNode> nodeId={nodeId} socketId={"result"} type={SocketTypes.FLOAT}>
+            <BaseNode.Output label={"Result"}>{Math.sin((hasA ? aIn : a) ?? 0)}</BaseNode.Output>
          </SocketOut>
          <hr />
-         <SocketIn<IMathCosNode> nodeId={nodeId} socketId={"aIn"} type={SocketTypes.NUMBER}>
+         <SocketIn<IMathASinNode> nodeId={nodeId} socketId={"aIn"} type={SocketTypes.NUMBER}>
             <BaseNode.Input label={"A"}>
                <NumberInput value={hasA ? aIn : a} onValidValue={setA} disabled={hasA} />
             </BaseNode.Input>
@@ -44,17 +44,17 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
    );
 });
 
-const nodeMethods = ArcaneGraph.nodeMethods<IMathCosNode>();
+const nodeMethods = ArcaneGraph.nodeMethods<IMathASinNode>();
 
-const MathCosNodeHelper: INodeHelper<IMathCosNode> = {
-   name: "Cosine",
+const MathASinNodeHelper: INodeHelper<IMathASinNode> = {
+   name: "Arc Sine",
    buttonIcon,
    nodeIcon,
    flavour: "accent",
-   type: NodeTypes.MATH_COS,
-   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IMathCosNode["outputs"], globals: GraphGlobals) => {
+   type: NodeTypes.MATH_ASIN,
+   getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IMathASinNode["outputs"], globals: GraphGlobals) => {
       const a = nodeMethods.coalesce(graph, nodeId, "aIn", "a", globals);
-      return Math.cos(a);
+      return Math.sin(a);
    },
    initialize: () => ({
       a: 0,
@@ -63,4 +63,4 @@ const MathCosNodeHelper: INodeHelper<IMathCosNode> = {
    controls: Controls,
 };
 
-export default MathCosNodeHelper;
+export default MathASinNodeHelper;
