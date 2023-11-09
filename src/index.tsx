@@ -11,6 +11,7 @@ const App = () => {
       <Router>
          <Layout>
             <Routes>
+               {/* <Route path={"/sandbox/"} element={<Pages.Sandbox />} /> */}
                <Route path={"/magic-circle/"} element={<Pages.Arcanigen />} />
                <Route path={"/"} element={<Pages.Home />} />
             </Routes>

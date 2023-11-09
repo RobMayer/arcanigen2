@@ -60,6 +60,9 @@ import TextPathNodeHelper from "./shapes/textPathNode";
 import ClusterArrayNodeHelper from "./collections/clusterArrayNode";
 import NotesNodeHelper from "./meta/notesNode";
 import { NodeType, NodeTypes } from "!/utility/enums";
+import MathSinNodeHelper from "./math/mathSinNode";
+import MathCosNodeHelper from "./math/mathCosNode";
+import MathTanNodeHelper from "./math/mathTanNode";
 
 // prettier-ignore
 export const getNodeHelper = (key: NodeType) => {
@@ -114,6 +117,9 @@ export const getNodeHelper = (key: NodeType) => {
       case NodeTypes.MATH_ABS: return MathAbsNodeHelper;
       case NodeTypes.MATH_SPD: return MathSpreadNodeHelper;
       case NodeTypes.MATH_RND: return MathRndNodeHelper;
+      case NodeTypes.MATH_SIN: return MathSinNodeHelper;
+      case NodeTypes.MATH_COS: return MathCosNodeHelper;
+      case NodeTypes.MATH_TAN: return MathTanNodeHelper;
 
       case NodeTypes.EFFECT_BRUSH: return BrushEffectNodeHelper;
       case NodeTypes.EFFECT_PENCIL: return PencilEffectNodeHelper;

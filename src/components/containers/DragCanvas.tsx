@@ -225,7 +225,7 @@ const DragCanvas = styled(
                setIsDragging(false);
             };
             const start = (e: globalThis.MouseEvent) => {
-               if (e.button === 1) {
+               if (e.button === 1 || (e.button === 0 && e.altKey)) {
                   setIsDragging(true);
                   document.addEventListener("mousemove", move);
                   document.addEventListener("mouseup", end);
