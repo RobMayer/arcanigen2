@@ -20,7 +20,7 @@ const SliderInput = styled(
          value,
          min,
          max,
-         step = "any",
+         step,
          flavour = "accent",
          className,
          handlers,
@@ -38,11 +38,19 @@ const SliderInput = styled(
                {...inputProps}
                min={min}
                max={max}
-               step={step}
+               step={step ?? "any"}
                disabled={disabled}
                revertInvalid={revertInvalid}
             />
-            <AbstractInputs.Number className={"input"} {...inputProps} min={min} max={max} step={step} disabled={disabled} revertInvalid={revertInvalid} />
+            <AbstractInputs.Number
+               className={"input"}
+               {...inputProps}
+               min={min}
+               max={max}
+               step={step ?? "0.01"}
+               disabled={disabled}
+               revertInvalid={revertInvalid}
+            />
          </div>
       );
    })
