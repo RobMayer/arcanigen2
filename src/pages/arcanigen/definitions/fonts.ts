@@ -180,6 +180,11 @@ export const FONT_DEFINITIONS: {
       url: "/fonts/noldor.woff2",
       format: "woff2",
    },
+   dottage: {
+      family: "Dottage",
+      url: "/fonts/dottage.woff2",
+      format: "woff2",
+   },
 } as const;
 
 export const FONT_NAMES = Object.entries(FONT_DEFINITIONS)
