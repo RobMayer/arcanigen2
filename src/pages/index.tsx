@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import ArcanigenPage from "./arcanigen";
 import SandboxPage from "./sandbox";
+import LaserPage from "./lasercutter";
 // import Sandbox from "./sandbox";
 
 /** @scope default . */
@@ -25,6 +26,7 @@ const Home = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) => {
 const Pages = {
    Home,
    Arcanigen: ArcanigenPage,
+   LaserMenu: LaserPage,
    Sandbox: SandboxPage,
 };
 
