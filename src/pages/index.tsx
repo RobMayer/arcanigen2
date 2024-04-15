@@ -26,7 +26,7 @@ const Home = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) => {
 const Pages = {
    Home,
    Arcanigen: ArcanigenPage,
-   LaserMenu: LaserPage,
+   Laser: LaserPage,
    Sandbox: SandboxPage,
 };
 

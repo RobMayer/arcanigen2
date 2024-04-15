@@ -385,7 +385,7 @@ export function PackStrategy({ binHeight, binWidth, items, selectionStrategy, sp
       }
    };
 
-   const unallocated: Item[] = [];
+   const unallocated: Set<Item> = new Set<Item>();
 
    const packedItems = sortedItems
       .map((item, idx) => {
@@ -396,7 +396,7 @@ export function PackStrategy({ binHeight, binWidth, items, selectionStrategy, sp
             selectedOption = selectRectangleOption(item);
          }
          if (!selectedOption) {
-            unallocated.push(item);
+            unallocated.add(item);
             //throw new Error(`item at index ${idx} with dimensions ${item.width}x${item.height} exceeds bin dimensions of ${binWidth}x${binHeight}`);
             return null;
          }
@@ -435,7 +435,7 @@ export function PackStrategy({ binHeight, binWidth, items, selectionStrategy, sp
       packedItems,
       splitStrategy,
       selectionStrategy,
-      unallocated,
+      unallocated: Array.from(unallocated),
    };
 }
 
@@ -480,18 +480,15 @@ function Packer({ binHeight, binWidth, items }: PackerInputs, { selectionStrateg
             allowRotation,
          })
       )
-      .reduce<[result: PackerResult | null, unallocated: any]>(
-         ([bestCompressed, missing], packResult) => {
-            const { splitStrategy, sortStrategy, selectionStrategy, sortOrder, packedItems, unallocated } = packResult;
-            debug(`Result for split strategy: ${splitStrategy}, selection strategy: ${selectionStrategy}, sortStrategy: ${sortStrategy}, sortOrder: ${sortOrder} - ${packedItems.length} bin(s)`);
-            if (!bestCompressed || packedItems.length < bestCompressed.length) {
-               return [packedItems, [...missing, ...unallocated]];
-            } else {
-               return [bestCompressed, [...missing, ...unallocated]];
-            }
-         },
-         [null, []]
-      );
+      .reduce<PackerResult | null>((bestCompressed, packResult) => {
+         const { splitStrategy, sortStrategy, selectionStrategy, sortOrder, packedItems, unallocated } = packResult;
+         debug(`Result for split strategy: ${splitStrategy}, selection strategy: ${selectionStrategy}, sortStrategy: ${sortStrategy}, sortOrder: ${sortOrder} - ${packedItems.length} bin(s)`);
+         if (!bestCompressed || packedItems.length < bestCompressed.length) {
+            return packedItems;
+         } else {
+            return bestCompressed;
+         }
+      }, null);
 }
 
 export { Packer as packer };

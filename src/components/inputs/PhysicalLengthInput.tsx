@@ -1,4 +1,4 @@
-import { Length, PhysicalLength } from "!/utility/types/units";
+import { PhysicalLength } from "!/utility/types/units";
 import { ForwardedRef, forwardRef, HTMLAttributes, ChangeEvent, useEffect, useRef, useState, useCallback } from "react";
 import styled from "styled-components";
 import AbstractInputs from "./abstract";
@@ -20,7 +20,7 @@ const PhysicalLengthInput = styled(
    forwardRef(({ autoFocus, className, disabled = false, onCommit, onValidCommit, onValue, onValidValue, value, min, max, step, ...props }: IProps & Omit<HTMLAttributes<HTMLDivElement>, "onChange">, fRef: ForwardedRef<HTMLDivElement>) => {
       const inputRef = useRef<HTMLInputElement>(null);
 
-      const [cache, setCache] = useState<PhysicalLength>(value ?? { value: 1, unit: "mm" });
+      const [cache, setCache] = useState<PhysicalLength>({ value: value?.value ?? 1, unit: value?.unit ?? "mm" });
       const valueRef = useRef<PhysicalLength>(cache);
 
       useEffect(() => {
