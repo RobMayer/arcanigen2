@@ -306,6 +306,7 @@ export type PackedItem = {
    x: number;
    y: number;
    bin: number;
+   rotated: boolean;
 };
 
 export function PackStrategy({ binHeight, binWidth, items, selectionStrategy, splitStrategy, sortStrategy, sortOrder, kerfSize, allowRotation }: PackStrategyOptions) {
@@ -332,7 +333,7 @@ export function PackStrategy({ binHeight, binWidth, items, selectionStrategy, sp
    const sortedItems = sorter.sort(items);
 
    const rotateItem = (item: Item) => {
-      return { ...item, height: item.width, width: item.height };
+      return { ...item, height: item.width, width: item.height, rotated: !item.rotated };
    };
 
    const splitRectangle = ({ rectangle, item }: { rectangle: Rectangle; item: Item }) => {
@@ -385,8 +386,6 @@ export function PackStrategy({ binHeight, binWidth, items, selectionStrategy, sp
       }
    };
 
-   const unallocated: Set<Item> = new Set<Item>();
-
    const packedItems = sortedItems
       .map((item, idx) => {
          debug("packing item", item);
@@ -396,17 +395,17 @@ export function PackStrategy({ binHeight, binWidth, items, selectionStrategy, sp
             selectedOption = selectRectangleOption(item);
          }
          if (!selectedOption) {
-            unallocated.add(item);
             //throw new Error(`item at index ${idx} with dimensions ${item.width}x${item.height} exceeds bin dimensions of ${binWidth}x${binHeight}`);
             return null;
          }
          const { rectangle, splitRectangles } = selectedOption;
          debug("selected rectangle", rectangle);
-         const { width, height, ...otherItemProps } = selectedOption.item;
+         const { width, height, rotated, ...otherItemProps } = selectedOption.item;
          const packedItem = {
             item: otherItemProps,
             width,
             height,
+            rotated: !!rotated,
             x: rectangle.x,
             y: rectangle.y,
             bin: rectangle.bin,
@@ -418,7 +417,7 @@ export function PackStrategy({ binHeight, binWidth, items, selectionStrategy, sp
          debug("free rectangles post split", freeRectangles);
          return packedItem;
       })
-      .reduce((bins, item) => {
+      .reduce<PackedItem[][]>((bins, item) => {
          if (item) {
             if (bins.length >= item.bin) {
                bins[item.bin - 1].push(item);
@@ -427,7 +426,7 @@ export function PackStrategy({ binHeight, binWidth, items, selectionStrategy, sp
             }
          }
          return bins;
-      }, [] as PackedItem[][]);
+      }, []);
 
    return {
       sortStrategy,
@@ -435,7 +434,6 @@ export function PackStrategy({ binHeight, binWidth, items, selectionStrategy, sp
       packedItems,
       splitStrategy,
       selectionStrategy,
-      unallocated: Array.from(unallocated),
    };
 }
 
@@ -481,7 +479,7 @@ function Packer({ binHeight, binWidth, items }: PackerInputs, { selectionStrateg
          })
       )
       .reduce<PackerResult | null>((bestCompressed, packResult) => {
-         const { splitStrategy, sortStrategy, selectionStrategy, sortOrder, packedItems, unallocated } = packResult;
+         const { splitStrategy, sortStrategy, selectionStrategy, sortOrder, packedItems } = packResult;
          debug(`Result for split strategy: ${splitStrategy}, selection strategy: ${selectionStrategy}, sortStrategy: ${sortStrategy}, sortOrder: ${sortOrder} - ${packedItems.length} bin(s)`);
          if (!bestCompressed || packedItems.length < bestCompressed.length) {
             return packedItems;

@@ -23,9 +23,10 @@ export const CutSheet = styled(({ className, selected }: { className?: string; s
                            xmlnsXlink="http://www.w3.org/1999/xlink"
                         >
                            {objs.map((box, k) => {
-                              return (
-                                 <path key={`${i}_${j}_${k}`} d={`M ${box.x},${box.y} m ${margin},${margin} m ${box.width / 2},${box.height / 2} ${box.item.path}`} stroke={box.item.color} fill={"none"} vectorEffect={"non-scaling-stroke"} />
-                              );
+                              const rot = box.rotated ? `rotate(90, 0, 0)` : "";
+                              const pos = `translate(${margin + box.x + box.width / 2},${margin + box.y + box.height / 2})`;
+
+                              return <path key={`${i}_${j}_${k}`} d={`${box.item.path}`} stroke={box.item.color} fill={"none"} vectorEffect={"non-scaling-stroke"} transform={`${pos} ${rot}`} />;
                            })}
                         </Sheet>
                      );
@@ -61,4 +62,5 @@ const MAT_STYLE = {
 const Sheet = styled.svg`
    width: 80%;
    height: max-content;
+   overflow: visible;
 `;

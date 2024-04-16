@@ -144,7 +144,7 @@ export const useCutsheet = () => {
             (each) => each.height < binHeight && each.width < binWidth
          );
 
-         const result = packer({ binWidth, binHeight, items: input }, { allowRotation: false, kerfSize: gap });
+         const result = packer({ binWidth, binHeight, items: input }, { allowRotation: true, kerfSize: gap });
 
          return { result, unallocated, width, height, margin };
       });
