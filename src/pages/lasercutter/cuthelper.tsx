@@ -256,35 +256,6 @@ export const drawFootBracket = (material: Material, grid: GridSystem) => {
             SW,
          `m ${pOffset},${-sOffset}`,
       `m ${pAxis},${-sAxis}`,
-
-      // `m ${-(footSize + offset * 1.5)},${footSize / 2 + offset / 2}`,
-      // SW,
-      // `m ${footSize + offset * 1.5},${-(footSize / 2 + offset / 2)}`,
-
-      // // topLeft
-      // `m ${-(footSize + offset * 0.5)},${-(footSize / 2 + offset / 2)}`,
-      // NE,
-      // `m ${footSize + offset * 0.5},${footSize / 2 + offset / 2}`,
-
-      // // top right
-      // `m ${footSize + offset * 0.5},${-(footSize / 2 + offset / 2)}`,
-      // NW,
-      // `m ${-(footSize + offset * 0.5)},${footSize / 2 + offset / 2}`,
-
-      // `m ${footSize + offset * 1.5},${footSize / 2 + offset / 2}`,
-      // SE,
-      // `m ${-(footSize + offset * 1.5)},${-(footSize / 2 + offset / 2)}`,
-
-      // top-right
-      // `h ${-footSize}`,
-      // `v ${-footSize}`,
-      // `h ${footSize}`,
-      // `h ${footSize - materialThickness}`,
-      // `l ${materialThickness},${materialThickness}`,
-      // `v ${footSize - materialThickness}`,
-      // `v ${footSize}`,
-      // `h ${-footSize}`,
-      // `z`,
    ].join(" ");
 };
 
@@ -321,8 +292,7 @@ export const drawBottom = (cellX: number, cellY: number, footLayout: FootLayout,
    const footSize = convertLength(grid.footSize, "mm").value;
 
    const feet: string[] = [];
-   if (footLayout !== FOOT_LAYOUT.NONE) {
-      // if (footLayout !== FOOT_LAYOUT.NONE && grid.footStyle === FOOT_STYLES.RUNNER) {
+   if (footLayout !== FOOT_LAYOUT.NONE && grid.footStyle === FOOT_STYLES.RUNNER) {
       feet.push(`m ${gridSize / 2},${gridSize / 2}`);
 
       const oP = gridSize / 2 - materialThickness * 1.5 - stackClearance - gridClearance;

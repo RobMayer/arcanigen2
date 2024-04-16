@@ -7,7 +7,7 @@ import { GridSettings } from "./parts/gridsettings";
 import { MaterialList } from "./parts/materiallist";
 import { MaterialSettings } from "./parts/materialsettings";
 import { ItemList } from "./parts/itemlist";
-import { useGridState, useItemState } from "./statehelper";
+import { useGridState, useItemState } from "./systemstate";
 import { ITEM_DEFINITIONS } from "./definitions";
 
 const LaserPage = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) => {
@@ -34,7 +34,7 @@ const LaserPage = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) => {
    );
 })`
    display: grid;
-   grid-template-columns: 3fr minmax(400px, 1fr) minmax(400px, 1fr);
+   grid-template-columns: 3fr minmax(450px, 1fr) minmax(450px, 1fr);
    grid-template-rows: auto 1fr;
 
    grid-template-areas:

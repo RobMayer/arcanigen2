@@ -2,7 +2,7 @@ import NumberInput from "../../../components/inputs/NumberInput";
 import ToggleList from "../../../components/selectors/ToggleList";
 import { convertLength } from "../../../utility/mathhelper";
 import { cutRect, drawArray, drawBottom, drawTabbedRect } from "../cuthelper";
-import { Full, ItemPanel, Label, Section } from "../parts/common";
+import { Wide, ItemPanel, Label, Section } from "../parts/common";
 import { FOOT_LAYOUT, FOOT_LAYOUT_OPTIONS, FOOT_STYLES, FootLayout, GridSystem, ItemControlProps, ItemDefinition, Material, TOP_STYLES, TOP_STYLE_OPTIONS, TopStyle } from "../types";
 
 export type BoxParams = {
@@ -16,8 +16,21 @@ export type BoxParams = {
    divY: number;
 
    topStyle: TopStyle;
+
    footPack: boolean;
 };
+
+const getInitial = (): BoxParams => ({
+   type: "BOX",
+   cellX: 1,
+   cellY: 1,
+   cellZ: 2,
+   footLayout: FOOT_LAYOUT.MINIMAL,
+   divX: 0,
+   divY: 0,
+   topStyle: TOP_STYLES.NONE,
+   footPack: true,
+});
 
 const getLayout = (item: BoxParams, material: Material, grid: GridSystem) => {
    const gridSize = convertLength(grid.gridSize, "mm").value;
@@ -69,15 +82,13 @@ const Controls = ({ value, setValue, grid }: ItemControlProps<BoxParams>) => {
          <NumberInput value={value.divX} onValidCommit={(v) => setValue("divX", v)} min={0} step={1} />
          <Label>Dividers Y</Label>
          <NumberInput value={value.divY} onValidCommit={(v) => setValue("divY", v)} min={0} step={1} />
-         <Section>Extras</Section>
+         <Section>Extra Options</Section>
          <Label>Foot Layout</Label>
-         <Full>
+         <Wide>
             <ToggleList disabled={grid.footStyle !== FOOT_STYLES.RUNNER} options={FOOT_LAYOUT_OPTIONS} value={value.footLayout} onValue={(v) => setValue("footLayout", v)} />
-         </Full>
+         </Wide>
          <Label>Top Style</Label>
-         <Full>
-            <ToggleList options={TOP_STYLE_OPTIONS} value={value.topStyle} onValue={(v) => setValue("topStyle", v)} />
-         </Full>
+         <ToggleList className={"spanRest"} options={TOP_STYLE_OPTIONS} value={value.topStyle} onValue={(v) => setValue("topStyle", v)} />
       </ItemPanel>
    );
 };
@@ -85,17 +96,7 @@ const Controls = ({ value, setValue, grid }: ItemControlProps<BoxParams>) => {
 export const BoxDef: ItemDefinition<BoxParams> = {
    getLayout,
    Controls,
-   getInitial: () => ({
-      type: "BOX",
-      cellX: 1,
-      cellY: 1,
-      cellZ: 2,
-      footLayout: FOOT_LAYOUT.MINIMAL,
-      divX: 0,
-      divY: 0,
-      topStyle: TOP_STYLES.NONE,
-      footPack: true,
-   }),
+   getInitial,
    getLabel: (item) => `Box (${item.cellX}x${item.cellY}x${item.cellZ})`,
    getTitle: () => "Box",
    getDescription: () => "A simple Box with optional dividers",

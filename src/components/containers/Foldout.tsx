@@ -1,11 +1,11 @@
 import { faCaretDown, faCaretRight } from "@fortawesome/pro-solid-svg-icons";
-import { ReactNode, HTMLAttributes, useCallback, ComponentType, useEffect, useState } from "react";
+import { ReactNode, HTMLAttributes, useCallback, ComponentType, useEffect, useState, useRef } from "react";
 import styled from "styled-components";
 import { Flavour } from "..";
 import Button from "../buttons/Button";
 import Icon from "../icons";
 
-type FoldoutBarProps = {
+type Bar = {
    className?: string;
    onToggle: () => void;
    isOpen: boolean;
@@ -15,40 +15,34 @@ type FoldoutBarProps = {
    title?: string;
 };
 
-type IProps = {
+type FoldoutProps = {
    label: ReactNode;
-   isOpen?: boolean;
-   onToggle?: () => void;
-   bar?: ComponentType<FoldoutBarProps>;
+   startOpen?: boolean;
+   bar?: ComponentType<Bar>;
    barClass?: string;
    flavour?: Flavour;
    disabled?: boolean;
 };
 
-const Foldout = ({
-   bar: Bar = DefaultBar,
-   isOpen = false,
-   label,
-   onToggle,
-   barClass,
-   flavour = "accent",
-   disabled,
-   title,
-   ...props
-}: HTMLAttributes<HTMLDivElement> & IProps) => {
-   const [state, setState] = useState<boolean>(isOpen);
+type ControlledFoldoutProps = {
+   label: ReactNode;
+   isOpen: boolean;
+   onToggle: (v: boolean) => void;
+   bar?: ComponentType<Bar>;
+   barClass?: string;
+   flavour?: Flavour;
+   disabled?: boolean;
+};
 
-   useEffect(() => {
-      setState(isOpen);
-   }, [isOpen]);
+const Foldout = ({ bar: Bar = DefaultBar, startOpen = false, label, barClass, flavour = "accent", disabled, title, ...props }: HTMLAttributes<HTMLDivElement> & FoldoutProps) => {
+   const [state, setState] = useState<boolean>(startOpen);
 
    const handleToggle = useCallback(() => {
       setState((p) => !p);
-      onToggle && onToggle();
-   }, [onToggle]);
+   }, []);
 
    return (
-      <PassThrough>
+      <>
          <BarWrapper>
             <Bar onToggle={handleToggle} isOpen={state} className={barClass} flavour={flavour} disabled={disabled} title={title}>
                {label}
@@ -59,15 +53,32 @@ const Foldout = ({
                <div {...props} />
             </Body>
          )}
-      </PassThrough>
+      </>
    );
 };
 
-export default Foldout;
+const ControlledFoldout = ({ bar: Bar = DefaultBar, isOpen, onToggle, label, barClass, flavour = "accent", disabled, title, ...props }: HTMLAttributes<HTMLDivElement> & ControlledFoldoutProps) => {
+   const handleToggle = useCallback(() => {
+      onToggle(!isOpen);
+   }, [onToggle, isOpen]);
 
-const PassThrough = styled.div`
-   display: contents;
-`;
+   return (
+      <>
+         <BarWrapper>
+            <Bar onToggle={handleToggle} isOpen={isOpen} className={barClass} flavour={flavour} disabled={disabled} title={title}>
+               {label}
+            </Bar>
+         </BarWrapper>
+         {isOpen && (
+            <Body>
+               <div {...props} />
+            </Body>
+         )}
+      </>
+   );
+};
+
+export { Foldout, ControlledFoldout };
 
 const Body = styled.div`
    overflow-y: auto;
@@ -78,7 +89,7 @@ const BarWrapper = styled.div`
    display: grid;
 `;
 
-const DefaultBar = styled(({ flavour, isOpen, onToggle, children, title, className, ...props }: FoldoutBarProps) => {
+const DefaultBar = styled(({ flavour, isOpen, onToggle, children, title, className, ...props }: Bar) => {
    return (
       <Button {...props} className={`${className ?? ""} state-${isOpen ? "open" : "closed"}`} onClick={onToggle} title={title}>
          <Icon icon={isOpen ? faCaretDown : faCaretRight} />

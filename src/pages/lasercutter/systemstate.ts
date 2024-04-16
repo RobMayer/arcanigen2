@@ -29,6 +29,7 @@ const laserstore = proxy<{ store: Store }>({
          stackTab: { value: 6, unit: "mm" },
 
          footSize: { value: 6, unit: "mm" },
+         slideClearance: { value: 0.5, unit: "mm" },
          footStyle: FOOT_STYLES.RUNNER,
       },
       media: [],
@@ -167,10 +168,10 @@ const bisectArray = <T>(input: T[], fn: (item: T) => boolean): [kept: T[], disca
 
 export const usePersistence = () => {
    const save = useCallback(() => {
-      return JSON.stringify(laserstore.store);
+      return JSON.stringify({ ...laserstore.store, version: VERSION });
    }, []);
 
-   const load = useCallback((item: any) => {
+   const load = useCallback(({ version, ...item }: any) => {
       laserstore.store = item;
    }, []);
 
@@ -187,6 +188,7 @@ export const usePersistence = () => {
 
             footSize: { value: 6, unit: "mm" },
             footStyle: FOOT_STYLES.RUNNER,
+            slideClearance: { value: 0.5, unit: "mm" },
          },
          media: [],
       };
@@ -194,3 +196,5 @@ export const usePersistence = () => {
 
    return { save, load, reset };
 };
+
+const VERSION = 0;

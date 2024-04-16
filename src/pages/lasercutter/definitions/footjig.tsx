@@ -1,6 +1,6 @@
 import { convertLength } from "../../../utility/mathhelper";
 import { drawRect, cutRect } from "../cuthelper";
-import { Full, ItemPanel } from "../parts/common";
+import { Wide, ItemPanel } from "../parts/common";
 import { ItemControlProps, ItemDefinition, GridSystem, Material, FOOT_STYLES } from "../types";
 
 export type FootJigParams = {
@@ -10,7 +10,7 @@ export type FootJigParams = {
 const Controls = ({ value, setValue, grid }: ItemControlProps<FootJigParams>) => {
    return (
       <ItemPanel value={value} setValue={setValue} label={FootJigDef.getTitle()}>
-         <Full>There's nothing more to edit for the foot jig...</Full>
+         <Wide>There's nothing more to edit for the foot jig...</Wide>
       </ItemPanel>
    );
 };
@@ -50,6 +50,18 @@ const getLayout = (item: FootJigParams, material: Material, grid: GridSystem) =>
       `m ${bOffset},${bOffset}`,
       cutRect(footSize * 2, footSize * 2),
       `m ${-bOffset},${-bOffset}`,
+
+      `m ${bOffset},${-bOffset}`,
+      cutRect(footSize * 2, footSize * 2),
+      `m ${-bOffset},${bOffset}`,
+
+      `m ${-bOffset},${-bOffset}`,
+      cutRect(footSize * 2, footSize * 2),
+      `m ${bOffset},${bOffset}`,
+
+      `m ${-bOffset},${bOffset}`,
+      cutRect(footSize * 2, footSize * 2),
+      `m ${bOffset},${-bOffset}`,
    ].join(" ");
 
    const path = [

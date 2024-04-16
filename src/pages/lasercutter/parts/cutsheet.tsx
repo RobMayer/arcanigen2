@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { useCutsheet } from "../statehelper";
+import { useCutsheet } from "../systemstate";
 
 export const CutSheet = styled(({ className, selected }: { className?: string; selected: null | number }) => {
    const cutsheet = useCutsheet();
@@ -52,7 +52,7 @@ const MatGroup = styled.div`
    display: contents;
 `;
 
-const DPMM = 283.5 / 100;
+const DPMM = 283.5 / 100.0;
 
 const MAT_STYLE = {
    background: "white",

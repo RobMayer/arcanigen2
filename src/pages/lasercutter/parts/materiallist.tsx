@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { useCutsheet, useMaterialList } from "../statehelper";
+import { useCutsheet, useMaterialList } from "../systemstate";
 import { useMemo } from "react";
 import { Section } from "./common";
 import ActionButton from "../../../components/buttons/ActionButton";
@@ -25,6 +25,8 @@ export const MaterialList = styled(({ className, selected, onSelect }: { classNa
                const sheetsUsed = sheetData[i].result?.length ?? 0;
                const unallocatedCount = sheetData[i].unallocated.length;
 
+               const theThickness = `${material.thickness.value}${material.thickness.unit}`;
+
                return (
                   <Item
                      key={i}
@@ -33,7 +35,7 @@ export const MaterialList = styled(({ className, selected, onSelect }: { classNa
                         onSelect(i === selected ? null : i);
                      }}
                   >
-                     <div>{`${material.width.value} ${material.width.unit} x ${material.height.value} ${material.height.unit} @ ${material.thickness.value} ${material.thickness.unit}`}</div>
+                     <div>{`${material.width.value}${material.width.unit} x ${material.height.value}${material.height.unit} @ ${theThickness}`}</div>
                      {unallocatedCount > 0 ? <Icon icon={faWarning} className={"flavour-danger"} title={`${unallocatedCount} items could not be packed on this material`} /> : null}
                      <div>
                         {sheetsUsed} Sheet{sheetsUsed === 1 ? "" : "s"}
@@ -47,9 +49,9 @@ export const MaterialList = styled(({ className, selected, onSelect }: { classNa
                methods.add({
                   width: { value: 450, unit: "mm" },
                   height: { value: 300, unit: "mm" },
-                  thickness: { value: 3, unit: "mm" },
                   gap: { value: 2, unit: "mm" },
                   margin: { value: 4, unit: "mm" },
+                  thickness: { value: 3, unit: "mm" },
                });
                onSelect(list.length);
             }}

@@ -1,6 +1,6 @@
 import { convertLength } from "../../../utility/mathhelper";
 import { drawFootRunner, drawFootBlock, drawFootBracket } from "../cuthelper";
-import { Full, ItemPanel } from "../parts/common";
+import { Wide, ItemPanel } from "../parts/common";
 import { ItemControlProps, ItemDefinition, GridSystem, Material } from "../types";
 
 export type FeetParams = {
@@ -10,7 +10,7 @@ export type FeetParams = {
 const Controls = ({ value, setValue, grid }: ItemControlProps<FeetParams>) => {
    return (
       <ItemPanel value={value} setValue={setValue} label={FeetDef.getTitle()}>
-         <Full>There's nothing more to edit for feet...</Full>
+         <Wide>There's nothing more to edit for feet...</Wide>
       </ItemPanel>
    );
 };

@@ -101,6 +101,7 @@ export type GridSystem = {
    gridTab: PhysicalLength;
    stackTab: PhysicalLength;
    footSize: PhysicalLength;
+   slideClearance: PhysicalLength;
 
    footStyle: FootStyle;
 };

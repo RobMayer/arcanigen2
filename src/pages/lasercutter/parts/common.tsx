@@ -3,10 +3,12 @@ import { ReactNode } from "react";
 import NumberInput from "../../../components/inputs/NumberInput";
 import { Color } from "../../../utility/types/units";
 import HexColorInput from "../../../components/inputs/colorHexInput";
+import Checkbox from "../../../components/buttons/Checkbox";
 
 export const Label = styled.div`
    text-align: right;
    align-self: center;
+   font-size: 0.875em;
 `;
 
 export const Header = styled.div`
@@ -25,21 +27,78 @@ export const Section = styled.div`
    text-align: right;
 `;
 
-export const Full = styled.div`
+export const Wide = styled.div`
    grid-column: 2 / -1;
    justify-self: stretch;
    display: grid;
    grid-auto-flow: column;
-   grid-template-columns: auto;
-   grid-auto-columns: max-content;
-   gap: 8px;
+   grid-auto-columns: auto;
+   gap: 0.5em;
+   align-items: center;
+`;
+
+export const Full = styled.div`
+   grid-column: 1 / -1;
+   justify-self: stretch;
+   display: grid;
+   grid-auto-flow: column;
+   grid-template-columns: auto auto;
+   grid-auto-columns: minmax(max-content, 1fr);
+   gap: 0.5em;
+   align-items: center;
+`;
+
+export const Double = styled.div`
+   grid-column-end: span 2;
+   display: grid;
+   align-items: center;
+   grid-template-columns: 1fr;
+   grid-auto-columns: auto;
+   grid-auto-flow: column;
+`;
+
+export const Stack = styled.div`
+   display: grid;
+   grid-auto-rows: auto;
+   justify-items: stretch;
+`;
+
+export const Optional = styled.div`
+   display: grid;
+   grid-template-columns: auto 1fr;
+   gap: 0.5em;
+   align-items: center;
+`;
+
+export const Override = styled(({ children, className, checked, onToggle }: { className?: string; checked: boolean; onToggle: (v: boolean) => void; children?: ReactNode }) => {
+   return (
+      <div className={className}>
+         <Checkbox checked={checked} onToggle={onToggle} />
+         {children}
+      </div>
+   );
+})`
+   display: grid;
+   gap: 0.5em;
+   align-items: center;
+   grid-template-columns: auto 1fr;
 `;
 
 export const ControlPanel = styled.div`
    display: grid;
    gap: 0.5em;
-   grid-template-columns: max-content 1fr max-content 1fr;
+   grid-template-columns: auto 1fr auto 1fr;
    align-content: start;
+   align-items: start;
+   & > .span2 {
+      grid-column-end: span 2;
+   }
+   & > .spanRest {
+      grid-column: 2 / -1;
+   }
+   & > .spanAll {
+      grid-column: 1 / -1;
+   }
 `;
 
 type ItemPanelProps = {

@@ -2,7 +2,7 @@ import Checkbox from "../../../components/buttons/Checkbox";
 import NumberInput from "../../../components/inputs/NumberInput";
 import { convertLength } from "../../../utility/mathhelper";
 import { drawRect, drawArray, cutRect, drawFootBlock, drawFootBracket, drawFootRunner } from "../cuthelper";
-import { Full, ItemPanel, Label, Section } from "../parts/common";
+import { Wide, ItemPanel, Label, Section } from "../parts/common";
 import { ItemControlProps, ItemDefinition, GridSystem, Material, FOOT_STYLES } from "../types";
 
 export type BaseplateParams = {
@@ -22,11 +22,11 @@ const Controls = ({ value, setValue, grid }: ItemControlProps<BaseplateParams>) 
          <NumberInput value={value.cellY} onValidCommit={(v) => setValue("cellY", v)} min={1} step={1} />
          <Section>Extras</Section>
          <Label>Pack Feet</Label>
-         <Full>
+         <Wide>
             <Checkbox checked={value.footPack} onToggle={(v) => setValue("footPack", v)}>
                (This works best with default grid settings, careful)
             </Checkbox>
-         </Full>
+         </Wide>
       </ItemPanel>
    );
 };
@@ -74,7 +74,7 @@ const drawGrid = (x: number, y: number, footPack: boolean, material: Material, g
    return [
       // OUTLINE
       drawRect(gridSize * x - gridClearance * 2, gridSize * y - gridClearance * 2),
-      drawArray({ count: x, spacing: gridSize }, { count: y, spacing: gridSize }, cutRect(gridSize - materialThickness * 2, gridSize - materialThickness * 2)),
+      drawArray({ count: x, spacing: gridSize }, { count: y, spacing: gridSize }, cutRect(gridSize - materialThickness * 2 - gridClearance * 2, gridSize - materialThickness * 2 - gridClearance * 2)),
       footPack ? drawArray({ count: x, spacing: gridSize }, { count: y, spacing: gridSize }, feet) : "",
    ].join(" ");
 };

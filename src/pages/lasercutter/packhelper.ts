@@ -453,7 +453,7 @@ type PackerConfig = {
 type PackerResult = PackedItem[][] | null;
 
 function Packer({ binHeight, binWidth, items }: PackerInputs, { selectionStrategy, splitStrategy, sortStrategy, kerfSize = 0, allowRotation = true }: PackerConfig = {}) {
-   function enumToArray<T>(enumVariable: T) {
+   function enumToArray<T extends object>(enumVariable: T) {
       return Object.values(enumVariable)
          .filter((value) => parseInt(value, 10) >= 0)
          .map((value) => value as keyof T);
