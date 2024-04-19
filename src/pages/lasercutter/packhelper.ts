@@ -23,6 +23,20 @@ export interface Item {
    [others: string]: any;
 }
 
+export enum SortStrategy {
+   Area,
+   ShortSide,
+   LongSide,
+   Perimeter,
+   Differences,
+   Ratio,
+}
+
+export enum SortDirection {
+   ASC,
+   DESC,
+}
+
 /* SPLIT STRATEGY */
 
 const createSplitRectangle = (rectangle: Rectangle) => ({ ...rectangle, splitFrom: rectangle.id });
@@ -193,20 +207,6 @@ class Ratio extends Sorter {
    comparer(a: Item, b: Item) {
       return a.width / a.height < b.width / b.height ? -1 : 1;
    }
-}
-
-export enum SortStrategy {
-   Area,
-   ShortSide,
-   LongSide,
-   Perimeter,
-   Differences,
-   Ratio,
-}
-
-export enum SortDirection {
-   ASC,
-   DESC,
 }
 
 export function GetSortImplementation(strategy: SortStrategy, direction: SortDirection): Sorter {

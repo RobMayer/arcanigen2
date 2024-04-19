@@ -1,16 +1,23 @@
+import NumberInput from "../../../components/inputs/NumberInput";
 import { convertLength } from "../../../utility/mathhelper";
-import { drawRect, cutRect } from "../cuthelper";
-import { Wide, ItemPanel } from "../parts/common";
+import { drawRect, cutRect, drawArray } from "../cuthelper";
+import { Wide, ItemPanel, Label, Section } from "../parts/common";
 import { ItemControlProps, ItemDefinition, GridSystem, Material, FOOT_STYLES } from "../types";
 
 export type FootJigParams = {
    type: "FOOTJIG";
+   cellX: number;
+   cellY: number;
 };
 
 const Controls = ({ value, setValue, grid }: ItemControlProps<FootJigParams>) => {
    return (
       <ItemPanel value={value} setValue={setValue} label={FootJigDef.getTitle()}>
-         <Wide>There's nothing more to edit for the foot jig...</Wide>
+         <Section>Size</Section>
+         <Label>Cells X</Label>
+         <NumberInput value={value.cellX} onValidCommit={(v) => setValue("cellX", v)} min={1} step={1} />
+         <Label>Cells Y</Label>
+         <NumberInput value={value.cellY} onValidCommit={(v) => setValue("cellY", v)} min={1} step={1} />
       </ItemPanel>
    );
 };
@@ -43,38 +50,54 @@ const getLayout = (item: FootJigParams, material: Material, grid: GridSystem) =>
       "",
    ].join(" ");
 
-   const bOffset = gridSize / 2 - materialThickness - footSize - stackClearance - gridClearance;
+   // const bOffset = gridSize / 2 - materialThickness - footSize - stackClearance - gridClearance;
+
+   const sJig = cutRect(gridSize - materialThickness * 2 - gridClearance * 2 - stackClearance * 2, gridSize - materialThickness * 2 - gridClearance * 2 - stackClearance * 2);
 
    const bJig = [
-      //
-      `m ${bOffset},${bOffset}`,
-      cutRect(footSize * 2, footSize * 2),
-      `m ${-bOffset},${-bOffset}`,
+      cutRect(gridSize - materialThickness * 2 - gridClearance * 2 - stackClearance * 2, gridSize - materialThickness * 2 - gridClearance * 2 - stackClearance * 2),
+      cutRect(gridSize - materialThickness * 2 - gridClearance * 2 - stackClearance * 2 - footSize * 2, gridSize - materialThickness * 2 - gridClearance * 2 - stackClearance * 2 - footSize * 2),
+      // //
+      // `m ${bOffset},${bOffset}`,
+      // cutRect(footSize * 2, footSize * 2),
+      // `m ${-bOffset},${-bOffset}`,
 
-      `m ${bOffset},${-bOffset}`,
-      cutRect(footSize * 2, footSize * 2),
-      `m ${-bOffset},${bOffset}`,
+      // `m ${bOffset},${-bOffset}`,
+      // cutRect(footSize * 2, footSize * 2),
+      // `m ${-bOffset},${bOffset}`,
 
-      `m ${-bOffset},${-bOffset}`,
-      cutRect(footSize * 2, footSize * 2),
-      `m ${bOffset},${bOffset}`,
+      // `m ${-bOffset},${-bOffset}`,
+      // cutRect(footSize * 2, footSize * 2),
+      // `m ${bOffset},${bOffset}`,
 
-      `m ${-bOffset},${bOffset}`,
-      cutRect(footSize * 2, footSize * 2),
-      `m ${bOffset},${-bOffset}`,
+      // `m ${-bOffset},${bOffset}`,
+      // cutRect(footSize * 2, footSize * 2),
+      // `m ${bOffset},${-bOffset}`,
    ].join(" ");
 
+   let theJig = "";
+   switch (grid.footStyle) {
+      case "RUNNER":
+         theJig = rJig;
+         break;
+      case "BLOCK":
+         theJig = sJig;
+         break;
+      case "BRACKET":
+         theJig = bJig;
+         break;
+   }
+
    const path = [
-      drawRect(gridSize - gridClearance * 2, gridSize - gridClearance * 2),
-      grid.footStyle === FOOT_STYLES.RUNNER ? rJig : "",
-      grid.footStyle === FOOT_STYLES.BLOCK ? cutRect(gridSize - materialThickness * 2 - gridClearance * 2 - stackClearance * 2, gridSize - materialThickness * 2 - gridClearance * 2 - stackClearance * 2) : "",
-      grid.footStyle === FOOT_STYLES.BRACKET ? bJig : "",
+      //
+      drawRect(gridSize * item.cellX - gridClearance * 2, gridSize * item.cellY - gridClearance * 2),
+      drawArray({ count: item.cellX, spacing: gridSize }, { count: item.cellY, spacing: gridSize }, theJig),
    ];
 
    return [
       {
-         width: gridSize - gridClearance * 2,
-         height: gridSize - gridClearance * 2,
+         width: item.cellX * gridSize - gridClearance * 2,
+         height: item.cellY * gridSize - gridClearance * 2,
          path: path.join(" "),
       },
    ];
@@ -85,6 +108,8 @@ export const FootJigDef: ItemDefinition<FootJigParams> = {
    Controls,
    getInitial: () => ({
       type: "FOOTJIG",
+      cellX: 1,
+      cellY: 1,
    }),
    getLabel: (item) => `Foot Jig`,
    getTitle: () => `Foot Jig`,

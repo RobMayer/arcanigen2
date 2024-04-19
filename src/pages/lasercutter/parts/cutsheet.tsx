@@ -26,7 +26,11 @@ export const CutSheet = styled(({ className, selected }: { className?: string; s
                               const rot = box.rotated ? `rotate(90, 0, 0)` : "";
                               const pos = `translate(${margin + box.x + box.width / 2},${margin + box.y + box.height / 2})`;
 
-                              return <path key={`${i}_${j}_${k}`} d={`${box.item.path}`} stroke={box.item.color} fill={"none"} vectorEffect={"non-scaling-stroke"} transform={`${pos} ${rot}`} />;
+                              return (
+                                 <g key={`${i}_${j}_${k}`}>
+                                    <path d={`${box.item.path}`} stroke={box.item.color} fill={"none"} vectorEffect={"non-scaling-stroke"} transform={`${pos} ${rot}`} />
+                                 </g>
+                              );
                            })}
                         </Sheet>
                      );
