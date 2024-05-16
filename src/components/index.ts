@@ -1,1 +1,1 @@
-export type Flavour = "bare" | "accent" | "emphasis" | "danger" | "confirm" | "help" | "info";
+export type Flavour = "bare" | "accent" | "emphasis" | "danger" | "confirm" | "help" | "info" | "inherit";

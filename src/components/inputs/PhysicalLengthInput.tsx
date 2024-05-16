@@ -1,223 +1,419 @@
-import { PhysicalLength } from "!/utility/types/units";
-import { ForwardedRef, forwardRef, HTMLAttributes, ChangeEvent, useEffect, useRef, useState, useCallback } from "react";
+import { useRef, useState, useEffect, useCallback, ChangeEvent, useMemo } from "react";
 import styled from "styled-components";
-import AbstractInputs from "./abstract";
+import { Flavour } from "..";
+import { useStable } from "../../utility/hooks/useStable";
+import { PhysicalLength } from "../../utility/types/units";
+import { Icon, IconDefinition } from "../icons";
+import { useUi } from "../useUI";
+import { ValidationHandler } from "../validation";
 
-type IProps = {
-   onValue?: (value: PhysicalLength) => void;
-   onValidValue?: (value: PhysicalLength) => void;
-   onCommit?: (value: PhysicalLength) => void;
-   onValidCommit?: (value: PhysicalLength) => void;
-   value?: PhysicalLength;
-   autoFocus?: boolean;
-   disabled?: boolean;
-   min?: number;
-   max?: number;
-   step?: number | "any";
+export type PhysicalLengthInputProps = {
+    onCommit?: (value: PhysicalLength) => void;
+    onValidCommit?: (value: PhysicalLength) => void;
+    onValue?: (value: PhysicalLength) => void;
+    onValidValue?: (value: PhysicalLength) => void;
+    validate?: (value: PhysicalLength) => { code: string; message: string }[];
+    onValidate?: (reasons: { code: string; message: string }[]) => void;
+    value?: PhysicalLength;
+    step?: number;
+    min?: number;
+    max?: number;
+    magnitude?: number;
+    className?: string;
+    disabled?: boolean;
+    icon?: IconDefinition;
+    placeholder?: string;
+    validator?: ValidationHandler;
+    flavour?: Flavour;
+    precision?: number | "none";
+    tooltip?: string;
 };
 
-const PhysicalLengthInput = styled(
-   forwardRef(({ autoFocus, className, disabled = false, onCommit, onValidCommit, onValue, onValidValue, value, min, max, step, ...props }: IProps & Omit<HTMLAttributes<HTMLDivElement>, "onChange">, fRef: ForwardedRef<HTMLDivElement>) => {
-      const inputRef = useRef<HTMLInputElement>(null);
+type StrLength = {
+    value: string;
+    unit: PhysicalLength["unit"];
+};
 
-      const [cache, setCache] = useState<PhysicalLength>({ value: value?.value ?? 1, unit: value?.unit ?? "mm" });
-      const valueRef = useRef<PhysicalLength>(cache);
+const DEFAULT_LENGTH: PhysicalLength = { value: 0, unit: "mm" };
 
-      useEffect(() => {
-         setCache((p) => {
-            if (value) {
-               if (value.unit !== p.unit || value.value !== p.value) {
-                  return value;
-               }
-            }
-            return p;
-         });
-         if (value) {
-            valueRef.current.value = value.value;
-            valueRef.current.unit = value.unit;
-         }
-      }, [value]);
+export const PhysicalLengthInput = styled(
+    ({
+        onCommit,
+        onValidCommit,
+        onValue,
+        onValidValue,
+        className,
+        validate,
+        onValidate,
+        value = DEFAULT_LENGTH,
+        step = 0,
+        min,
+        max,
+        magnitude = 1,
+        disabled,
+        icon,
+        placeholder,
+        validator,
+        flavour = "accent",
+        precision = "none",
+        tooltip,
+    }: PhysicalLengthInputProps) => {
+        const wrapperRef = useRef<HTMLDivElement>(null);
+        const valInputRef = useRef<HTMLInputElement>(null);
+        const unitInputRef = useRef<HTMLSelectElement>(null);
+        const [cache, setCache] = useState<StrLength>({ value: `${value.value}`, unit: value.unit });
+        const revertHistoryRef = useRef<number>(value?.value);
 
-      const handleValueFinish = useCallback(
-         (e: ChangeEvent<HTMLInputElement>) => {
+        useEffect(() => {
             setCache((p) => {
-               return {
-                  unit: p.unit,
-                  value: Number(e.target.value),
-               };
+                if (Number(p.value) !== value.value || p.value !== `${value.value}`) {
+                    return {
+                        value: `${value.value}`,
+                        unit: value.unit,
+                    };
+                }
+                return {
+                    value: p.value,
+                    unit: value.unit,
+                };
             });
-            valueRef.current = {
-               ...valueRef.current,
-               value: Number(e.currentTarget.value),
-            };
-            onCommit && onCommit(valueRef.current);
-            if (e.currentTarget.validity.valid) {
-               onValidCommit && onValidCommit(valueRef.current);
-            }
-         },
-         [onCommit, onValidCommit]
-      );
+            revertHistoryRef.current = value.value;
+        }, [value.value, value.unit]);
 
-      const handleValueChange = useCallback(
-         (e: ChangeEvent<HTMLInputElement>) => {
+        const [isValFocus] = useUi.focus(valInputRef, disabled);
+        const [isUnitFocus] = useUi.focus(unitInputRef, disabled);
+        const [isInvalid, setIsInvalid] = useState(false);
+
+        const onValidateRef = useStable<typeof onValidate>(onValidate);
+        const validatorRef = useStable<ValidationHandler | undefined>(validator);
+
+        useEffect(() => {
+            const r = validatorRef.current;
+            return () => {
+                r?.onDismount();
+            };
+        }, [validatorRef]);
+
+        const doValidate = useCallback(
+            ({ value, unit }: StrLength) => {
+                const n = Number(value.replace(/,/g, ""));
+                const reasons: Set<{ code: string; message: string }> = new Set<{ code: string; message: string }>();
+                if (isNaN(n) || value === "") {
+                    reasons.add({ code: "BAD_INPUT", message: "must be numeric" });
+                } else {
+                    validate?.({ value: Number(n), unit })?.forEach((e) => reasons.add(e));
+                    if (max !== undefined && n > max) {
+                        reasons.add({ code: "RANGE_OVERFLOW", message: `cannot be above ${max}` });
+                    }
+                    if (min !== undefined && n < min) {
+                        reasons.add({ code: "RANGE_UNDERFLOW", message: `cannot be below ${min}` });
+                    }
+                    if (step !== 0 && n % step !== 0) {
+                        reasons.add({ code: "STEP_MISMATCH", message: `must be a multiple of ${step}` });
+                    }
+                    validate?.({ value: n, unit })?.forEach((e) => reasons.add(e));
+                }
+                const ary = Array.from(reasons);
+                onValidateRef.current?.(ary);
+                validatorRef.current?.check(ary);
+                setIsInvalid(ary.length !== 0);
+                return ary;
+            },
+            [max, min, onValidateRef, step, validate, validatorRef]
+        );
+        const doValidateRef = useStable<typeof doValidate>(doValidate);
+        useEffect(() => {
+            doValidate(cache);
+        }, [doValidate, cache]);
+
+        const valRef = useRef<string>(`${value.value}`);
+        const unitRef = useRef<PhysicalLength["unit"]>(value.unit);
+
+        useEffect(() => {
+            valRef.current = cache.value;
+            unitRef.current = cache.unit;
+        }, [cache.value, cache.unit]);
+
+        const onValueRef = useStable<typeof onValue>(onValue);
+        const onValidValueRef = useStable<typeof onValidValue>(onValidValue);
+        const onCommitRef = useStable<typeof onCommit>(onCommit);
+        const onValidCommitRef = useStable<typeof onValidCommit>(onValidCommit);
+
+        const doRevert = useCallback(() => {
+            const revert = revertHistoryRef.current;
             setCache((p) => {
-               return {
-                  unit: p.unit,
-                  value: Number(e.target.value),
-               };
+                return {
+                    value: `${revert}`,
+                    unit: p.unit,
+                };
             });
-            valueRef.current = {
-               ...valueRef.current,
-               value: Number(e.currentTarget.value),
-            };
-            onValue && onValue(valueRef.current);
-            if (e.currentTarget.validity.valid) {
-               onValidValue && onValidValue(valueRef.current);
-            }
-         },
-         [onValue, onValidValue]
-      );
+        }, []);
 
-      const handleUnitChange = useCallback(
-         (e: ChangeEvent<HTMLSelectElement>) => {
-            setCache((p) => {
-               return {
-                  value: p.value,
-                  unit: e.target.value as PhysicalLength["unit"],
-               };
-            });
-            valueRef.current = {
-               ...valueRef.current,
-               unit: e.target.value as PhysicalLength["unit"],
-            };
-            onValue && onValue(valueRef.current);
-            onCommit && onCommit(valueRef.current);
-            if (inputRef.current?.validity.valid) {
-               onValidValue && onValidValue(valueRef.current);
-               onValidCommit && onValidCommit(valueRef.current);
-            }
-         },
-         [onValue, onCommit, onValidValue, onValidCommit]
-      );
+        const doChange = useCallback(
+            ({ value, unit }: StrLength) => {
+                value = value.replace(/,/g, "");
+                const errors = doValidateRef.current({ value, unit });
+                const n = Number(value);
+                setCache({ value, unit });
+                if (!isNaN(n) && value !== "") {
+                    const nV = precision === "none" ? n : Math.round(n * 10 ** precision) / 10 ** precision;
+                    if (errors.length === 0) {
+                        onValidValueRef.current?.({ value: nV, unit });
+                    }
+                    onValueRef.current?.({ value: nV, unit });
+                }
+            },
+            [doValidateRef, onValidValueRef, onValueRef, precision]
+        );
 
-      useEffect(() => {
-         if (autoFocus) {
-            inputRef.current?.focus();
-         }
-      }, [autoFocus]);
-      return (
-         <div className={`${className ?? ""} ${disabled ? "state-disabled" : ""}`} ref={fRef} {...props}>
-            <AbstractInputs.Number
-               className={"textinput"}
-               ref={inputRef}
-               disabled={disabled}
-               value={`${cache.value}`}
-               onChange={onValue ? handleValueChange : undefined}
-               onValidChange={onValidValue ? handleValueChange : undefined}
-               onFinish={onCommit ? handleValueFinish : undefined}
-               onValidFinish={onValidCommit ? handleValueFinish : undefined}
-               min={min}
-               max={max}
-               step={step ?? "any"}
-            />
-            <select className={"dropdown"} disabled={disabled} value={cache.unit} onChange={handleUnitChange}>
-               <option value="in">in</option>
-               <option value="mm">mm</option>
-               <option value="cm">cm</option>
-            </select>
-         </div>
-      );
-   })
+        const doCommit = useCallback(
+            ({ value, unit }: StrLength) => {
+                value = value.replace(/,/g, "");
+                const reasons = doValidateRef.current({ value, unit });
+                const n = Number(value);
+                if (isNaN(n) || value === "") {
+                    doRevert();
+                } else {
+                    const nV = precision === "none" ? n : Math.round(n * 10 ** precision) / 10 ** precision;
+                    setCache({ value: `${nV}`, unit });
+                    revertHistoryRef.current = nV;
+                    onCommitRef.current?.({ value: nV, unit });
+                    if (reasons.length === 0) {
+                        onValidCommitRef.current?.({ value: nV, unit });
+                    }
+                }
+            },
+            [doRevert, doValidateRef, onCommitRef, precision, onValidCommitRef]
+        );
+
+        const handleValueChange = useCallback(
+            (e: ChangeEvent<HTMLInputElement>) => {
+                doChange({
+                    unit: unitRef.current,
+                    value: e.currentTarget.value,
+                });
+            },
+            [doChange]
+        );
+
+        const handleUnitChange = useCallback(
+            (e: ChangeEvent<HTMLSelectElement>) => {
+                doChange({
+                    value: valRef.current,
+                    unit: e.target.value as PhysicalLength["unit"],
+                });
+                doCommit({
+                    value: valRef.current,
+                    unit: e.target.value as PhysicalLength["unit"],
+                });
+            },
+            [doChange, doCommit]
+        );
+
+        useEffect(() => {
+            const el = valInputRef.current;
+            if (el) {
+                const onIncDec = (evt: globalThis.KeyboardEvent) => {
+                    if (evt.key === "ArrowUp") {
+                        evt.preventDefault();
+                        const el = evt.target as HTMLInputElement;
+                        const val = el.value.replace(/,/g, "");
+                        const n = Number(val);
+                        if (!isNaN(n)) {
+                            const add = step === 0 ? 1 : step;
+                            const nValue = n + (evt.shiftKey ? add * magnitude : add);
+                            doChange({
+                                value: `${nValue}`,
+                                unit: unitRef.current,
+                            });
+                            doCommit({
+                                value: `${nValue}`,
+                                unit: unitRef.current,
+                            });
+                        }
+                    }
+                    if (evt.key === "ArrowDown") {
+                        evt.preventDefault();
+                        const el = evt.target as HTMLInputElement;
+                        const val = el.value.replace(/,/g, "");
+                        const n = Number(val);
+                        if (!isNaN(n)) {
+                            const add = step === 0 ? 1 : step;
+                            const nValue = n - (evt.shiftKey ? add * magnitude : add);
+                            doChange({
+                                value: `${nValue}`,
+                                unit: unitRef.current,
+                            });
+                            doCommit({
+                                value: `${nValue}`,
+                                unit: unitRef.current,
+                            });
+                        }
+                    }
+                };
+                el.addEventListener("keydown", onIncDec);
+                return () => {
+                    el.removeEventListener("keydown", onIncDec);
+                };
+            }
+        }, [doCommit, magnitude, step, doChange]);
+
+        useEffect(() => {
+            const el = valInputRef.current;
+            const n = wrapperRef.current;
+            if (el && n) {
+                const blur = (evt: FocusEvent) => {
+                    if (!(evt.currentTarget as HTMLElement).contains(evt.relatedTarget as Node)) {
+                        // console.log("Leaving Wrapper");
+                        doCommit({ value: el.value, unit: unitRef.current });
+                        n.removeEventListener("focusout", blur);
+                    }
+                };
+
+                const focus = (evt: FocusEvent) => {
+                    if (!(evt.currentTarget as HTMLElement).contains(evt.relatedTarget as Node)) {
+                        // console.log("Came from outside wrapper");
+                        n.addEventListener("focusout", blur);
+                    }
+                };
+
+                const keyUp = (e: KeyboardEvent) => {
+                    if (e.key === "Enter") {
+                        doCommit({ value: el.value, unit: unitRef.current });
+                        n.removeEventListener("keyup", keyUp);
+                    }
+                };
+
+                const keyDown = (evt: KeyboardEvent) => {
+                    if (evt.key === "Enter") {
+                        n.addEventListener("keyup", keyUp);
+                    }
+                };
+
+                n.addEventListener("focusin", focus);
+                n.addEventListener("keydown", keyDown);
+                return () => {
+                    n.removeEventListener("focusin", focus);
+                    n.removeEventListener("keydown", keyDown);
+                };
+            }
+        }, [doCommit]);
+
+        const cN = useMemo(() => {
+            if (disabled) {
+                return `${className ?? ""} flavour-${flavour} state-disabled`;
+            }
+            return [className ?? "", `flavour-${flavour}`, "state-enabled", isValFocus || isUnitFocus ? "state-focus" : "state-blur", isInvalid ? "state-invalid" : "state-valid"].join(" ");
+        }, [className, flavour, disabled, isValFocus, isUnitFocus, isInvalid]);
+
+        return (
+            <div className={cN} tabIndex={disabled ? undefined : -1} ref={wrapperRef} title={tooltip}>
+                {icon && (
+                    <div className={"part-icon"}>
+                        <Icon value={icon} />
+                    </div>
+                )}
+                <input
+                    type={"text"}
+                    ref={valInputRef}
+                    className={`part-input ${isValFocus ? "state-focus" : ""}`}
+                    value={cache.value}
+                    onChange={handleValueChange}
+                    disabled={disabled}
+                    tabIndex={disabled ? undefined : 0}
+                    placeholder={placeholder}
+                    spellCheck={"false"}
+                />
+                <select ref={unitInputRef} className={`part-dropdown ${isUnitFocus ? "state-focus" : ""}`} disabled={disabled} value={cache.unit} onChange={handleUnitChange}>
+                    <option value="in">in</option>
+                    <option value="mm">mm</option>
+                    <option value="cm">cm</option>
+                </select>
+            </div>
+        );
+    }
 )`
-   width: auto;
-   background: var(--input-background);
-   display: grid;
-   padding: 0.125em 0.25em;
-   border-radius: 0.125em;
-   border: 1px solid var(--effect-border-highlight);
-   grid-template-columns: 1fr auto;
-   & > .textinput {
-      padding-inline: 0.25em;
-      min-width: 100%;
-      max-width: 0;
-      width: auto;
-   }
-   & > .textinput,
-   & > .dropdown {
-      background-color: transparent;
-   }
-   & > .dropdown:focus {
-      background-color: var(--input-text-selection);
-   }
-   & > .dropdown option {
-      background-color: var(--input-dropdown-option);
-   }
-   &.monospace {
-      font-family: monospace;
-   }
-   &:has(:focus) {
-      outline: none;
-      border: 1px solid var(--effect-border-focus);
-   }
-   & > .textinput::placeholder {
-      color: var(--input-placeholder);
-   }
-   & > .textinput::-webkit-outer-spin-button,
-   & > .textinput::-webkit-inner-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-   }
-   & > .textinput::selection {
-      background-color: var(--input-text-selection);
-   }
-   &:is(.slim) {
-      padding: 0 0.125em;
-   }
-   &:is(.medium) {
-      width: 12em;
-   }
-   &:is(.small) {
-      width: 9em;
-   }
-   &:is(.tiny) {
-      width: 6em;
-   }
-   &:is(.inline) {
-      display: inline-grid;
-   }
-   &:is(.fancy) {
-      border: 1px solid transparent;
-      outline: none;
-      display: inline-grid;
-      border-radius: none;
-      padding: 0 0.125em;
-      background: var(--flavour-button);
-      color: var(--flavour-button-text);
-      &:has(:focus) {
-         background: var(--flavour-button-highlight);
-      }
-      & > .textinput::placeholder {
-         color: var(--flavour-button-text-muted);
-      }
-      & > .textinput::selection {
-         background: var(--flavour-button-overlight);
-      }
-   }
-   &.state-disabled {
-      background: var(--disabled-input-background);
-      color: var(--disabled-input-text);
-      & > .textinput::placeholder {
-         color: var(--disabled-input-placeholder);
-      }
-   }
-   &:has(:not(:placeholder-shown):invalid) {
-      background: var(--invalid-input-background);
-      color: var(--invalid-input-text);
-      border: 1px solid var(--invalid-input-border);
-   }
-   &:has(:not(:placeholder-shown):invalid::selection) {
-      color: var(--invalid-input-selection);
-   }
-`;
+    flex: 0 0 auto;
+    display: inline-grid;
+    padding: var(--framing);
+    gap: var(--framing);
 
-export default PhysicalLengthInput;
+    grid-template-columns: 1fr auto;
+    &:has(.part-icon) {
+        grid-template-columns: auto 1fr auto;
+    }
+
+    & > .part-icon {
+        flex: 0 0 auto;
+        padding-inline: calc(var(--padding) - var(--framing) - 1px);
+        align-self: center;
+    }
+
+    & > .part-input {
+        padding: calc(var(--padding) - var(--framing) - 1px);
+        text-align: center;
+        outline-offset: -1px;
+        outline: 1px solid transparent;
+    }
+
+    & > .part-dropdown {
+        padding: calc(var(--padding) - var(--framing) - 1px);
+        line-height: 1lh;
+        text-align: center;
+        outline: 1px solid transparent;
+        outline-offset: -1px;
+        background: transparent;
+    }
+
+    background: var(--theme-area-bg);
+    border: 1px solid var(--theme-area-border);
+    color: var(--theme-area-text);
+    &:is(.state-focus) {
+        border-color: var(--theme-area_focushover-border);
+    }
+
+    & > .part-input {
+        &::placeholder {
+            color: var(--theme-placeholder);
+        }
+        &::selection {
+            background: var(--theme-highlight);
+        }
+        caret-color: var(--theme-caret);
+        &:is(.state-focus) {
+            outline-color: var(--theme-area_focushover-border);
+        }
+    }
+
+    & > .part-icon {
+        color: var(--theme-icon);
+    }
+
+    & > .part-dropdown {
+        color: inherit;
+        & > option {
+            background: var(--theme-area-bg);
+            color: inherit;
+        }
+        &:is(.state-focus) {
+            outline-color: var(--theme-area_focushover-border);
+        }
+    }
+
+    width: auto;
+    &:is(.variant-huge) {
+        width: 24em;
+    }
+    &:is(.variant-large) {
+        width: 16em;
+    }
+    &:is(.variant-medium) {
+        width: 12em;
+    }
+    &:is(.variant-small) {
+        width: 8em;
+    }
+    &:is(.variant-tiny) {
+        width: 4em;
+    }
+`;

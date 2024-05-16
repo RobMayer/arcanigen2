@@ -1,25 +1,34 @@
-import { FontAwesomeIconProps, FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { memo } from "react";
+/* eslint-disable no-irregular-whitespace */
 import styled from "styled-components";
 
-const InternalIcon = styled(({ className, ...props }: FontAwesomeIconProps) => {
-   return <FontAwesomeIcon className={`${className ?? ""} fa-fw`} {...props} />;
+export type IconDefinition = { width: number; height: number; path: string };
+
+export const Icon = styled(({ className, value, tooltip }: { className?: string; value: IconDefinition; tooltip?: string }) => {
+    return (
+        <span className={`${className ?? ""} meta-icon`} title={tooltip}>
+            ​
+            <svg viewBox={`0 0 ${value.width} ${value.height}`} preserveAspectRatio={"xMidYMid"}>
+                <path d={value.path} />
+            </svg>
+            ​
+        </span>
+    );
 })`
-   position: relative;
-   mix-blend-mode: var(--blend-icon);
-   &.muted {
-      color: var(--icon-muted);
-   }
-   &.flavour-accent,
-   &.flavour-emphasis,
-   &.flavour-danger,
-   &.flavour-info,
-   &.flavour-help,
-   &.flavour-confirm {
-      color: var(--flavour-icon);
-   }
+    display: inline-flex;
+    align-items: center;
+    justify-items: center;
+    justify-content: center;
+    align-content: center;
+    align-self: center;
+    justify-self: center;
+
+    & > svg {
+        width: calc((1lh + 1em) / 2);
+        height: calc((1lh + 1em) / 2);
+        align-self: center;
+        justify-self: center;
+        & > path {
+            fill: currentColor;
+        }
+    }
 `;
-
-const Icon = memo(InternalIcon);
-
-export default Icon;

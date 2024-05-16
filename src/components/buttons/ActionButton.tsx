@@ -1,73 +1,93 @@
-import { ForwardedRef, forwardRef } from "react";
+import { ForwardedRef, ReactNode, forwardRef, useMemo } from "react";
 import styled from "styled-components";
 import { Flavour } from "..";
-import Button, { ButtonProps } from "./Button";
+import { ActionModifers, useUi } from "../useUI";
+import useMergedRef from "../../utility/hooks/useMergedRef";
+
+type ActionButtonProps = {
+    disabled?: boolean;
+    onAction?: (target: HTMLElement, modifiers: ActionModifers) => void;
+    children?: ReactNode;
+    className?: string;
+    flavour?: Flavour;
+    variant?: string;
+    tooltip?: string;
+};
 
 const ActionButton = styled(
-   forwardRef(
-      (
-         {
-            checked = false,
-            className,
-            flavour = "accent",
-            ...props
-         }: {
-            checked?: boolean;
-            flavour?: Flavour;
-         } & ButtonProps,
-         ref: ForwardedRef<HTMLDivElement>
-      ) => {
-         return <Button ref={ref} {...props} className={`${className ?? ""} flavour-${flavour} ${checked ? "state-checked" : "state-unchecked"}`} />;
-      }
-   )
-)`
-   position: relative;
-   margin: 0.25rem;
-   padding: 0.25em 0.5em;
-   border: 1px solid transparent;
-   text-align: center;
-   justify-content: center;
-   gap: 0.5em;
-   &:is(.state-inactive) {
-      cursor: default;
-   }
-   &:is(.rounded) {
-      border-radius: 0.25rem;
-   }
-   &:is(.bolded) {
-      font-weight: bold;
-   }
-   &:is(.small) {
-      font-size: 0.875rem;
-   }
-   &:is(.slim) {
-      margin: 0.125rem;
-      padding: 0px 0.25em;
-   }
-   &:is(.pill) {
-      padding-inline: 0.375em;
-      border-radius: 100vw;
-   }
-   color: var(--flavour-button-text);
-   background: var(--flavour-button);
+    forwardRef(({ children, className, onAction, disabled, flavour = "accent", variant = "normal", tooltip }: ActionButtonProps, fRef: ForwardedRef<HTMLDivElement>) => {
+        const [ref, setRef] = useMergedRef(fRef);
 
-   &:is(:focus-visible:not(.state-inactive)):not(.state-disabled),
-   &:is(:hover:not(.state-inactive)):not(.state-disabled) {
-      color: var(--flavour-button-text-highlight);
-      background: var(--flavour-button-highlight);
-   }
-   &:is(.state-checked) {
-      border: 1px solid var(--effect-border-selected);
-      background: var(--flavour-button-highlight);
-   }
-   &:is(.state-checked:focus-visible:not(.state-inactive)):not(.state-disabled),
-   &:is(.state-checked:hover:not(.state-inactive)):not(.state-disabled) {
-      background: var(--flavour-button-overlight);
-   }
-   &.state-disabled {
-      background: var(--disabled-button);
-      color: var(--disabled-button-text);
-   }
+        const [isFocus, isFocusSoft, isFocusHard] = useUi.focus(ref, disabled);
+        const isActive = useUi.action(ref, onAction, disabled);
+        const isHover = useUi.hover(ref, disabled);
+
+        const cN = useMemo(() => {
+            const vars = (variant ?? "")
+                .split(" ")
+                .map((e) => (Boolean(e) ? `variant-${e}` : ""))
+                .join(" ");
+
+            if (disabled) {
+                return `${className ?? ""} flavour-${flavour} ${vars} state-disabled`;
+            }
+            return [
+                className ?? "",
+                "state-enabled",
+                `flavour-${flavour}`,
+                vars,
+                isActive ? "state-active" : "state-inactive",
+                isFocus ? "state-focus" : "",
+                isFocusHard ? "state-hardfocus" : "",
+                isFocusSoft ? "state-softfocus" : "",
+                isHover ? "state-hover" : "state-away",
+            ].join(" ");
+        }, [className, disabled, flavour, variant, isActive, isFocus, isFocusHard, isFocusSoft, isHover]);
+
+        return (
+            <div role={"button"} className={cN} tabIndex={disabled ? undefined : 0} ref={setRef} title={tooltip}>
+                {children}
+            </div>
+        );
+    })
+)`
+    position: relative;
+    display: inline-flex;
+    cursor: var(--cursor-action);
+    padding: calc(var(--padding) - 1px) calc(var(--padding-extra) - 1px);
+    justify-content: center;
+    align-items: center;
+
+    background: var(--theme-button-bg);
+    border: 1px solid var(--theme-button-border);
+    color: var(--theme-button-text);
+
+    &:is(.state-hover),
+    &:is(.state-hardfocus) {
+        background-color: var(--theme-button_focushover-bg);
+        border-color: var(--theme-button_focushover-border);
+        color: var(--theme-button_focushover-text);
+    }
+    &:is(.state-active) {
+        background: var(--theme-button_active-bg);
+        border-color: var(--theme-button_active-border);
+        color: var(--theme-button_active-text);
+    }
+
+    &:is(.variant-rounded) {
+        border-radius: 0.25rem;
+    }
+    &:is(.variant-bolded) {
+        font-weight: bold;
+    }
+    &:is(.variant-small) {
+        font-size: 0.875rem;
+    }
+    &:is(.variant-slim) {
+    }
+    &:is(.variant-pill) {
+        border-radius: 100vw;
+    }
 `;
 
 export default ActionButton;

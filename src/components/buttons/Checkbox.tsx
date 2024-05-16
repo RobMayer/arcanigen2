@@ -1,79 +1,99 @@
-import { IconProp } from "@fortawesome/fontawesome-svg-core";
-import { faCheckSquare, faSquare } from "@fortawesome/pro-solid-svg-icons";
+import { ReactNode, useRef, useCallback, useMemo } from "react";
 import styled from "styled-components";
 import { Flavour } from "..";
-import Icon from "../icons";
-import Button, { ButtonProps } from "./Button";
-import { MouseEvent, useCallback, useEffect, useRef } from "react";
+import { Icon, IconDefinition } from "../icons";
+import { iconUICheckboxChecked } from "../icons/ui/checkboxChecked";
+import { iconUICheckboxUnchecked } from "../icons/ui/checkboxUnchecked";
+import { ActionModifers, useUi } from "../useUI";
 
-const Checkbox = styled(
-   ({
-      icon,
-      checked = false,
-      className,
-      disabled,
-      children,
-      flavour = "accent",
-      onToggle,
-      onClick,
-      ...props
-   }: {
-      icon?: IconProp;
-      checked: boolean;
-      flavour?: Flavour;
-      onToggle: (v: boolean) => void;
-   } & ButtonProps) => {
-      const cache = useRef<boolean>(checked);
-      useEffect(() => {
-         cache.current = checked;
-      }, [checked]);
+// type Variant = never;
 
-      const handleClick = useCallback(
-         (e: MouseEvent<HTMLDivElement>) => {
-            onClick && onClick(e);
-            onToggle && onToggle(!cache.current);
-         },
-         [onClick, onToggle]
-      );
+type CheckBoxProps = {
+    className?: string;
+    children?: ReactNode;
+    checked: boolean;
+    onToggle?: (value: boolean, target: HTMLElement, buttons: ActionModifers) => void;
+    disabled?: boolean;
+    iconChecked?: IconDefinition;
+    iconUnchecked?: IconDefinition;
+    flavour?: Flavour;
+    tooltip?: string;
+    //  variant?: Variant;
+};
 
-      return (
-         <Button {...props} className={`${className ?? ""} flavour-${flavour} ${checked ? "state-checked" : ""}`} disabled={disabled} onClick={handleClick}>
-            <Icon icon={icon ?? checked ? faCheckSquare : faSquare} className={`icon`} />
-            {(children ?? null) !== null && <span className={"text"}>{children}</span>}
-         </Button>
-      );
-   }
+const CheckBox = styled(
+    ({
+        className,
+        children,
+        checked = false,
+        onToggle,
+        disabled = false,
+        iconChecked = iconUICheckboxChecked,
+        iconUnchecked = iconUICheckboxUnchecked,
+        flavour = "accent",
+        tooltip,
+    }: CheckBoxProps) => {
+        const ref = useRef<HTMLDivElement>(null);
+
+        const handleAction = useCallback(
+            (target: HTMLElement, mods: ActionModifers) => {
+                onToggle?.(!checked, target, mods);
+            },
+            [onToggle, checked]
+        );
+
+        const isHover = useUi.hover(ref, disabled);
+        const isActive = useUi.action(ref, handleAction, disabled);
+        const [isFocus, isFocusSoft, isFocusHard] = useUi.focus(ref, disabled);
+
+        const cN = useMemo(() => {
+            if (disabled) {
+                return `${className ?? ""} flavour-${flavour} state-disabled ${checked ? "state-checked" : "state-unchecked"}`;
+            }
+            return [
+                className,
+                `flavour-${flavour}`,
+                checked ? "state-checked" : "state-unchecked",
+                isActive ? "state-active" : "state-inactive",
+                isFocus ? "state-focus" : "",
+                isFocusHard ? "state-hardfocus" : "",
+                isFocusSoft ? "state-softfocus" : "",
+                isHover ? "state-hover" : "state-away",
+            ]
+                .filter(Boolean)
+                .join(" ");
+        }, [className, disabled, flavour, checked, isActive, isFocus, isHover, isFocusHard, isFocusSoft]);
+
+        return (
+            <div className={cN} ref={ref} tabIndex={disabled ? undefined : 0} title={tooltip}>
+                <Icon className={"part-icon"} value={checked ? iconChecked : iconUnchecked} />
+                {children && <div className={"part-label"}>{children}</div>}
+            </div>
+        );
+    }
 )`
-   & > .icon {
-      mix-blend-mode: var(--blend-icon);
-   }
-   & > .text {
-      padding-inline: 0.125em;
-      color: var(--text);
-      mix-blend-mode: var(--blend-decoration);
-   }
-   color: var(--flavour-icon);
-   &:is(:hover),
-   &:is(:focus-visible),
-   &:is(.state-checked) {
-      color: var(--flavour-icon-highlight);
-      > .text {
-         color: var(--text-highlight);
-      }
-   }
-   &:is(.state-checked:focus-visible),
-   &:is(.state-checked:hover) {
-      color: var(--flavour-icon-overlight);
-   }
-   &.state-disabled {
-      color: var(--icon-disabled);
-      &:is(.state-checked) {
-         color: var(--icon-disabled-checked);
-      }
-      > .text {
-         color: var(--text-muted);
-      }
-   }
+    display: inline-flex;
+    align-items: center;
+    justify-items: start;
+    align-content: center;
+    justify-content: start;
+    cursor: var(--cursor-action);
+    padding-inline: calc(var(--padding) / 2);
+    gap: calc(var(--padding) / 2);
+    & > .part-label {
+        color: inherit;
+    }
+    & > .part-icon {
+        color: inherit;
+    }
+    color: var(--theme-link);
+    &.state-hover,
+    &.state-hardfocus {
+        color: var(--theme-link_focushover);
+    }
+    &.state-active {
+        color: var(--theme-link_active);
+    }
 `;
 
-export default Checkbox;
+export default CheckBox;
