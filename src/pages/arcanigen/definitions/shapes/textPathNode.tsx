@@ -15,7 +15,7 @@ import {
     TextAnchorModes,
     NodeTypes,
     SocketTypes,
-} from "../../../../utility/enums";
+} from "!/utility/enums";
 import { Color, Length } from "!/utility/types/units";
 import MathHelper from "!/utility/mathhelper";
 import HexColorInput from "!/components/inputs/colorHexInput";
@@ -25,14 +25,14 @@ import { SocketOut, SocketIn } from "../../nodeView/socket";
 import { MetaPrefab } from "../../nodeView/prefabs";
 import { TextInput } from "!/components/inputs/TextInput";
 import ToggleList from "!/components/selectors/ToggleList";
-import TextArea from "!/components/inputs/TextArea";
 import { FONT, FONT_NAMES } from "../fonts";
 import NativeDropdown from "!/components/selectors/NativeDropdown";
 import RotaryInput from "!/components/inputs/RotaryInput";
 import styled from "styled-components";
 import { Icon } from "!/components/icons";
 import { nodeIcons } from "../icons";
-import { iconNoticeWarning } from "../../../../components/icons/notice/warning";
+import { iconNoticeWarning } from "!/components/icons/notice/warning";
+import { AreaInput } from "!/components/inputs/AreaInput";
 
 interface ITextPathNode extends INodeDefinition {
     inputs: {
@@ -105,7 +105,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
             </SocketIn>
             <hr />
             <BaseNode.Foldout panelId={"text"} label={"Text"} inputs={""} nodeId={nodeId} outputs={""}>
-                <TextArea className={"auto tall"} value={text} onValidCommit={setText} />
+                <AreaInput className={"auto tall"} value={text} onValidCommit={setText} />
                 <Warning>
                     <Icon value={iconNoticeWarning} className={"flavour-emphasis"} /> Caution: fonts are not embeded into any exported SVGs.
                 </Warning>

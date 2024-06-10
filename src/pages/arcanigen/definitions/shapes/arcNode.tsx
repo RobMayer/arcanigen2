@@ -245,7 +245,7 @@ const Renderer = memo(({ nodeId, globals, depth, overrides = {} }: NodeRendererP
     );
 });
 
-const Pather = memo(({ nodeId, globals, pathId, depth, pathLength }: NodePatherProps) => {
+const Pather = ({ nodeId, globals, pathId, depth, pathLength }: NodePatherProps) => {
     const radius = nodeHooks.useCoalesce(nodeId, "radius", "radius", globals);
     const thetaStart = nodeHooks.useCoalesce(nodeId, "thetaStart", "thetaStart", globals);
     const thetaEnd = nodeHooks.useCoalesce(nodeId, "thetaEnd", "thetaEnd", globals);
@@ -275,7 +275,7 @@ const Pather = memo(({ nodeId, globals, pathId, depth, pathLength }: NodePatherP
     }, [pieSlice, radius, thetaEnd, thetaStart]);
 
     return <path pathLength={pathLength} id={pathId} d={pathD} transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`} />;
-});
+};
 
 const ArcNodeHelper: INodeHelper<IArcNode> = {
     name: "Arc",

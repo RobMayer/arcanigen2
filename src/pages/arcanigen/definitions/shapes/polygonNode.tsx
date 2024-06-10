@@ -170,7 +170,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
     );
 });
 
-const Pather = memo(({ nodeId, globals, pathId, depth, pathLength }: NodePatherProps) => {
+const Pather = ({ nodeId, globals, pathId, depth, pathLength }: NodePatherProps) => {
     const radius = nodeHooks.useCoalesce(nodeId, "radius", "radius", globals);
     const pointCount = Math.min(24, Math.max(3, nodeHooks.useCoalesce(nodeId, "pointCount", "pointCount", globals)));
     const rScribe = nodeHooks.useValue(nodeId, "rScribe");
@@ -200,7 +200,7 @@ const Pather = memo(({ nodeId, globals, pathId, depth, pathLength }: NodePatherP
             <path transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`} d={points} id={pathId} pathLength={pathLength} />
         </g>
     );
-});
+};
 
 const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) => {
     const radius = nodeHooks.useCoalesce(nodeId, "radius", "radius", globals);

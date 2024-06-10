@@ -66,6 +66,7 @@ import MathTanNodeHelper from "./math/mathTanNode";
 import MathASinNodeHelper from "./math/mathAsinNode";
 import MathATanNodeHelper from "./math/mathAtanNode";
 import MathACosNodeHelper from "./math/mathAcosNode";
+import AlongPathNodeHelper from "./collections/alongPathNode";
 
 // prettier-ignore
 export const getNodeHelper = (key: NodeType) => {
@@ -80,6 +81,7 @@ export const getNodeHelper = (key: NodeType) => {
       case NodeTypes.COL_PORTAL_IN: return PortalInNodeHelper;
       case NodeTypes.COL_PORTAL_OUT: return PortalOutNodeHelper;
       case NodeTypes.COL_RANDOM_FILTER: return RandomFilterNodeHelper;
+      case NodeTypes.COL_ALONG: return AlongPathNodeHelper;
 
       case NodeTypes.ARRAY_VERTEX: return VertexArrayNodeHelper;
       case NodeTypes.ARRAY_SPIRAL: return SpiralArrayNodeHelper;

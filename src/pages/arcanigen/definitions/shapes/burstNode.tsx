@@ -235,7 +235,7 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
     );
 });
 
-const Pather = memo(({ nodeId, depth, globals, pathLength, pathId }: NodePatherProps) => {
+const Pather = ({ nodeId, depth, globals, pathLength, pathId }: NodePatherProps) => {
     const spurCount = Math.max(0, nodeHooks.useCoalesce(nodeId, "spurCount", "spurCount", globals));
     const radialMode = nodeHooks.useValue(nodeId, "radialMode");
     const radius = nodeHooks.useCoalesce(nodeId, "radius", "radius", globals);
@@ -277,7 +277,7 @@ const Pather = memo(({ nodeId, depth, globals, pathLength, pathId }: NodePatherP
     }, [rI, rO, spurCount, thetaCurve, thetaEnd, thetaInclusive, thetaMode, thetaStart, thetaSteps]);
 
     return <path d={points} transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`} id={pathId} pathLength={pathLength} />;
-});
+};
 
 const Renderer = memo(({ nodeId, depth, globals, overrides = {} }: NodeRendererProps) => {
     const spurCount = Math.max(0, nodeHooks.useCoalesce(nodeId, "spurCount", "spurCount", globals));
