@@ -190,6 +190,7 @@ const FLAVOUR_BY_TYPE: { [key in LinkType]: Flavour } = {
     path: "emphasis",
     shape: "confirm",
     portal: "danger",
+    curve: "info",
     other: "help",
 };
 

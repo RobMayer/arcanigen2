@@ -128,6 +128,7 @@ export const LinkTypes = {
     SEQUENCE: "sequence",
     SHAPE: "shape",
     PORTAL: "portal",
+    CURVE: "curve",
     PATH: "path",
 } as const;
 export type LinkType = (typeof LinkTypes)[keyof typeof LinkTypes];
