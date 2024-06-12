@@ -1,6 +1,6 @@
 import { memo, useLayoutEffect, useRef } from "react";
 import ArcaneGraph from "../graph";
-import { ControlRendererProps, INodeDefinition, INodeHelper, NodePather, NodeRenderer, NodeRendererProps } from "../types";
+import { ControlRendererProps, GraphGlobals, INodeDefinition, INodeHelper, NodePather, NodeRenderer, NodeRendererProps } from "../types";
 import {
     STROKECAP_MODE_OPTIONS,
     StrokeCapMode,
@@ -189,7 +189,7 @@ const Renderer = memo(({ nodeId, globals, depth, overrides = {} }: NodeRendererP
 
     const fillColor = nodeHooks.useCoalesce(nodeId, "fillColor", "fillColor", globals);
 
-    const [ConformalPath, pId] = nodeHooks.useInputNode(nodeId, "path", globals);
+    const [pathData, pId] = nodeHooks.useInputNode(nodeId, "path", globals);
 
     const ref = useRef<SVGTextPathElement>(null);
 
@@ -222,8 +222,16 @@ const Renderer = memo(({ nodeId, globals, depth, overrides = {} }: NodeRendererP
                     .join(" ")}
             >
                 <defs>
-                    {ConformalPath && pId && (
-                        <ConformalPath nodeId={pId} depth={(depth ?? "") + `_${nodeId}.conformpath`} globals={globals} pathId={`conformpath_${nodeId}_lyr-${depth ?? ""}`} pathLength={100} />
+                    {pathData && pId && (
+                        <ConformalPath
+                            d={pathData.d}
+                            transform={pathData.transform}
+                            nodeId={pId}
+                            depth={(depth ?? "") + `_${nodeId}.conformpath`}
+                            globals={globals}
+                            pathId={`conformpath_${nodeId}_lyr-${depth ?? ""}`}
+                            pathLength={100}
+                        />
                     )}
                 </defs>
                 <text
@@ -285,3 +293,9 @@ const OFFSET: { [key in TextAlignMode]: number } = {
 const Warning = styled.div`
     padding-inline: 0.25em;
 `;
+
+type ConformalPathProps = { nodeId: string; depth: string; globals: GraphGlobals; pathId: string; pathLength: number; d: string; transform: string };
+
+const ConformalPath = memo(({ nodeId, globals, depth, pathId, pathLength, transform, d }: ConformalPathProps) => {
+    return <path d={d} transform={transform} pathLength={pathLength} id={pathId} />;
+});

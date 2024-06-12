@@ -1,6 +1,6 @@
 import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
-import { ControlRendererProps, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, NodePather, GraphGlobals, IArcaneGraph, NodePatherProps, Interpolator } from "../types";
+import { ControlRendererProps, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, NodePather, GraphGlobals, IArcaneGraph, Interpolator } from "../types";
 import {
     PositionMode,
     StrokeCapMode,
@@ -235,48 +235,50 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
     );
 });
 
-const Pather = ({ nodeId, depth, globals, pathLength, pathId }: NodePatherProps) => {
-    const spurCount = Math.max(0, nodeHooks.useCoalesce(nodeId, "spurCount", "spurCount", globals));
-    const radialMode = nodeHooks.useValue(nodeId, "radialMode");
-    const radius = nodeHooks.useCoalesce(nodeId, "radius", "radius", globals);
-    const deviation = nodeHooks.useCoalesce(nodeId, "deviation", "deviation", globals);
-    const minorRadius = nodeHooks.useCoalesce(nodeId, "minorRadius", "minorRadius", globals);
-    const majorRadius = nodeHooks.useCoalesce(nodeId, "majorRadius", "majorRadius", globals);
+const nodeMethods = ArcaneGraph.nodeMethods<IBurstNode>();
 
-    const positionMode = nodeHooks.useValue(nodeId, "positionMode");
-    const positionX = nodeHooks.useCoalesce(nodeId, "positionX", "positionX", globals);
-    const positionY = nodeHooks.useCoalesce(nodeId, "positionY", "positionY", globals);
-    const positionTheta = nodeHooks.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
-    const positionRadius = nodeHooks.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
-    const rotation = nodeHooks.useCoalesce(nodeId, "rotation", "rotation", globals);
-
-    const thetaMode = nodeHooks.useValue(nodeId, "thetaMode");
-    const thetaStart = nodeHooks.useCoalesce(nodeId, "thetaStart", "thetaStart", globals);
-    const thetaEnd = nodeHooks.useCoalesce(nodeId, "thetaEnd", "thetaEnd", globals);
-    const thetaSteps = nodeHooks.useCoalesce(nodeId, "thetaSteps", "thetaSteps", globals);
-    const thetaInclusive = nodeHooks.useValue(nodeId, "thetaInclusive");
-    const thetaCurve = nodeHooks.useInput(nodeId, "thetaCurve", globals);
+const getPath = (graph: IArcaneGraph, nodeId: string, globals: GraphGlobals) => {
+    const spurCount = Math.max(0, nodeMethods.coalesce(graph, nodeId, "spurCount", "spurCount", globals));
+    const radialMode = nodeMethods.getValue(graph, nodeId, "radialMode");
+    const radius = nodeMethods.coalesce(graph, nodeId, "radius", "radius", globals);
+    const deviation = nodeMethods.coalesce(graph, nodeId, "deviation", "deviation", globals);
+    const minorRadius = nodeMethods.coalesce(graph, nodeId, "minorRadius", "minorRadius", globals);
+    const majorRadius = nodeMethods.coalesce(graph, nodeId, "majorRadius", "majorRadius", globals);
+    const positionMode = nodeMethods.getValue(graph, nodeId, "positionMode");
+    const positionX = nodeMethods.coalesce(graph, nodeId, "positionX", "positionX", globals);
+    const positionY = nodeMethods.coalesce(graph, nodeId, "positionY", "positionY", globals);
+    const positionTheta = nodeMethods.coalesce(graph, nodeId, "positionTheta", "positionTheta", globals);
+    const positionRadius = nodeMethods.coalesce(graph, nodeId, "positionRadius", "positionRadius", globals);
+    const rotation = nodeMethods.coalesce(graph, nodeId, "rotation", "rotation", globals);
+    const thetaMode = nodeMethods.getValue(graph, nodeId, "thetaMode");
+    const thetaStart = nodeMethods.coalesce(graph, nodeId, "thetaStart", "thetaStart", globals);
+    const thetaEnd = nodeMethods.coalesce(graph, nodeId, "thetaEnd", "thetaEnd", globals);
+    const thetaSteps = nodeMethods.coalesce(graph, nodeId, "thetaSteps", "thetaSteps", globals);
+    const thetaInclusive = nodeMethods.getValue(graph, nodeId, "thetaInclusive");
+    const thetaCurve = nodeMethods.getInput(graph, nodeId, "thetaCurve", globals);
 
     const rI = radialMode === RadialModes.MAJORMINOR ? MathHelper.lengthToPx(minorRadius) : MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(deviation) / 2;
     const rO = radialMode === RadialModes.MAJORMINOR ? MathHelper.lengthToPx(majorRadius) : MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(deviation) / 2;
 
-    const points = useMemo(() => {
-        return lodash
-            .range(spurCount)
-            .map((n) => {
-                const coeff = MathHelper.delerp(n, 0, thetaInclusive ? spurCount - 1 : spurCount);
-                const angle =
-                    thetaMode === ThetaModes.STARTSTOP
-                        ? MathHelper.lerp(coeff, 1 * thetaStart, 1 * thetaEnd, thetaCurve ?? MathHelper.DEFUALT_INTERPOLATOR)
-                        : MathHelper.lerp(coeff, 0, spurCount * thetaSteps, thetaCurve ?? MathHelper.DEFUALT_INTERPOLATOR);
-                const c = Math.cos(MathHelper.deg2rad(angle - 90));
-                const s = Math.sin(MathHelper.deg2rad(angle - 90));
-                return `M ${rI * c},${rI * s} L ${rO * c},${rO * s}`;
-            })
-            .join(" ");
-    }, [rI, rO, spurCount, thetaCurve, thetaEnd, thetaInclusive, thetaMode, thetaStart, thetaSteps]);
+    const d = lodash
+        .range(spurCount)
+        .map((n) => {
+            const coeff = MathHelper.delerp(n, 0, thetaInclusive ? spurCount - 1 : spurCount);
+            const angle =
+                thetaMode === ThetaModes.STARTSTOP
+                    ? MathHelper.lerp(coeff, 1 * thetaStart, 1 * thetaEnd, thetaCurve ?? MathHelper.DEFUALT_INTERPOLATOR)
+                    : MathHelper.lerp(coeff, 0, spurCount * thetaSteps, thetaCurve ?? MathHelper.DEFUALT_INTERPOLATOR);
+            const c = Math.cos(MathHelper.deg2rad(angle - 90));
+            const s = Math.sin(MathHelper.deg2rad(angle - 90));
+            return `M ${rI * c},${rI * s} L ${rO * c},${rO * s}`;
+        })
+        .join(" ");
+    const transform = `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`;
 
-    return <path d={points} transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`} id={pathId} pathLength={pathLength} />;
+    return {
+        transform,
+        d,
+    };
 };
 
 const Renderer = memo(({ nodeId, depth, globals, overrides = {} }: NodeRendererProps) => {
@@ -358,7 +360,7 @@ const BurstNodeHelper: INodeHelper<IBurstNode> = {
             case "output":
                 return Renderer;
             case "path":
-                return Pather;
+                return getPath(graph, nodeId, globals);
         }
     },
     initialize: () => ({

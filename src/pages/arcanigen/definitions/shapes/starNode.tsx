@@ -1,6 +1,6 @@
 import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
-import { ControlRendererProps, IArcaneGraph, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, GraphGlobals, NodePatherProps, Interpolator } from "../types";
+import { ControlRendererProps, IArcaneGraph, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, GraphGlobals, Interpolator, NodePather } from "../types";
 import {
     PositionMode,
     StrokeJoinMode,
@@ -58,7 +58,7 @@ interface IStarNode extends INodeDefinition {
     };
     outputs: {
         output: NodeRenderer;
-        path: NodeRenderer;
+        path: NodePather;
 
         cInscribe: Length;
         cCircumscribe: Length;
@@ -268,90 +268,89 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
     );
 });
 
-const Pather = memo(({ nodeId, globals, pathId, pathLength }: NodePatherProps) => {
-    const radialMode = nodeHooks.useValue(nodeId, "radialMode");
-    const rScribeMode = nodeHooks.useValue(nodeId, "rScribeMode");
-    const radius = nodeHooks.useCoalesce(nodeId, "radius", "radius", globals);
-    const deviation = nodeHooks.useCoalesce(nodeId, "deviation", "deviation", globals);
-    const minorRadius = nodeHooks.useCoalesce(nodeId, "minorRadius", "minorRadius", globals);
-    const majorRadius = nodeHooks.useCoalesce(nodeId, "majorRadius", "majorRadius", globals);
-    const minorScribeMode = nodeHooks.useValue(nodeId, "minorScribeMode");
-    const majorScribeMode = nodeHooks.useValue(nodeId, "majorScribeMode");
-    const pointCount = Math.min(24, Math.max(3, nodeHooks.useCoalesce(nodeId, "pointCount", "pointCount", globals)));
+const getPath = (graph: IArcaneGraph, nodeId: string, globals: GraphGlobals) => {
+    const radialMode = nodeMethods.getValue(graph, nodeId, "radialMode");
+    const rScribeMode = nodeMethods.getValue(graph, nodeId, "rScribeMode");
+    const radius = nodeMethods.coalesce(graph, nodeId, "radius", "radius", globals);
+    const deviation = nodeMethods.coalesce(graph, nodeId, "deviation", "deviation", globals);
+    const minorRadius = nodeMethods.coalesce(graph, nodeId, "minorRadius", "minorRadius", globals);
+    const majorRadius = nodeMethods.coalesce(graph, nodeId, "majorRadius", "majorRadius", globals);
+    const minorScribeMode = nodeMethods.getValue(graph, nodeId, "minorScribeMode");
+    const majorScribeMode = nodeMethods.getValue(graph, nodeId, "majorScribeMode");
+    const pointCount = Math.min(24, Math.max(3, nodeMethods.coalesce(graph, nodeId, "pointCount", "pointCount", globals)));
 
-    const positionMode = nodeHooks.useValue(nodeId, "positionMode");
-    const positionX = nodeHooks.useCoalesce(nodeId, "positionX", "positionX", globals);
-    const positionY = nodeHooks.useCoalesce(nodeId, "positionY", "positionY", globals);
-    const positionTheta = nodeHooks.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
-    const positionRadius = nodeHooks.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
-    const rotation = nodeHooks.useCoalesce(nodeId, "rotation", "rotation", globals);
-    const thetaCurve = nodeHooks.useInput(nodeId, "thetaCurve", globals);
+    const positionMode = nodeMethods.getValue(graph, nodeId, "positionMode");
+    const positionX = nodeMethods.coalesce(graph, nodeId, "positionX", "positionX", globals);
+    const positionY = nodeMethods.coalesce(graph, nodeId, "positionY", "positionY", globals);
+    const positionTheta = nodeMethods.coalesce(graph, nodeId, "positionTheta", "positionTheta", globals);
+    const positionRadius = nodeMethods.coalesce(graph, nodeId, "positionRadius", "positionRadius", globals);
+    const rotation = nodeMethods.coalesce(graph, nodeId, "rotation", "rotation", globals);
+    const thetaCurve = nodeMethods.getInput(graph, nodeId, "thetaCurve", globals);
 
-    const smoothing = nodeHooks.useCoalesce(nodeId, "smoothing", "smoothing", globals);
-    const cusping = nodeHooks.useCoalesce(nodeId, "cusping", "cusping", globals);
+    const smoothing = nodeMethods.coalesce(graph, nodeId, "smoothing", "smoothing", globals);
+    const cusping = nodeMethods.coalesce(graph, nodeId, "cusping", "cusping", globals);
 
-    const points = useMemo(() => {
-        const rI =
-            radialMode === RadialModes.MAJORMINOR
-                ? getTrueRadius(MathHelper.lengthToPx(minorRadius), minorScribeMode, pointCount)
-                : getTrueRadius(MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(deviation), rScribeMode, pointCount);
-        const rO =
-            radialMode === RadialModes.MAJORMINOR
-                ? getTrueRadius(MathHelper.lengthToPx(majorRadius), majorScribeMode, pointCount)
-                : getTrueRadius(MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(deviation), rScribeMode, pointCount);
+    const rI =
+        radialMode === RadialModes.MAJORMINOR
+            ? getTrueRadius(MathHelper.lengthToPx(minorRadius), minorScribeMode, pointCount)
+            : getTrueRadius(MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(deviation), rScribeMode, pointCount);
+    const rO =
+        radialMode === RadialModes.MAJORMINOR
+            ? getTrueRadius(MathHelper.lengthToPx(majorRadius), majorScribeMode, pointCount)
+            : getTrueRadius(MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(deviation), rScribeMode, pointCount);
 
-        //const th = 360 / (pointCount * 2);
+    const d = lodash
+        .range(pointCount)
+        .map((n, i, ary) => {
+            const ang = MathHelper.lerp(MathHelper.delerp(i, 0, pointCount), 0, 360, thetaCurve ?? MathHelper.DEFUALT_INTERPOLATOR);
 
-        return lodash
-            .range(pointCount)
-            .map((n, i, ary) => {
-                const ang = MathHelper.lerp(MathHelper.delerp(i, 0, pointCount), 0, 360, thetaCurve ?? MathHelper.DEFUALT_INTERPOLATOR);
+            const nextAng = MathHelper.lerp(MathHelper.delerp(i + 1, 0, pointCount), 0, 360, thetaCurve ?? MathHelper.DEFUALT_INTERPOLATOR);
 
-                const nextAng = MathHelper.lerp(MathHelper.delerp(i + 1, 0, pointCount), 0, 360, thetaCurve ?? MathHelper.DEFUALT_INTERPOLATOR);
+            const th = Math.abs(nextAng - ang) / 2;
+            // const rad = i % 2 === 0 ? rO : rI;
+            // return `${rad * Math.cos(MathHelper.deg2rad(coeff - 90))},${rad * Math.sin(MathHelper.deg2rad(coeff - 90))}`;
 
-                const th = Math.abs(nextAng - ang) / 2;
-                // const rad = i % 2 === 0 ? rO : rI;
-                // return `${rad * Math.cos(MathHelper.deg2rad(coeff - 90))},${rad * Math.sin(MathHelper.deg2rad(coeff - 90))}`;
+            // const ang = (360 / pointCount) * n;
+            // const nextAng = (360 / pointCount) * (n + 1);
 
-                // const ang = (360 / pointCount) * n;
-                // const nextAng = (360 / pointCount) * (n + 1);
+            const sTan = rO * Math.tan(MathHelper.deg2rad(th));
+            const eTan = rI * Math.tan(MathHelper.deg2rad(th));
+            const outerTanR = Math.sqrt(sTan * sTan + rO * rO);
+            const innerTanR = Math.sqrt(eTan * eTan + rI * rI);
 
-                const sTan = rO * Math.tan(MathHelper.deg2rad(th));
-                const eTan = rI * Math.tan(MathHelper.deg2rad(th));
-                const outerTanR = Math.sqrt(sTan * sTan + rO * rO);
-                const innerTanR = Math.sqrt(eTan * eTan + rI * rI);
+            const endX = rO * Math.cos(MathHelper.deg2rad(nextAng - 90));
+            const endY = rO * Math.sin(MathHelper.deg2rad(nextAng - 90));
 
-                const endX = rO * Math.cos(MathHelper.deg2rad(nextAng - 90));
-                const endY = rO * Math.sin(MathHelper.deg2rad(nextAng - 90));
+            const midX = rI * Math.cos(MathHelper.deg2rad((ang + nextAng) / 2 - 90));
+            const midY = rI * Math.sin(MathHelper.deg2rad((ang + nextAng) / 2 - 90));
 
-                const midX = rI * Math.cos(MathHelper.deg2rad((ang + nextAng) / 2 - 90));
-                const midY = rI * Math.sin(MathHelper.deg2rad((ang + nextAng) / 2 - 90));
+            const startX = rO * Math.cos(MathHelper.deg2rad(ang - 90));
+            const startY = rO * Math.sin(MathHelper.deg2rad(ang - 90));
 
-                const startX = rO * Math.cos(MathHelper.deg2rad(ang - 90));
-                const startY = rO * Math.sin(MathHelper.deg2rad(ang - 90));
+            // const rTO = rO * Math.tan(MathHelper.deg2rad(th));
+            // const rTI = rI * Math.cos(MathHelper.deg2rad(ang + th));
+            const startTangentX = MathHelper.lerp(cusping, startX, outerTanR * Math.cos(MathHelper.deg2rad(ang + th - 90)));
+            const startTangentY = MathHelper.lerp(cusping, startY, outerTanR * Math.sin(MathHelper.deg2rad(ang + th - 90)));
 
-                // const rTO = rO * Math.tan(MathHelper.deg2rad(th));
-                // const rTI = rI * Math.cos(MathHelper.deg2rad(ang + th));
-                const startTangentX = MathHelper.lerp(cusping, startX, outerTanR * Math.cos(MathHelper.deg2rad(ang + th - 90)));
-                const startTangentY = MathHelper.lerp(cusping, startY, outerTanR * Math.sin(MathHelper.deg2rad(ang + th - 90)));
+            const midInX = MathHelper.lerp(smoothing, midX, innerTanR * Math.cos(MathHelper.deg2rad(ang - 90)));
+            const midInY = MathHelper.lerp(smoothing, midY, innerTanR * Math.sin(MathHelper.deg2rad(ang - 90)));
+            const midOutX = MathHelper.lerp(smoothing, midX, innerTanR * Math.cos(MathHelper.deg2rad(nextAng - 90)));
+            const midOutY = MathHelper.lerp(smoothing, midY, innerTanR * Math.sin(MathHelper.deg2rad(nextAng - 90)));
 
-                const midInX = MathHelper.lerp(smoothing, midX, innerTanR * Math.cos(MathHelper.deg2rad(ang - 90)));
-                const midInY = MathHelper.lerp(smoothing, midY, innerTanR * Math.sin(MathHelper.deg2rad(ang - 90)));
-                const midOutX = MathHelper.lerp(smoothing, midX, innerTanR * Math.cos(MathHelper.deg2rad(nextAng - 90)));
-                const midOutY = MathHelper.lerp(smoothing, midY, innerTanR * Math.sin(MathHelper.deg2rad(nextAng - 90)));
+            const endTangentX = MathHelper.lerp(cusping, endX, outerTanR * Math.cos(MathHelper.deg2rad(nextAng - th - 90)));
+            const endTangentY = MathHelper.lerp(cusping, endY, outerTanR * Math.sin(MathHelper.deg2rad(nextAng - th - 90)));
 
-                const endTangentX = MathHelper.lerp(cusping, endX, outerTanR * Math.cos(MathHelper.deg2rad(nextAng - th - 90)));
-                const endTangentY = MathHelper.lerp(cusping, endY, outerTanR * Math.sin(MathHelper.deg2rad(nextAng - th - 90)));
+            return `${
+                i === 0 ? `M ${startX}, ${startY}` : ""
+            } C ${startTangentX},${startTangentY} ${midInX},${midInY} ${midX},${midY} C ${midOutX},${midOutY} ${endTangentX},${endTangentY} ${endX},${endY} ${i === ary.length - 1 ? "Z" : ""}`;
+        })
+        .join(" ");
 
-                return `${
-                    i === 0 ? `M ${startX}, ${startY}` : ""
-                } C ${startTangentX},${startTangentY} ${midInX},${midInY} ${midX},${midY} C ${midOutX},${midOutY} ${endTangentX},${endTangentY} ${endX},${endY} ${i === ary.length - 1 ? "Z" : ""}`;
-            })
-            .join(" ");
-    }, [minorRadius, smoothing, majorRadius, cusping, pointCount, radialMode, deviation, radius, rScribeMode, minorScribeMode, majorScribeMode, thetaCurve]);
-
-    return <path d={points} pathLength={pathLength} id={pathId} transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`} />;
-});
+    return {
+        transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`,
+        d,
+    };
+};
 
 const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) => {
     const radialMode = nodeHooks.useValue(nodeId, "radialMode");
@@ -477,7 +476,7 @@ const StarNodeHelper: INodeHelper<IStarNode> = {
             return Renderer;
         }
         if (socket === "path") {
-            return Pather;
+            return getPath(graph, nodeId, globals);
         }
 
         const deviation = nodeMethods.getValue(graph, nodeId, "deviation");

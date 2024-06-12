@@ -1,6 +1,6 @@
 import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
-import { ControlRendererProps, IArcaneGraph, INodeDefinition, INodeHelper, NodePather, NodePatherProps, NodeRenderer, NodeRendererProps } from "../types";
+import { ControlRendererProps, GraphGlobals, IArcaneGraph, INodeDefinition, INodeHelper, NodePather, NodeRenderer, NodeRendererProps } from "../types";
 import { PositionMode, STROKECAP_MODE_OPTIONS, StrokeCapMode, StrokeCapModes, NodeTypes, SocketTypes, PositionModes } from "../../../../utility/enums";
 import { Color, Length } from "!/utility/types/units";
 import MathHelper from "!/utility/mathhelper";
@@ -117,23 +117,24 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
     );
 });
 
-const Pather = memo(({ nodeId, globals, depth, pathId, pathLength }: NodePatherProps) => {
-    const radius = nodeHooks.useCoalesce(nodeId, "radius", "radius", globals);
+const nodeMethods = ArcaneGraph.nodeMethods<ICircleNode>();
 
-    const positionMode = nodeHooks.useValue(nodeId, "positionMode");
-    const positionX = nodeHooks.useCoalesce(nodeId, "positionX", "positionX", globals);
-    const positionY = nodeHooks.useCoalesce(nodeId, "positionY", "positionY", globals);
-    const positionTheta = nodeHooks.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
-    const positionRadius = nodeHooks.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
-    const rotation = nodeHooks.useCoalesce(nodeId, "rotation", "rotation", globals);
+const getPath = (graph: IArcaneGraph, nodeId: string, globals: GraphGlobals) => {
+    const radius = nodeMethods.coalesce(graph, nodeId, "radius", "radius", globals);
+    const positionMode = nodeMethods.getValue(graph, nodeId, "positionMode");
+    const positionX = nodeMethods.coalesce(graph, nodeId, "positionX", "positionX", globals);
+    const positionY = nodeMethods.coalesce(graph, nodeId, "positionY", "positionY", globals);
+    const positionTheta = nodeMethods.coalesce(graph, nodeId, "positionTheta", "positionTheta", globals);
+    const positionRadius = nodeMethods.coalesce(graph, nodeId, "positionRadius", "positionRadius", globals);
+    const rotation = nodeMethods.coalesce(graph, nodeId, "rotation", "rotation", globals);
 
-    const points = useMemo(() => {
-        const r = MathHelper.lengthToPx(radius);
-        return `M 0,${-1 * r} A ${r},${r} 0 0 1 0,${r} A ${r},${r} 0 0 1 0,${r * -1}`;
-    }, [radius]);
+    const r = MathHelper.lengthToPx(radius);
 
-    return <path d={points} transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation ?? 0})`} pathLength={pathLength} id={pathId} />;
-});
+    return {
+        transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation ?? 0})`,
+        d: `M 0,${-1 * r} A ${r},${r} 0 0 1 0,${r} A ${r},${r} 0 0 1 0,${r * -1}`,
+    };
+};
 
 const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) => {
     const radius = nodeHooks.useCoalesce(nodeId, "radius", "radius", globals);
@@ -178,12 +179,12 @@ const CircleNodeHelper: INodeHelper<ICircleNode> = {
     nodeIcon: nodeIcons.circleShape.nodeIcon,
     flavour: "emphasis",
     type: NodeTypes.SHAPE_CIRCLE,
-    getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof ICircleNode["outputs"]) => {
+    getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof ICircleNode["outputs"], globals: GraphGlobals) => {
         switch (socket) {
             case "output":
                 return Renderer;
             case "path":
-                return Pather;
+                return getPath(graph, nodeId, globals);
         }
     },
     initialize: () => ({

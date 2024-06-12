@@ -1,6 +1,6 @@
 import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
-import { ControlRendererProps, GraphGlobals, IArcaneGraph, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, NodePatherProps, NodePather, Interpolator } from "../types";
+import { ControlRendererProps, GraphGlobals, IArcaneGraph, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, NodePather, Interpolator } from "../types";
 import {
     PositionMode,
     ScribeMode,
@@ -170,36 +170,32 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
     );
 });
 
-const Pather = ({ nodeId, globals, pathId, depth, pathLength }: NodePatherProps) => {
-    const radius = nodeHooks.useCoalesce(nodeId, "radius", "radius", globals);
-    const pointCount = Math.min(24, Math.max(3, nodeHooks.useCoalesce(nodeId, "pointCount", "pointCount", globals)));
-    const rScribe = nodeHooks.useValue(nodeId, "rScribe");
+const getPath = (graph: IArcaneGraph, nodeId: string, globals: GraphGlobals) => {
+    const radius = nodeMethods.coalesce(graph, nodeId, "radius", "radius", globals);
+    const pointCount = Math.min(24, Math.max(3, nodeMethods.coalesce(graph, nodeId, "pointCount", "pointCount", globals)));
+    const rScribe = nodeMethods.getValue(graph, nodeId, "rScribe");
 
-    const positionMode = nodeHooks.useValue(nodeId, "positionMode");
-    const positionX = nodeHooks.useCoalesce(nodeId, "positionX", "positionX", globals);
-    const positionY = nodeHooks.useCoalesce(nodeId, "positionY", "positionY", globals);
-    const positionTheta = nodeHooks.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
-    const positionRadius = nodeHooks.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
-    const rotation = nodeHooks.useCoalesce(nodeId, "rotation", "rotation", globals);
-    const thetaCurve = nodeHooks.useInput(nodeId, "thetaCurve", globals);
+    const positionMode = nodeMethods.getValue(graph, nodeId, "positionMode");
+    const positionX = nodeMethods.coalesce(graph, nodeId, "positionX", "positionX", globals);
+    const positionY = nodeMethods.coalesce(graph, nodeId, "positionY", "positionY", globals);
+    const positionTheta = nodeMethods.coalesce(graph, nodeId, "positionTheta", "positionTheta", globals);
+    const positionRadius = nodeMethods.coalesce(graph, nodeId, "positionRadius", "positionRadius", globals);
+    const rotation = nodeMethods.coalesce(graph, nodeId, "rotation", "rotation", globals);
+    const thetaCurve = nodeMethods.getInput(graph, nodeId, "thetaCurve", globals);
 
-    const points = useMemo(() => {
-        const tR = getTrueRadius(MathHelper.lengthToPx(radius), rScribe, pointCount);
-        const p = lodash.range(pointCount).map((each, i) => {
-            const coeff = MathHelper.lerp(MathHelper.delerp(each, 0, pointCount), 0, 360, thetaCurve ?? MathHelper.DEFUALT_INTERPOLATOR);
-            return `${tR * Math.cos(MathHelper.deg2rad(coeff - 90))},${tR * Math.sin(MathHelper.deg2rad(coeff - 90))}`;
-        });
-        return `M ${p[0]} ${p
+    const tR = getTrueRadius(MathHelper.lengthToPx(radius), rScribe, pointCount);
+    const p = lodash.range(pointCount).map((each, i) => {
+        const coeff = MathHelper.lerp(MathHelper.delerp(each, 0, pointCount), 0, 360, thetaCurve ?? MathHelper.DEFUALT_INTERPOLATOR);
+        return `${tR * Math.cos(MathHelper.deg2rad(coeff - 90))},${tR * Math.sin(MathHelper.deg2rad(coeff - 90))}`;
+    });
+
+    return {
+        transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`,
+        d: `M ${p[0]} ${p
             .slice(1)
             .map((e) => `L ${e}`)
-            .join(" ")} Z`;
-    }, [pointCount, radius, rScribe, thetaCurve]);
-
-    return (
-        <g>
-            <path transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`} d={points} id={pathId} pathLength={pathLength} />
-        </g>
-    );
+            .join(" ")} Z`,
+    };
 };
 
 const Renderer = memo(({ nodeId, globals, overrides = {} }: NodeRendererProps) => {
@@ -269,7 +265,7 @@ const PolygonNodeHelper: INodeHelper<IPolygonNode> = {
             return Renderer;
         }
         if (socket === "path") {
-            return Pather;
+            return getPath(graph, nodeId, globals);
         }
         const radius = nodeMethods.coalesce(graph, nodeId, "radius", "radius", globals);
         const pointCount = nodeMethods.getValue(graph, nodeId, "pointCount");

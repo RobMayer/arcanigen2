@@ -1,6 +1,6 @@
 import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
-import { ControlRendererProps, IArcaneGraph, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, NodePather, NodePatherProps } from "../types";
+import { ControlRendererProps, IArcaneGraph, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, NodePather, GraphGlobals } from "../types";
 import { PositionMode, StrokeCapMode, STROKECAP_MODE_OPTIONS, POSITION_MODE_OPTIONS, StrokeCapModes, NodeTypes, SocketTypes, PositionModes } from "../../../../utility/enums";
 import MathHelper from "!/utility/mathhelper";
 
@@ -224,54 +224,38 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
     );
 });
 
-const Pather = memo(({ nodeId, depth, globals, pathId, pathLength }: NodePatherProps) => {
-    const startMode = nodeHooks.useValue(nodeId, "startMode");
+const nodeMethods = ArcaneGraph.nodeMethods<ISegmentNode>();
 
-    const startX = nodeHooks.useCoalesce(nodeId, "startX", "startX", globals);
-    const startY = nodeHooks.useCoalesce(nodeId, "startY", "startY", globals);
-    const startRadius = nodeHooks.useCoalesce(nodeId, "startRadius", "startRadius", globals);
-    const startTheta = nodeHooks.useCoalesce(nodeId, "startTheta", "startTheta", globals);
+const getPath = (graph: IArcaneGraph, nodeId: string, globals: GraphGlobals) => {
+    const startMode = nodeMethods.getValue(graph, nodeId, "startMode");
 
-    const endMode = nodeHooks.useValue(nodeId, "endMode");
-    const endX = nodeHooks.useCoalesce(nodeId, "endX", "endX", globals);
-    const endY = nodeHooks.useCoalesce(nodeId, "endY", "endY", globals);
-    const endRadius = nodeHooks.useCoalesce(nodeId, "endRadius", "endRadius", globals);
-    const endTheta = nodeHooks.useCoalesce(nodeId, "endTheta", "endTheta", globals);
+    const startX = nodeMethods.coalesce(graph, nodeId, "startX", "startX", globals);
+    const startY = nodeMethods.coalesce(graph, nodeId, "startY", "startY", globals);
+    const startRadius = nodeMethods.coalesce(graph, nodeId, "startRadius", "startRadius", globals);
+    const startTheta = nodeMethods.coalesce(graph, nodeId, "startTheta", "startTheta", globals);
+    const endMode = nodeMethods.getValue(graph, nodeId, "endMode");
+    const endX = nodeMethods.coalesce(graph, nodeId, "endX", "endX", globals);
+    const endY = nodeMethods.coalesce(graph, nodeId, "endY", "endY", globals);
+    const endRadius = nodeMethods.coalesce(graph, nodeId, "endRadius", "endRadius", globals);
+    const endTheta = nodeMethods.coalesce(graph, nodeId, "endTheta", "endTheta", globals);
+    const positionMode = nodeMethods.getValue(graph, nodeId, "positionMode");
+    const positionX = nodeMethods.coalesce(graph, nodeId, "positionX", "positionX", globals);
+    const positionY = nodeMethods.coalesce(graph, nodeId, "positionY", "positionY", globals);
+    const positionTheta = nodeMethods.coalesce(graph, nodeId, "positionTheta", "positionTheta", globals);
+    const positionRadius = nodeMethods.coalesce(graph, nodeId, "positionRadius", "positionRadius", globals);
+    const rotation = nodeMethods.coalesce(graph, nodeId, "rotation", "rotation", globals);
 
-    const positionMode = nodeHooks.useValue(nodeId, "positionMode");
-    const positionX = nodeHooks.useCoalesce(nodeId, "positionX", "positionX", globals);
-    const positionY = nodeHooks.useCoalesce(nodeId, "positionY", "positionY", globals);
-    const positionTheta = nodeHooks.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
-    const positionRadius = nodeHooks.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
-    const rotation = nodeHooks.useCoalesce(nodeId, "rotation", "rotation", globals);
+    const x1 = startMode === PositionModes.CARTESIAN ? MathHelper.lengthToPx(startX) : MathHelper.lengthToPx(startRadius) * Math.cos(((startTheta - 90) * Math.PI) / 180);
+    const y1 = startMode === PositionModes.CARTESIAN ? MathHelper.lengthToPx(startY) : MathHelper.lengthToPx(startRadius) * Math.sin(((startTheta - 90) * Math.PI) / 180);
 
-    const x1 = useMemo(
-        () => (startMode === PositionModes.CARTESIAN ? MathHelper.lengthToPx(startX) : MathHelper.lengthToPx(startRadius) * Math.cos(((startTheta - 90) * Math.PI) / 180)),
-        [startMode, startRadius, startTheta, startX]
-    );
-    const y1 = useMemo(
-        () => (startMode === PositionModes.CARTESIAN ? MathHelper.lengthToPx(startY) : MathHelper.lengthToPx(startRadius) * Math.sin(((startTheta - 90) * Math.PI) / 180)),
-        [startMode, startRadius, startTheta, startY]
-    );
+    const x2 = endMode === PositionModes.CARTESIAN ? MathHelper.lengthToPx(endX) : MathHelper.lengthToPx(endRadius) * Math.cos(((endTheta - 90) * Math.PI) / 180);
+    const y2 = endMode === PositionModes.CARTESIAN ? MathHelper.lengthToPx(endY) : MathHelper.lengthToPx(endRadius) * Math.sin(((endTheta - 90) * Math.PI) / 180);
 
-    const x2 = useMemo(
-        () => (endMode === PositionModes.CARTESIAN ? MathHelper.lengthToPx(endX) : MathHelper.lengthToPx(endRadius) * Math.cos(((endTheta - 90) * Math.PI) / 180)),
-        [endMode, endRadius, endTheta, endX]
-    );
-    const y2 = useMemo(
-        () => (endMode === PositionModes.CARTESIAN ? MathHelper.lengthToPx(endY) : MathHelper.lengthToPx(endRadius) * Math.sin(((endTheta - 90) * Math.PI) / 180)),
-        [endMode, endRadius, endTheta, endY]
-    );
-
-    return (
-        <path
-            d={`M ${x1},${y1} L ${x2},${y2}`}
-            transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`}
-            pathLength={pathLength}
-            id={pathId}
-        />
-    );
-});
+    return {
+        d: `M ${x1},${y1} L ${x2},${y2}`,
+        transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`,
+    };
+};
 
 const Renderer = memo(({ nodeId, depth, globals, overrides = {} }: NodeRendererProps) => {
     const startMode = nodeHooks.useValue(nodeId, "startMode");
@@ -351,12 +335,12 @@ const SegmentNodeHelper: INodeHelper<ISegmentNode> = {
     nodeIcon: nodeIcons.segmentShape.nodeIcon,
     flavour: "emphasis",
     type: NodeTypes.SHAPE_SEGMENT,
-    getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof ISegmentNode["outputs"]) => {
+    getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof ISegmentNode["outputs"], globals: GraphGlobals) => {
         switch (socket) {
             case "output":
                 return Renderer;
             case "path":
-                return Pather;
+                return getPath(graph, nodeId, globals);
         }
     },
     initialize: () => ({

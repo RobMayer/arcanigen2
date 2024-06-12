@@ -1,6 +1,6 @@
 import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
-import { ControlRendererProps, IArcaneGraph, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, NodePather, NodePatherProps } from "../types";
+import { ControlRendererProps, IArcaneGraph, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, NodePather, GraphGlobals } from "../types";
 import {
     PositionMode,
     StrokeCapMode,
@@ -245,36 +245,36 @@ const Renderer = memo(({ nodeId, globals, depth, overrides = {} }: NodeRendererP
     );
 });
 
-const Pather = ({ nodeId, globals, pathId, depth, pathLength }: NodePatherProps) => {
-    const radius = nodeHooks.useCoalesce(nodeId, "radius", "radius", globals);
-    const thetaStart = nodeHooks.useCoalesce(nodeId, "thetaStart", "thetaStart", globals);
-    const thetaEnd = nodeHooks.useCoalesce(nodeId, "thetaEnd", "thetaEnd", globals);
+const nodeMethods = ArcaneGraph.nodeMethods<IArcNode>();
 
-    const pieSlice = nodeHooks.useValue(nodeId, "pieSlice");
+const getPath = (graph: IArcaneGraph, nodeId: string, globals: GraphGlobals) => {
+    const radius = nodeMethods.coalesce(graph, nodeId, "radius", "radius", globals);
+    const thetaStart = nodeMethods.coalesce(graph, nodeId, "thetaStart", "thetaStart", globals);
+    const thetaEnd = nodeMethods.coalesce(graph, nodeId, "thetaEnd", "thetaEnd", globals);
+    const pieSlice = nodeMethods.getValue(graph, nodeId, "pieSlice");
+    const positionMode = nodeMethods.getValue(graph, nodeId, "positionMode");
+    const positionX = nodeMethods.coalesce(graph, nodeId, "positionX", "positionX", globals);
+    const positionY = nodeMethods.coalesce(graph, nodeId, "positionY", "positionY", globals);
+    const positionTheta = nodeMethods.coalesce(graph, nodeId, "positionTheta", "positionTheta", globals);
+    const positionRadius = nodeMethods.coalesce(graph, nodeId, "positionRadius", "positionRadius", globals);
+    const rotation = nodeMethods.coalesce(graph, nodeId, "rotation", "rotation", globals);
 
-    const positionMode = nodeHooks.useValue(nodeId, "positionMode");
-    const positionX = nodeHooks.useCoalesce(nodeId, "positionX", "positionX", globals);
-    const positionY = nodeHooks.useCoalesce(nodeId, "positionY", "positionY", globals);
-    const positionTheta = nodeHooks.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
-    const positionRadius = nodeHooks.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
-    const rotation = nodeHooks.useCoalesce(nodeId, "rotation", "rotation", globals);
+    const rad = MathHelper.lengthToPx(radius);
 
-    const pathD = useMemo(() => {
-        const rad = MathHelper.lengthToPx(radius);
+    const s = Math.min(thetaStart, thetaEnd);
+    const e = Math.max(thetaStart, thetaEnd);
 
-        const s = Math.min(thetaStart, thetaEnd);
-        const e = Math.max(thetaStart, thetaEnd);
+    const startX = rad * Math.cos(((s - 90) * Math.PI) / 180);
+    const startY = rad * Math.sin(((s - 90) * Math.PI) / 180);
+    const midX = rad * Math.cos((((s - 90 + (e - 90)) / 2) * Math.PI) / 180);
+    const midY = rad * Math.sin((((s - 90 + (e - 90)) / 2) * Math.PI) / 180);
+    const endX = rad * Math.cos(((e - 90) * Math.PI) / 180);
+    const endY = rad * Math.sin(((e - 90) * Math.PI) / 180);
 
-        const startX = rad * Math.cos(((s - 90) * Math.PI) / 180);
-        const startY = rad * Math.sin(((s - 90) * Math.PI) / 180);
-        const midX = rad * Math.cos((((s - 90 + (e - 90)) / 2) * Math.PI) / 180);
-        const midY = rad * Math.sin((((s - 90 + (e - 90)) / 2) * Math.PI) / 180);
-        const endX = rad * Math.cos(((e - 90) * Math.PI) / 180);
-        const endY = rad * Math.sin(((e - 90) * Math.PI) / 180);
-        return `${pieSlice ? `M 0,0 L ${startX},${startY}` : ` M ${startX},${startY}`} A ${rad},${rad} 0 0 1 ${midX},${midY} A ${rad},${rad} 0 0 1 ${endX},${endY} ${pieSlice ? `Z` : ""}`;
-    }, [pieSlice, radius, thetaEnd, thetaStart]);
-
-    return <path pathLength={pathLength} id={pathId} d={pathD} transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`} />;
+    return {
+        transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`,
+        d: `${pieSlice ? `M 0,0 L ${startX},${startY}` : ` M ${startX},${startY}`} A ${rad},${rad} 0 0 1 ${midX},${midY} A ${rad},${rad} 0 0 1 ${endX},${endY} ${pieSlice ? `Z` : ""}`,
+    };
 };
 
 const ArcNodeHelper: INodeHelper<IArcNode> = {
@@ -283,12 +283,12 @@ const ArcNodeHelper: INodeHelper<IArcNode> = {
     nodeIcon: nodeIcons.arcShape.nodeIcon,
     flavour: "emphasis",
     type: NodeTypes.SHAPE_ARC,
-    getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IArcNode["outputs"]) => {
+    getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof IArcNode["outputs"], globals: GraphGlobals) => {
         switch (socket) {
             case "output":
                 return Renderer;
             case "path":
-                return Pather;
+                return getPath(graph, nodeId, globals);
         }
     },
     initialize: () => ({

@@ -1,6 +1,6 @@
 import { memo, useMemo } from "react";
 import ArcaneGraph from "../graph";
-import { ControlRendererProps, IArcaneGraph, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, NodePatherProps, NodePather } from "../types";
+import { ControlRendererProps, IArcaneGraph, INodeDefinition, INodeHelper, NodeRenderer, NodeRendererProps, NodePather, GraphGlobals } from "../types";
 import { PositionMode, StrokeCapMode, STROKECAP_MODE_OPTIONS, RadialMode, RADIAL_MODE_OPTIONS, RadialModes, StrokeCapModes, NodeTypes, SocketTypes, PositionModes } from "../../../../utility/enums";
 import MathHelper from "!/utility/mathhelper";
 
@@ -197,22 +197,22 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
     );
 });
 
-const Pather = memo(({ nodeId, depth, globals, pathId, pathLength }: NodePatherProps) => {
-    const radialMode = nodeHooks.useValue(nodeId, "radialMode");
-    const radius = nodeHooks.useCoalesce(nodeId, "radius", "radius", globals);
-    const deviation = nodeHooks.useCoalesce(nodeId, "deviation", "deviation", globals);
-    const minorRadius = nodeHooks.useCoalesce(nodeId, "minorRadius", "minorRadius", globals);
-    const majorRadius = nodeHooks.useCoalesce(nodeId, "majorRadius", "majorRadius", globals);
+const nodeMethods = ArcaneGraph.nodeMethods<ISpiralNode>();
 
-    const thetaStart = nodeHooks.useCoalesce(nodeId, "thetaStart", "thetaStart", globals);
-    const thetaEnd = nodeHooks.useCoalesce(nodeId, "thetaEnd", "thetaEnd", globals);
-
-    const positionMode = nodeHooks.useValue(nodeId, "positionMode");
-    const positionX = nodeHooks.useCoalesce(nodeId, "positionX", "positionX", globals);
-    const positionY = nodeHooks.useCoalesce(nodeId, "positionY", "positionY", globals);
-    const positionTheta = nodeHooks.useCoalesce(nodeId, "positionTheta", "positionTheta", globals);
-    const positionRadius = nodeHooks.useCoalesce(nodeId, "positionRadius", "positionRadius", globals);
-    const rotation = nodeHooks.useCoalesce(nodeId, "rotation", "rotation", globals);
+const getPath = (graph: IArcaneGraph, nodeId: string, globals: GraphGlobals) => {
+    const radialMode = nodeMethods.getValue(graph, nodeId, "radialMode");
+    const radius = nodeMethods.coalesce(graph, nodeId, "radius", "radius", globals);
+    const deviation = nodeMethods.coalesce(graph, nodeId, "deviation", "deviation", globals);
+    const minorRadius = nodeMethods.coalesce(graph, nodeId, "minorRadius", "minorRadius", globals);
+    const majorRadius = nodeMethods.coalesce(graph, nodeId, "majorRadius", "majorRadius", globals);
+    const thetaStart = nodeMethods.coalesce(graph, nodeId, "thetaStart", "thetaStart", globals);
+    const thetaEnd = nodeMethods.coalesce(graph, nodeId, "thetaEnd", "thetaEnd", globals);
+    const positionMode = nodeMethods.getValue(graph, nodeId, "positionMode");
+    const positionX = nodeMethods.coalesce(graph, nodeId, "positionX", "positionX", globals);
+    const positionY = nodeMethods.coalesce(graph, nodeId, "positionY", "positionY", globals);
+    const positionTheta = nodeMethods.coalesce(graph, nodeId, "positionTheta", "positionTheta", globals);
+    const positionRadius = nodeMethods.coalesce(graph, nodeId, "positionRadius", "positionRadius", globals);
+    const rotation = nodeMethods.coalesce(graph, nodeId, "rotation", "rotation", globals);
 
     const rI = radialMode === RadialModes.MAJORMINOR ? MathHelper.lengthToPx(minorRadius) : MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(deviation) / 2;
     const rO = radialMode === RadialModes.MAJORMINOR ? MathHelper.lengthToPx(majorRadius) : MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(deviation) / 2;
@@ -236,8 +236,11 @@ const Pather = memo(({ nodeId, depth, globals, pathId, pathLength }: NodePatherP
             }, "");
     }, [rI, rO, thetaEnd, thetaStart]);
 
-    return <path d={pathD} transform={`${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`} pathLength={pathLength} id={pathId} />;
-});
+    return {
+        d: pathD,
+        transform: `${MathHelper.getPosition(positionMode, positionX, positionY, positionTheta, positionRadius)} rotate(${rotation})`,
+    };
+};
 
 const Renderer = memo(({ nodeId, depth, globals, overrides = {} }: NodeRendererProps) => {
     const radialMode = nodeHooks.useValue(nodeId, "radialMode");
@@ -317,12 +320,12 @@ const SpiralNodeHelper: INodeHelper<ISpiralNode> = {
     nodeIcon: nodeIcons.spiralShape.nodeIcon,
     flavour: "emphasis",
     type: NodeTypes.SHAPE_SPIRAL,
-    getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof ISpiralNode["outputs"]) => {
+    getOutput: (graph: IArcaneGraph, nodeId: string, socket: keyof ISpiralNode["outputs"], globals: GraphGlobals) => {
         switch (socket) {
             case "output":
                 return Renderer;
             case "path":
-                return Pather;
+                return getPath(graph, nodeId, globals);
         }
     },
     initialize: () => ({

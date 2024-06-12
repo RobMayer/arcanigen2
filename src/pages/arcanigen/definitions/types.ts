@@ -42,8 +42,8 @@ export type NodeRendererProps = { nodeId: string; depth: string; globals: GraphG
 export type NodeRenderer = ComponentType<NodeRendererProps>;
 export type ControlRendererProps = { nodeId: string; globals: GraphGlobals };
 export type ControlRenderer = ComponentType<ControlRendererProps>;
-export type NodePatherProps = { nodeId: string; depth: string; globals: GraphGlobals; pathId: string; pathLength: number };
-export type NodePather = ComponentType<NodePatherProps>;
+//export type NodePatherProps = { nodeId: string; depth: string; globals: GraphGlobals; pathId: string; pathLength: number };
+export type NodePather = { transform: string; d: string };
 
 export type Path = string;
 

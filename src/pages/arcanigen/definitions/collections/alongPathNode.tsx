@@ -50,39 +50,31 @@ const Controls = memo(({ nodeId, globals }: ControlRendererProps) => {
 
 const Renderer = memo(({ nodeId, globals, depth, overrides = {} }: NodeRendererProps) => {
     const along = nodeHooks.useCoalesce(nodeId, "along", "along", globals);
-    const [ConformalPath, pId] = nodeHooks.useInputNode(nodeId, "path", globals);
+    const [pathData, pId] = nodeHooks.useInputNode(nodeId, "path", globals);
     const [Output, cid] = nodeHooks.useInputNode(nodeId, "input", globals);
 
-    const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+    const pos = useMemo(() => {
+        if (pathData?.d) {
+            const n = document.createElementNS("http://www.w3.org/2000/svg", "path");
 
-    useLayoutEffect(() => {
-        if (pId) {
-            const n = document.getElementById(`alongpath_${nodeId}_lyr-${depth ?? ""}`) as any;
-            if (n) {
-                const len = n.getTotalLength();
-                if (len) {
-                    const p = n.getPointAtLength(len * along);
-                    if (p) {
-                        setPos(p);
-                        return;
-                    }
-                }
+            n.setAttribute("d", pathData.d);
+
+            const len = n.getTotalLength();
+            if (len) {
+                const p = n.getPointAtLength(len * along);
+                return p;
             }
         }
-        setPos(null);
-    }, [along, nodeId, depth]);
 
-    if (!ConformalPath || !Output) {
+        return null;
+    }, [along, pathData?.transform, pathData?.d]);
+
+    if (!pathData || !Output) {
         return null;
     }
     return (
         <>
-            <g>
-                <defs>
-                    {ConformalPath && pId && (
-                        <ConformalPath nodeId={pId} depth={(depth ?? "") + `_${nodeId}.alongpath`} globals={globals} pathId={`alongpath_${nodeId}_lyr-${depth ?? ""}`} pathLength={100} />
-                    )}
-                </defs>
+            <g transform={`${pathData?.transform ?? ""}`}>
                 <g transform={`translate(${pos?.x ?? 0}, ${pos?.y ?? 0})`}>
                     <Output overrides={overrides} nodeId={cid} depth={`${depth}_${nodeId}`} globals={globals} />
                 </g>
