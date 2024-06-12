@@ -224,11 +224,11 @@ const getSocketFlavour = (type: SocketType): Flavour => {
             return "help";
         case SocketTypes.CURVE:
             return "info";
-        case SocketTypes.SEQUENCE:
         case SocketTypes.PATH:
             return "emphasis";
         case SocketTypes.SHAPE:
             return "confirm";
+        case SocketTypes.SEQUENCE:
         case SocketTypes.PORTAL:
             return "danger";
     }

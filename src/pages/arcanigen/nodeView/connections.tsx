@@ -186,7 +186,7 @@ const Connection = ({ linkId, fromNode, toNode, fromSocket, toSocket, type }: IL
 };
 
 const FLAVOUR_BY_TYPE: { [key in LinkType]: Flavour } = {
-    sequence: "accent",
+    sequence: "danger",
     path: "emphasis",
     shape: "confirm",
     portal: "danger",

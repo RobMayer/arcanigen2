@@ -379,6 +379,7 @@ export const CurvePresets = {
     SINUSOIDAL: "sinusoidal",
     ROOTIC: "rootic",
     CIRCULAR: "circular",
+    RANDOM: "random",
 } as const;
 export type CurvePreset = (typeof CurvePresets)[keyof typeof CurvePresets];
 export const CURVE_PRESET_OPTIONS: {
@@ -392,6 +393,7 @@ export const CURVE_PRESET_OPTIONS: {
     sinusoidal: "Sinusoidal ( sin(t) )",
     rootic: "Rootic ( sqrt(t) )",
     circular: "Circular ( 1-sqrt(1-t^2) )",
+    random: "Random",
 };
 
 export const EasingModes = {
