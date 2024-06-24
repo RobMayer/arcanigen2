@@ -217,24 +217,22 @@ const getPath = (graph: IArcaneGraph, nodeId: string, globals: GraphGlobals) => 
     const rI = radialMode === RadialModes.MAJORMINOR ? MathHelper.lengthToPx(minorRadius) : MathHelper.lengthToPx(radius) - MathHelper.lengthToPx(deviation) / 2;
     const rO = radialMode === RadialModes.MAJORMINOR ? MathHelper.lengthToPx(majorRadius) : MathHelper.lengthToPx(radius) + MathHelper.lengthToPx(deviation) / 2;
 
-    const pathD = useMemo(() => {
-        const c = 2 + Math.floor(Math.abs(thetaEnd - thetaStart) / 10);
-        return lodash
-            .range(c)
-            .map((n) => {
-                const coeff = MathHelper.delerp(n, 0, c - 1);
-                const rad = MathHelper.lerp(coeff, rI, rO);
-                const ang = MathHelper.lerp(coeff, thetaStart, thetaEnd);
+    const c = 2 + Math.floor(Math.abs(thetaEnd - thetaStart) / 10);
+    const pathD = lodash
+        .range(c)
+        .map((n) => {
+            const coeff = MathHelper.delerp(n, 0, c - 1);
+            const rad = MathHelper.lerp(coeff, rI, rO);
+            const ang = MathHelper.lerp(coeff, thetaStart, thetaEnd);
 
-                const x = rad * Math.cos(((ang - 90) * Math.PI) / 180);
-                const y = rad * Math.sin(((ang - 90) * Math.PI) / 180);
+            const x = rad * Math.cos(((ang - 90) * Math.PI) / 180);
+            const y = rad * Math.sin(((ang - 90) * Math.PI) / 180);
 
-                return [x, y];
-            })
-            .reduce((acc, each, i, ary) => {
-                return i === 0 ? `M ${each[0]},${each[1]}` : `${acc} ${bezierCommand(each, i, ary)}`;
-            }, "");
-    }, [rI, rO, thetaEnd, thetaStart]);
+            return [x, y];
+        })
+        .reduce((acc, each, i, ary) => {
+            return i === 0 ? `M ${each[0]},${each[1]}` : `${acc} ${bezierCommand(each, i, ary)}`;
+        }, "");
 
     return {
         d: pathD,

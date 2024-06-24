@@ -107,7 +107,7 @@ const ColorHSINodeHelper: INodeHelper<IColorHSINode> = {
     buttonIcon: nodeIcons.colorValue.buttonIcon,
     nodeIcon: nodeIcons.colorValue.nodeIcon,
     flavour: "accent",
-    type: NodeTypes.COLOR_HSV,
+    type: NodeTypes.COLOR_HSI,
     getOutput,
     initialize: () => ({
         h: 0,

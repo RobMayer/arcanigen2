@@ -6,6 +6,7 @@ import ExportSVG from "./exportSvg";
 import ExportPNG from "./exportPng";
 import ResetGraph from "./resetGraph";
 import LoadExample from "./loadExample";
+import ShowChangelog from "./showChangelog";
 
 const ArcaneGraphMenu = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) => {
     return (
@@ -17,6 +18,8 @@ const ArcaneGraphMenu = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) =>
                 <ExportSVG />
                 <ExportPNG />
                 <ResetGraph />
+                <Spacer />
+                <ShowChangelog />
                 {/* <ActionButton flavour={"info"} onClick={debug} title={"outputs the current state into the console"}>
                 <Icon icon={faBug} />
              </ActionButton> */}
@@ -32,3 +35,7 @@ const ArcaneGraphMenu = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) =>
 `;
 
 export default ArcaneGraphMenu;
+
+const Spacer = styled.div`
+    flex: 1 1 auto;
+`;

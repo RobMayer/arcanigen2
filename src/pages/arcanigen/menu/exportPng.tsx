@@ -45,11 +45,11 @@ const rasterize = (svgString: string, width: number, height: number) => {
         image.onerror = reject;
         image.onload = () => {
             const canvas = document.createElement("canvas");
-            canvas.width = width * 2;
-            canvas.height = height * 2;
+            canvas.width = width;
+            canvas.height = height;
             const context = canvas.getContext("2d");
             if (context) {
-                context.drawImage(image, 0, 0, width * 2, height * 2);
+                context.drawImage(image, 0, 0, width, height);
                 context.canvas.toBlob(resolve);
             } else {
                 reject("context failed");

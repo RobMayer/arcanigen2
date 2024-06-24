@@ -5,6 +5,7 @@ import { iconActionSave } from "../../../components/icons/action/save";
 import { useCallback, useRef } from "react";
 import { IconDefinition } from "../../../components/icons";
 import { saveAs } from "file-saver";
+import { iconActionCopy } from "../../../components/icons/action/copy";
 
 export const CutSheet = styled(({ className, selected }: { className?: string; selected: null | number }) => {
     const cutsheet = useCutsheet();
@@ -39,7 +40,8 @@ export const CutSheet = styled(({ className, selected }: { className?: string; s
                                         })}
                                     </SheetOutput>
                                     <SheetOptions>
-                                        <SaveButton icon={iconActionSave} targetMaterial={i + 1} targetSheet={j + 1} />
+                                        <SaveButton target={`${i + 1}-${j + 1}`} />
+                                        <CopyButton target={`${i + 1}-${j + 1}`} />
                                     </SheetOptions>
                                 </Sheet>
                             );
@@ -75,6 +77,7 @@ const MAT_STYLE = {
 const Sheet = styled.div`
     display: grid;
     grid-template-columns: 1fr auto;
+    gap: 8px;
 `;
 
 const SheetOutput = styled.svg`
@@ -85,23 +88,33 @@ const SheetOutput = styled.svg`
 
 const SheetOptions = styled.div`
     display: grid;
-    grid-auto-flow: column;
+    grid-auto-flow: row;
     font-size: 24pt;
     align-self: start;
+    background: #333;
 `;
 
-const SaveButton = ({ icon, targetMaterial, targetSheet }: { icon: IconDefinition; targetMaterial: number; targetSheet: number }) => {
-    const ref = useRef<HTMLDivElement>(null);
-
+const SaveButton = ({ target }: { target: string }) => {
     const saveThingy = useCallback(() => {
-        if (ref.current) {
-            const svg = document.querySelector(`svg[data-material='${targetMaterial}'][data-sheet='${targetSheet}']`);
-            if (svg) {
-                const theBlob = new Blob([svg.outerHTML], { type: "image/svg+xml" });
-                saveAs(theBlob, `cutsheet-${targetMaterial}-${targetSheet}.svg`);
-            }
+        const [targetMaterial, targetSheet] = target.split("-");
+        const svg = document.querySelector(`svg[data-material='${targetMaterial}'][data-sheet='${targetSheet}']`);
+        if (svg) {
+            const theBlob = new Blob([svg.outerHTML], { type: "image/svg+xml" });
+            saveAs(theBlob, `cutsheet-${targetMaterial}-${targetSheet}.svg`);
         }
-    }, [targetMaterial, targetSheet]);
+    }, [target]);
 
-    return <IconButton icon={icon} ref={ref} onAction={saveThingy} tooltip={"Save SVG"} />;
+    return <IconButton icon={iconActionSave} onAction={saveThingy} tooltip={"Save SVG"} />;
+};
+
+const CopyButton = ({ target }: { target: string }) => {
+    const copyThingy = useCallback(() => {
+        const [targetMaterial, targetSheet] = target.split("-");
+        const svg = document.querySelector(`svg[data-material='${targetMaterial}'][data-sheet='${targetSheet}']`);
+        if (svg) {
+            navigator.clipboard.writeText(svg.outerHTML);
+        }
+    }, [target]);
+
+    return <IconButton icon={iconActionCopy} onAction={copyThingy} tooltip={"Copy SVG"} />;
 };
