@@ -46,7 +46,7 @@ export const BaseplateDef: ItemDefinition<BaseplateParams> = {
         type: "BASEPLATE",
         cellX: 3,
         cellY: 3,
-        footPack: false,
+        footPack: true,
     }),
     getLabel: (item) => `Baseplate (${item.cellX}x${item.cellY})`,
     getTitle: () => `Baseplate`,
@@ -74,11 +74,7 @@ const drawGrid = (x: number, y: number, footPack: boolean, material: Material, g
     return [
         // OUTLINE
         drawRect(gridSize * x - gridClearance * 2, gridSize * y - gridClearance * 2),
-        drawArray(
-            { count: x, spacing: gridSize },
-            { count: y, spacing: gridSize },
-            cutRect(gridSize - materialThickness * 2 - gridClearance * 2, gridSize - materialThickness * 2 - gridClearance * 2)
-        ),
+        drawArray({ count: x, spacing: gridSize }, { count: y, spacing: gridSize }, cutRect(gridSize - materialThickness * 2, gridSize - materialThickness * 2)),
         footPack ? drawArray({ count: x, spacing: gridSize }, { count: y, spacing: gridSize }, feet) : "",
     ].join(" ");
 };

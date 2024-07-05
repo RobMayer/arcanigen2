@@ -51,7 +51,7 @@ export const MaterialList = styled(({ className, selected, onSelect }: { classNa
                         height: { value: 300, unit: "mm" },
                         gap: { value: 2, unit: "mm" },
                         margin: { value: 4, unit: "mm" },
-                        thickness: { value: 3, unit: "mm" },
+                        thickness: { value: 0.125, unit: "in" },
                     });
                     onSelect(list.length);
                 }}

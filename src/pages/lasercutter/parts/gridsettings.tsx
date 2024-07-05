@@ -5,6 +5,7 @@ import { FOOT_STYLE_OPTIONS } from "../types";
 import { Label, Wide, ControlPanel } from "./common";
 import { ControlledFoldout } from "../../../components/containers/Foldout";
 import { useUIState } from "../uistate";
+import styled from "styled-components";
 
 export const GridSettings = () => {
     const [value, setValue] = useGridState();
@@ -19,8 +20,7 @@ export const GridSettings = () => {
                 <PhysicalLengthInput value={value.stackSize} onValidCommit={(v) => setValue("stackSize", v)} />
                 <Label>Grid Clr.</Label>
                 <PhysicalLengthInput value={value.gridClearance} onValidCommit={(v) => setValue("gridClearance", v)} />
-                <Label>Stack Clr.</Label>
-                <PhysicalLengthInput value={value.stackClearance} onValidCommit={(v) => setValue("stackClearance", v)} />
+                <Spacer />
                 <Label>Grid Tab</Label>
                 <PhysicalLengthInput value={value.gridTab} onValidCommit={(v) => setValue("gridTab", v)} />
                 <Label>Stack Tab</Label>
@@ -37,9 +37,13 @@ export const GridSettings = () => {
                 </Wide>
                 <Label>Foot Size</Label>
                 <PhysicalLengthInput value={value.footSize} onValidCommit={(v) => setValue("footSize", v)} />
-                <Label>Sliding Clr.</Label>
-                <PhysicalLengthInput value={value.slideClearance} onValidCommit={(v) => setValue("slideClearance", v)} />
+                <Label>Foot Clr.</Label>
+                <PhysicalLengthInput value={value.footClearance} onValidCommit={(v) => setValue("footClearance", v)} />
             </ControlPanel>
         </ControlledFoldout>
     );
 };
+
+const Spacer = styled.div`
+    grid-column-end: span 2;
+`;
