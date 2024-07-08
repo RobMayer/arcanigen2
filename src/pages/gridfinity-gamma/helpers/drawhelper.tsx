@@ -1,29 +1,23 @@
 import { Enum } from "../types";
 
 export namespace Draw {
-    export function offsetOrigin(x: number, y: number): [string, string];
-    export function offsetOrigin(x: number, y: number, path: string | string[]): string;
+    /* SHAPES */
 
-    export function offsetOrigin(x: number, y: number, path?: string | string[]) {
-        if (path !== undefined) {
-            const paths = Array.isArray(path) ? path : [path];
-            return [`m ${x},${y}`, ...paths, `m ${-x},${-y}`].join(" ");
-        }
-        return [`m ${x},${y}`, `m ${-x},${-y}`] as [string, string];
-    }
-
-    export const rect = (w: number, h: number, anchor: Anchor = "TOP LEFT") => {
+    export const rect = (w: number, h: number, anchor: Anchor = "TOP LEFT"): string => {
         const [start, end] = offsetAnchor(w, h, anchor);
         return [start, `h ${w} v ${h} h ${-w} z`, end].join(" ");
     };
 
-    export const cutRect = (w: number, h: number, anchor: Anchor = "TOP LEFT") => {
+    export const cutRect = (w: number, h: number, anchor: Anchor = "TOP LEFT"): string => {
         const [start, end] = offsetAnchor(w, h, anchor);
         return [start, `m ${w},${h}`, `v ${-h} h ${-w} v ${h} z`, `m ${-w},${-h}`, end].join(" ");
     };
 
-    export const tabbedRect = (w: number, h: number, { north, east, south, west }: Partial<TabSet> = {}): string => {
+    export const tabbedRect = (w: number, h: number, { north, east, south, west }: Partial<TabSet> = {}, anchor: Anchor = "TOP LEFT"): string => {
         const res: string[] = [];
+
+        const [start, end] = offsetAnchor(w, h, anchor);
+        res.push(start);
 
         // res.push(`h ${w}`);
         // res.push(`v ${h}`);
@@ -145,12 +139,37 @@ export namespace Draw {
             res.push(`v ${-(gutter / 2 - west.width / 2 - nComp - offset)}`);
         }
 
-        // res.push("z");
+        res.push("z");
 
         res.push(`m ${-wComp},${-nComp}`);
 
+        res.push(end);
+
         return res.join(" ");
     };
+
+    export const circle = (r: number, anchor: Anchor = "MIDDLE CENTER"): string => {
+        const [start, end] = offsetAnchor(r * 2, r * 2, anchor);
+        return [start, `m 0,${r} a ${r},${r} 0 0,1 ${r * 2},0 a ${r},${r} 0 0,1 ${-r * 2},0 m 0,${-r}`, end].join(" ");
+    };
+
+    export const cutCircle = (r: number, anchor: Anchor = "MIDDLE CENTER"): string => {
+        const [start, end] = offsetAnchor(r * 2, r * 2, anchor);
+        return [start, `m 0,${r} a ${r},${r} 0 1,0 ${r * 2},0 a ${r},${r} 0 1,0 ${-r * 2},0 m 0,${-r}`, end].join(" ");
+    };
+
+    /* UTILITY */
+
+    export function offsetOrigin(x: number, y: number): [string, string];
+    export function offsetOrigin(x: number, y: number, path: string | string[]): string;
+
+    export function offsetOrigin(x: number, y: number, path?: string | string[]) {
+        if (path !== undefined) {
+            const paths = Array.isArray(path) ? path : [path];
+            return [`m ${x},${y}`, ...paths, `m ${-x},${-y}`].join(" ");
+        }
+        return [`m ${x},${y}`, `m ${-x},${-y}`] as [string, string];
+    }
 
     export const array = (x: DrawArrayOptions, y: DrawArrayOptions, shape: string, anchor: Anchor = "MIDDLE CENTER") => {
         if (x.count === 0 || y.count === 0) {
