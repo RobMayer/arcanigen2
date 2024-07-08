@@ -1,15 +1,14 @@
-import { useMemo } from "react";
 import CheckBox from "../../../components/buttons/Checkbox";
 import { NumericInput } from "../../../components/inputs/NumericInput";
 import { FootOverrideControls, FootOverrides, initialFootOverrides, initialSystemOverrides, SystemOverrideControls, SystemOverrides } from "../helpers/overridehelper";
 import { FootStyles, GlobalSettings, ItemControlProps, ItemDefinition, Shape } from "../types";
 import { ControlPanel, Full, Input, Section, WarningBox } from "../widgets";
 import { convertLength } from "../../../utility/mathhelper";
-import { cutRect, drawArray, drawFootBlock, drawFootBracket, drawFootRunner, drawRect } from "../helpers/drawhelper";
 import { PhysicalLength } from "../../../utility/types/units";
 import { ControlledFoldout } from "../../../components/containers/Foldout";
 import useUIState from "../../../utility/hooks/useUIState";
 import { PhysicalLengthInput } from "../../../components/inputs/PhysicalLengthInput";
+import { Draw } from "../helpers/drawhelper";
 
 export type GridParams = {
     cellX: number;
@@ -87,15 +86,15 @@ const draw = (item: GridParams, globals: GlobalSettings): Shape[] => {
     let feetShape = "";
     if (item.packFeet) {
         if (footStyle === FootStyles.BLOCK) {
-            feetShape = drawFootBlock({ gridSize, gridInset, footClearance });
+            feetShape = Draw.Feet.block({ gridSize, gridInset, footClearance });
         }
         if (footStyle === FootStyles.RUNNER) {
             const count = Math.floor((gridSize - gridInset * 2 - footClearance * 2 - layoutSpacing * 2) / (footDepth + gridThickness));
             const spacing = (gridSize - gridInset * 2 - footClearance * 2) / count;
-            feetShape = drawArray({ count: 1, spacing: 0 }, { count, spacing }, drawFootRunner({ footRunnerGap, footRunnerTab, footDepth, gridThickness }));
+            feetShape = Draw.array({ count: 1, spacing: 0 }, { count, spacing }, Draw.Feet.runner({ footRunnerGap, footRunnerTab, footDepth, gridThickness }));
         }
         if (footStyle === FootStyles.BRACKET) {
-            feetShape = drawFootBracket({ footBracketWidth }, convertLength(globals.layoutSpacing, "mm").value);
+            feetShape = Draw.Feet.bracket({ footBracketWidth }, convertLength(globals.layoutSpacing, "mm").value);
         }
     }
 
@@ -104,9 +103,9 @@ const draw = (item: GridParams, globals: GlobalSettings): Shape[] => {
             width: gridSize * item.cellX,
             height: gridSize * item.cellY,
             path: [
-                drawRect(gridSize * item.cellX - gridClearance * 2, gridSize * item.cellY - gridClearance * 2),
-                drawArray({ count: item.cellX, spacing: gridSize }, { count: item.cellY, spacing: gridSize }, cutRect(gridSize - gridInset * 2, gridSize - gridInset * 2)),
-                cannotPackFeet ? "" : drawArray({ count: item.cellX, spacing: gridSize }, { count: item.cellY, spacing: gridSize }, feetShape),
+                Draw.rect(gridSize * item.cellX - gridClearance * 2, gridSize * item.cellY - gridClearance * 2),
+                Draw.array({ count: item.cellX, spacing: gridSize }, { count: item.cellY, spacing: gridSize }, Draw.cutRect(gridSize - gridInset * 2, gridSize - gridInset * 2)),
+                cannotPackFeet ? "" : Draw.array({ count: item.cellX, spacing: gridSize }, { count: item.cellY, spacing: gridSize }, feetShape),
             ].join(" "),
             name: "Grid",
             thickness: item.hasGridThickness ? item.gridThickness : globals.thickness,

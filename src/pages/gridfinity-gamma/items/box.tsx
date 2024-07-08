@@ -10,7 +10,7 @@ import Checkbox from "../../../components/buttons/Checkbox";
 import { PhysicalLengthInput } from "../../../components/inputs/PhysicalLengthInput";
 import { FootOverrideControls, FootOverrides, initialFootOverrides, initialSystemOverrides, SystemOverrideControls, SystemOverrides } from "../helpers/overridehelper";
 import { convertLength } from "../../../utility/mathhelper";
-import { cutRect, drawArray, drawNewTabRect, offsetOrigin } from "../helpers/drawhelper";
+import { Draw } from "../helpers/drawhelper";
 
 export const FootLayouts = {
     DENSE: "SLOT_DENSE",
@@ -293,7 +293,7 @@ const drawBottom = ({
     const height = gridSize * cellX - gridClearance * 2;
 
     const path: string[] = [
-        drawNewTabRect(width, height, {
+        Draw.tabbedRect(width, height, {
             north: {
                 count: cellX,
                 spacing: gridSize,
@@ -322,18 +322,18 @@ const drawBottom = ({
     ];
 
     if (footLayout !== FootLayouts.NONE && footStyle === FootStyles.RUNNER) {
-        const [start, end] = offsetOrigin(width / 2, height / 2);
+        const [start, end] = Draw.offsetOrigin(width / 2, height / 2);
 
         path.push(start);
 
         const oP = gridSize / 2 - gridInset - footClearance - footRunnerWidth / 2;
         const oS = footRunnerGap / 2 + footRunnerTab / 2;
 
-        const footN = `m ${-oS},${-oP} ${cutRect(footRunnerTab, footRunnerWidth)} m ${oS},${oP} m ${oS},${-oP} ${cutRect(footRunnerTab, footRunnerWidth)} m ${-oS},${oP}`;
-        const footS = `m ${-oS},${oP} ${cutRect(footRunnerTab, footRunnerWidth)} m ${oS},${-oP} m ${oS},${oP} ${cutRect(footRunnerTab, footRunnerWidth)} m ${-oS},${-oP}`;
+        const footN = `m ${-oS},${-oP} ${Draw.cutRect(footRunnerTab, footRunnerWidth)} m ${oS},${oP} m ${oS},${-oP} ${Draw.cutRect(footRunnerTab, footRunnerWidth)} m ${-oS},${oP}`;
+        const footS = `m ${-oS},${oP} ${Draw.cutRect(footRunnerTab, footRunnerWidth)} m ${oS},${-oP} m ${oS},${oP} ${Draw.cutRect(footRunnerTab, footRunnerWidth)} m ${-oS},${-oP}`;
 
-        const footW = `m ${-oP},${-oS} ${cutRect(footRunnerWidth, footRunnerTab)} m ${oP},${oS} m ${-oP},${oS} ${cutRect(footRunnerWidth, footRunnerTab)} m ${oP},${-oS}`;
-        const footE = `m ${oP},${-oS} ${cutRect(footRunnerWidth, footRunnerTab)} m ${-oP},${oS} m ${oP},${oS} ${cutRect(footRunnerWidth, footRunnerTab)} m ${-oP},${-oS}`;
+        const footW = `m ${-oP},${-oS} ${Draw.cutRect(footRunnerWidth, footRunnerTab)} m ${oP},${oS} m ${-oP},${oS} ${Draw.cutRect(footRunnerWidth, footRunnerTab)} m ${oP},${-oS}`;
+        const footE = `m ${oP},${-oS} ${Draw.cutRect(footRunnerWidth, footRunnerTab)} m ${-oP},${oS} m ${oP},${oS} ${Draw.cutRect(footRunnerWidth, footRunnerTab)} m ${-oP},${-oS}`;
 
         if (footLayout === FootLayouts.DENSE) {
             for (let x = 0; x < cellX; x++) {
@@ -408,7 +408,7 @@ const drawEnd = ({
     const height = stackSize * cellZ - gridModeHeightAdjust;
 
     const path: string[] = [
-        drawNewTabRect(width, height, {
+        Draw.tabbedRect(width, height, {
             north:
                 topStyle === TopStyles.NONE || topStyle === TopStyles.INSET
                     ? null
@@ -442,17 +442,22 @@ const drawEnd = ({
     ];
 
     if (topStyle === TopStyles.INSET) {
-        const [set, reset] = offsetOrigin(width / 2, footDepth);
+        const [set, reset] = Draw.offsetOrigin(width / 2, footDepth);
         path.push(set);
-        path.push(drawArray({ count: cellX, spacing: gridSize }, { count: 1, spacing: 0 }, cutRect(gridTab, topThickness, "TOP CENTER"), "TOP CENTER"));
+        path.push(Draw.array({ count: cellX, spacing: gridSize }, { count: 1, spacing: 0 }, Draw.cutRect(gridTab, topThickness, "TOP CENTER"), "TOP CENTER"));
         path.push(reset);
     }
 
     if (divX > 0) {
-        const [set, reset] = offsetOrigin(width / 2, height / 2);
+        const [set, reset] = Draw.offsetOrigin(width / 2, height / 2);
         path.push(set);
         path.push(
-            drawArray({ count: divX, spacing: divSpacing }, { count: cellZ, spacing: stackSize, offset: -gridModeHeightAdjust / 2 }, cutRect(divThickness, stackTab, "MIDDLE CENTER"), "MIDDLE CENTER")
+            Draw.array(
+                { count: divX, spacing: divSpacing },
+                { count: cellZ, spacing: stackSize, offset: -gridModeHeightAdjust / 2 },
+                Draw.cutRect(divThickness, stackTab, "MIDDLE CENTER"),
+                "MIDDLE CENTER"
+            )
         );
         path.push(reset);
     }
@@ -507,7 +512,7 @@ const drawSide = ({
     const path: string[] = [];
 
     path.push(
-        drawNewTabRect(width, height, {
+        Draw.tabbedRect(width, height, {
             north:
                 topStyle === TopStyles.NONE || topStyle === TopStyles.INSET
                     ? null
@@ -541,17 +546,22 @@ const drawSide = ({
     );
 
     if (topStyle === TopStyles.INSET) {
-        const [set, reset] = offsetOrigin(width / 2, footDepth);
+        const [set, reset] = Draw.offsetOrigin(width / 2, footDepth);
         path.push(set);
-        path.push(drawArray({ count: cellY, spacing: gridSize }, { count: 1, spacing: 0 }, cutRect(gridTab, topThickness, "TOP CENTER"), "TOP CENTER"));
+        path.push(Draw.array({ count: cellY, spacing: gridSize }, { count: 1, spacing: 0 }, Draw.cutRect(gridTab, topThickness, "TOP CENTER"), "TOP CENTER"));
         path.push(reset);
     }
 
     if (divY > 0) {
-        const [set, reset] = offsetOrigin(width / 2, height / 2);
+        const [set, reset] = Draw.offsetOrigin(width / 2, height / 2);
         path.push(set);
         path.push(
-            drawArray({ count: divY, spacing: divSpacing }, { count: cellZ, spacing: stackSize, offset: -gridModeHeightAdjust / 2 }, cutRect(divThickness, stackTab, "MIDDLE CENTER"), "MIDDLE CENTER")
+            Draw.array(
+                { count: divY, spacing: divSpacing },
+                { count: cellZ, spacing: stackSize, offset: -gridModeHeightAdjust / 2 },
+                Draw.cutRect(divThickness, stackTab, "MIDDLE CENTER"),
+                "MIDDLE CENTER"
+            )
         );
         path.push(reset);
     }
@@ -584,7 +594,7 @@ const drawTop = ({
     return {
         width,
         height,
-        path: drawNewTabRect(width, height, {
+        path: Draw.tabbedRect(width, height, {
             north: {
                 width: gridTab,
                 count: cellX,
@@ -668,7 +678,7 @@ const drawDivX = ({
     return {
         width,
         height,
-        path: drawNewTabRect(width, height, {
+        path: Draw.tabbedRect(width, height, {
             east: {
                 count: cellZ,
                 width: stackTab,
@@ -749,7 +759,7 @@ const drawDivY = ({
     return {
         width,
         height,
-        path: drawNewTabRect(width, height, {
+        path: Draw.tabbedRect(width, height, {
             north: {
                 count: divY,
                 width: divThickness,
