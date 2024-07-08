@@ -31,6 +31,7 @@ const MainMenu = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) => {
                 <MenuButton icon={ICON_HOME} to={"/"} />
                 <MenuButton icon={ICON_MAGIC} to={"/magic-circle/"} />
                 <MenuButton icon={ICON_BOX} to={"/laser/"} />
+                <MenuButton icon={ICON_BOX} to={"/gridfinity-gamma/"} />
                 {/* <MenuButton icon={faEye} to={"/sandbox/"} /> */}
             </Group>
             <Group></Group>

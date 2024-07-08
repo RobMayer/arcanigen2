@@ -2,12 +2,12 @@ import { useMaterialState } from "../systemstate";
 import { ControlledFoldout } from "../../../components/containers/Foldout";
 import { PhysicalLengthInput } from "../../../components/inputs/PhysicalLengthInput";
 import { ControlPanel, Label } from "./common";
-import { useUIState } from "../uistate";
+import useUIState from "../../../utility/hooks/useUIState";
 
 export const MaterialSettings = ({ material }: { material: number }) => {
     const [value, setValue] = useMaterialState(material);
 
-    const [isOpen, setIsOpen] = useUIState("materialFoldout");
+    const [isOpen, setIsOpen] = useUIState("lasercutter.materialFoldout", true);
 
     return (
         <ControlledFoldout label={"Material Settings"} isOpen={isOpen} onToggle={setIsOpen}>

@@ -4,12 +4,13 @@ import ToggleList from "../../../components/selectors/ToggleList";
 import { FOOT_STYLE_OPTIONS } from "../types";
 import { Label, Wide, ControlPanel } from "./common";
 import { ControlledFoldout } from "../../../components/containers/Foldout";
-import { useUIState } from "../uistate";
+
 import styled from "styled-components";
+import useUIState from "../../../utility/hooks/useUIState";
 
 export const GridSettings = () => {
     const [value, setValue] = useGridState();
-    const [isOpen, setIsOpen] = useUIState("gridFoldout");
+    const [isOpen, setIsOpen] = useUIState("lasercutter.gridFoldout", true);
 
     return (
         <ControlledFoldout label={"Grid Settings"} isOpen={isOpen} onToggle={setIsOpen}>
