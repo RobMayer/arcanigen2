@@ -321,19 +321,36 @@ const drawBottom = ({
         }),
     ];
 
+    //TODO: WTF is even going on here?
     if (footLayout !== FootLayouts.NONE && footStyle === FootStyles.RUNNER) {
         const [start, end] = Draw.offsetOrigin(width / 2, height / 2);
 
         path.push(start);
 
-        const oP = gridSize / 2 - gridInset - footClearance - footRunnerWidth / 2;
-        const oS = footRunnerGap / 2 + footRunnerTab / 2;
+        const offsetPrimary = gridSize / 2 - gridInset - footClearance - footRunnerWidth / 2;
+        const offsetSecondary = footRunnerGap / 2 + footRunnerTab / 2;
 
-        const footN = `m ${-oS},${-oP} ${Draw.cutRect(footRunnerTab, footRunnerWidth)} m ${oS},${oP} m ${oS},${-oP} ${Draw.cutRect(footRunnerTab, footRunnerWidth)} m ${-oS},${oP}`;
-        const footS = `m ${-oS},${oP} ${Draw.cutRect(footRunnerTab, footRunnerWidth)} m ${oS},${-oP} m ${oS},${oP} ${Draw.cutRect(footRunnerTab, footRunnerWidth)} m ${-oS},${-oP}`;
+        const footN = `m ${-offsetSecondary},${-offsetPrimary} ${Draw.cutRect(
+            footRunnerTab,
+            footRunnerWidth,
+            "MIDDLE CENTER"
+        )} m ${offsetSecondary},${offsetPrimary} m ${offsetSecondary},${-offsetPrimary} ${Draw.cutRect(footRunnerTab, footRunnerWidth, "MIDDLE CENTER")} m ${-offsetSecondary},${offsetPrimary}`;
+        const footS = `m ${-offsetSecondary},${offsetPrimary} ${Draw.cutRect(
+            footRunnerTab,
+            footRunnerWidth,
+            "MIDDLE CENTER"
+        )} m ${offsetSecondary},${-offsetPrimary} m ${offsetSecondary},${offsetPrimary} ${Draw.cutRect(footRunnerTab, footRunnerWidth, "MIDDLE CENTER")} m ${-offsetSecondary},${-offsetPrimary}`;
 
-        const footW = `m ${-oP},${-oS} ${Draw.cutRect(footRunnerWidth, footRunnerTab)} m ${oP},${oS} m ${-oP},${oS} ${Draw.cutRect(footRunnerWidth, footRunnerTab)} m ${oP},${-oS}`;
-        const footE = `m ${oP},${-oS} ${Draw.cutRect(footRunnerWidth, footRunnerTab)} m ${-oP},${oS} m ${oP},${oS} ${Draw.cutRect(footRunnerWidth, footRunnerTab)} m ${-oP},${-oS}`;
+        const footW = `m ${-offsetPrimary},${-offsetSecondary} ${Draw.cutRect(
+            footRunnerWidth,
+            footRunnerTab,
+            "MIDDLE CENTER"
+        )} m ${offsetPrimary},${offsetSecondary} m ${-offsetPrimary},${offsetSecondary} ${Draw.cutRect(footRunnerWidth, footRunnerTab, "MIDDLE CENTER")} m ${offsetPrimary},${-offsetSecondary}`;
+        const footE = `m ${offsetPrimary},${-offsetSecondary} ${Draw.cutRect(
+            footRunnerWidth,
+            footRunnerTab,
+            "MIDDLE CENTER"
+        )} m ${-offsetPrimary},${offsetSecondary} m ${offsetPrimary},${offsetSecondary} ${Draw.cutRect(footRunnerWidth, footRunnerTab, "MIDDLE CENTER")} m ${-offsetPrimary},${-offsetSecondary}`;
 
         if (footLayout === FootLayouts.DENSE) {
             for (let x = 0; x < cellX; x++) {

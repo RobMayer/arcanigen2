@@ -65,6 +65,7 @@ const Controls = ({ value, globals, setValue }: ItemControlProps<GridParams>) =>
     );
 };
 
+//TODO: UAGH!
 const draw = (item: GridParams, globals: GlobalSettings): Shape[] => {
     const gridSize = convertLength(item.hasGridSize ? item.gridSize : globals.gridSize, "mm").value;
     const gridClearance = convertLength(item.hasGridClearance ? item.gridClearance : globals.gridClearance, "mm").value;
@@ -98,15 +99,24 @@ const draw = (item: GridParams, globals: GlobalSettings): Shape[] => {
         }
     }
 
+    const width = gridSize * item.cellX - gridClearance * 2;
+    const height = gridSize * item.cellY - gridClearance * 2;
+
     return [
         {
-            width: gridSize * item.cellX,
-            height: gridSize * item.cellY,
-            path: [
-                Draw.rect(gridSize * item.cellX - gridClearance * 2, gridSize * item.cellY - gridClearance * 2),
-                Draw.array({ count: item.cellX, spacing: gridSize }, { count: item.cellY, spacing: gridSize }, Draw.cutRect(gridSize - gridInset * 2, gridSize - gridInset * 2)),
-                cannotPackFeet ? "" : Draw.array({ count: item.cellX, spacing: gridSize }, { count: item.cellY, spacing: gridSize }, feetShape),
-            ].join(" "),
+            width,
+            height,
+            path: Draw.offsetOrigin(width / 2, height / 2, [
+                // Primary Square
+                Draw.rect(gridSize * item.cellX - gridClearance * 2, gridSize * item.cellY - gridClearance * 2, "MIDDLE CENTER"),
+                Draw.array(
+                    { count: item.cellX, spacing: gridSize },
+                    { count: item.cellY, spacing: gridSize },
+                    Draw.cutRect(gridSize - gridInset * 2, gridSize - gridInset * 2, "MIDDLE CENTER"),
+                    "MIDDLE CENTER"
+                ),
+                cannotPackFeet ? "" : Draw.array({ count: item.cellX, spacing: gridSize }, { count: item.cellY, spacing: gridSize }, feetShape, "MIDDLE CENTER"),
+            ]),
             name: "Grid",
             thickness: item.hasGridThickness ? item.gridThickness : globals.thickness,
         },

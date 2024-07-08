@@ -1,16 +1,23 @@
 import { Enum } from "../types";
 
 export namespace Draw {
-    export const offsetOrigin = (x: number, y: number): [string, string] => {
-        return [`m ${x},${y}`, `m ${-x},${-y}`];
-    };
+    export function offsetOrigin(x: number, y: number): [string, string];
+    export function offsetOrigin(x: number, y: number, path: string | string[]): string;
 
-    export const rect = (w: number, h: number, anchor: Anchor = "MIDDLE CENTER") => {
+    export function offsetOrigin(x: number, y: number, path?: string | string[]) {
+        if (path !== undefined) {
+            const paths = Array.isArray(path) ? path : [path];
+            return [`m ${x},${y}`, ...paths, `m ${-x},${-y}`].join(" ");
+        }
+        return [`m ${x},${y}`, `m ${-x},${-y}`] as [string, string];
+    }
+
+    export const rect = (w: number, h: number, anchor: Anchor = "TOP LEFT") => {
         const [start, end] = offsetAnchor(w, h, anchor);
         return [start, `h ${w} v ${h} h ${-w} z`, end].join(" ");
     };
 
-    export const cutRect = (w: number, h: number, anchor: Anchor = "MIDDLE CENTER") => {
+    export const cutRect = (w: number, h: number, anchor: Anchor = "TOP LEFT") => {
         const [start, end] = offsetAnchor(w, h, anchor);
         return [start, `m ${w},${h}`, `v ${-h} h ${-w} v ${h} z`, `m ${-w},${-h}`, end].join(" ");
     };
@@ -238,7 +245,7 @@ export namespace Draw {
     export namespace Feet {
         export const block = ({ gridSize, gridInset, footClearance }: { gridSize: number; gridInset: number; footClearance: number }) => {
             const d = gridSize - gridInset * 2 - footClearance * 2;
-            return rect(d, d);
+            return rect(d, d, "MIDDLE CENTER");
         };
 
         export const bracket = ({ footBracketWidth }: { footBracketWidth: number }, gap: number = 3) => {
