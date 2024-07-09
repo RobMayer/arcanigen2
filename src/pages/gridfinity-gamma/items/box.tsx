@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { FootStyle, FootStyles, GlobalSettings, ItemControlProps, ItemDefinition, Shape } from "../types";
+import { FootStyle, FootStyles, GlobalSettings, ItemControlProps, ItemDefinition, LayoutPart, Shape } from "../types";
 import { ControlPanel, Input, Section, Sep } from "../widgets";
 import { NumericInput } from "../../../components/inputs/NumericInput";
 import ToggleList from "../../../components/selectors/ToggleList";
@@ -49,8 +49,11 @@ const Controls = ({ value, setValue }: ItemControlProps<BoxParams>) => {
 
     return (
         <>
-            <Section>Box</Section>
             <ControlPanel>
+                <Input label={"Quantity"}>
+                    <NumericInput value={value.quantity} onValidValue={setValue("quantity")} min={1} step={1} />
+                </Input>
+                <Sep />
                 <Input label={"Cell X"}>
                     <NumericInput value={value.cellX} onValidValue={setValue("cellX")} min={1} step={1} />
                 </Input>
@@ -104,7 +107,7 @@ const Controls = ({ value, setValue }: ItemControlProps<BoxParams>) => {
     );
 };
 
-const draw = (item: BoxParams, globals: GlobalSettings): Shape[] => {
+const draw = (item: BoxParams, globals: GlobalSettings): LayoutPart[] => {
     const gridSize = convertLength(item.hasGridSize ? item.gridSize : globals.gridSize, "mm").value;
     const stackSize = convertLength(item.hasStackSize ? item.stackSize : globals.stackSize, "mm").value;
 
@@ -158,7 +161,7 @@ const draw = (item: BoxParams, globals: GlobalSettings): Shape[] => {
         gridInset,
     };
 
-    const result: Shape[] = [
+    const shapes: Shape[] = [
         { name: "Bottom", thickness: resBottomThickness, ...drawBottom(calculatedParams) },
         { name: "Front", thickness: resWallThickness, ...drawEnd(calculatedParams) },
         { name: "Bottom", thickness: resWallThickness, ...drawEnd(calculatedParams) },
@@ -167,12 +170,12 @@ const draw = (item: BoxParams, globals: GlobalSettings): Shape[] => {
     ];
 
     if (item.topStyle !== TopStyles.NONE) {
-        result.push({ name: "Top", thickness: resTopThickness, ...drawTop(calculatedParams) });
+        shapes.push({ name: "Top", thickness: resTopThickness, ...drawTop(calculatedParams) });
     }
 
     if (item.divY > 0) {
         for (let dX = 1; dX <= item.divY; dX++) {
-            result.push({
+            shapes.push({
                 name: "X-Axis Divider",
                 thickness: resDivThickness,
                 ...drawDivX(calculatedParams),
@@ -182,7 +185,7 @@ const draw = (item: BoxParams, globals: GlobalSettings): Shape[] => {
 
     if (item.divX > 0) {
         for (let dY = 1; dY <= item.divX; dY++) {
-            result.push({
+            shapes.push({
                 name: "Y-Axis Divider",
                 thickness: resDivThickness,
                 ...drawDivY(calculatedParams),
@@ -190,7 +193,13 @@ const draw = (item: BoxParams, globals: GlobalSettings): Shape[] => {
         }
     }
 
-    return result;
+    return [
+        {
+            name: "Box",
+            copies: 1,
+            shapes,
+        },
+    ];
 };
 
 export type BoxParams = {
@@ -290,7 +299,7 @@ const drawBottom = ({
     gridInset: number;
 }): { width: number; height: number; path: string } => {
     const width = gridSize * cellX - gridClearance * 2;
-    const height = gridSize * cellX - gridClearance * 2;
+    const height = gridSize * cellY - gridClearance * 2;
 
     const path: string[] = [
         Draw.tabbedRect(width, height, {
@@ -323,7 +332,7 @@ const drawBottom = ({
 
     //TODO: WTF is even going on here?
     if (footLayout !== FootLayouts.NONE && footStyle === FootStyles.RUNNER) {
-        const [start, end] = Draw.offsetOrigin(width / 2, height / 2);
+        const [start, end] = Draw.offsetOrigin(gridSize / 2, gridSize / 2);
 
         path.push(start);
 

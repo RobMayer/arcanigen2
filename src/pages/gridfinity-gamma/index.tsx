@@ -1,27 +1,58 @@
 import styled from "styled-components";
 import Page from "../../components/content/Page";
-import { HTMLAttributes, ReactNode, RefObject, useCallback, useMemo, useRef, useState } from "react";
-import { GlobalSettings } from "./options/gridsettings";
+import { HTMLAttributes, useMemo, useState } from "react";
+import { GlobalFeetSettings, GlobalLayoutSettings, GlobalPackSettings, GlobalSystemSettings } from "./options/globalitemsettings";
 import { ItemList } from "./options/itemlist";
-import { useGlobalSettings, useItemState } from "./state";
-import { ITEM_DEFINITIONS, Shape } from "./types";
-import IconButton from "../../components/buttons/IconButton";
-import { iconActionSave } from "../../components/icons/action/save";
-import { saveAs } from "file-saver";
-import { iconActionCopy } from "../../components/icons/action/copy";
-import { convertLength } from "../../utility/mathhelper";
-import { packDynamic, PackedOf } from "./helpers/packhelper";
-import { PhysicalLength } from "../../utility/types/units";
+import { useGlobalSettings, useItemList, useItemState, useMaterialList, useMaterialState } from "./state";
+import { ITEM_DEFINITIONS } from "./types";
+import { PerItemLayout } from "./layout/peritem";
+import RadioButton from "../../components/buttons/RadioButton";
+import { MaterialList } from "./options/materiallist";
+import { ControlPanel, Input, Section, WarningBox } from "./widgets";
+import { PhysicalLengthInput } from "../../components/inputs/PhysicalLengthInput";
+import CheckBox from "../../components/buttons/Checkbox";
+import useUIState from "../../utility/hooks/useUIState";
+import { PerMaterialLayout } from "./layout/permaterial";
 
 export const GridfinityGamma = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) => {
-    const [selected, setSelected] = useState<number | null>(null);
+    const [mode, setMode] = useUIState("gridfinitygamma.mode", "ITEM");
 
     return (
         <Page {...props}>
-            <OptionsPane>
-                <GlobalSettings />
+            <Menu>
+                <RadioButton value={mode} target={"ITEM"} onSelect={setMode}>
+                    Item Setup
+                </RadioButton>
+                <RadioButton value={mode} target={"MATERIAL"} onSelect={setMode}>
+                    Material Layout
+                </RadioButton>
+            </Menu>
+            {mode === "ITEM" ? <ItemMode /> : null}
+            {mode === "MATERIAL" ? <MaterialMode /> : null}
+        </Page>
+    );
+})`
+    display: grid;
+    grid-template-rows: auto 1fr;
+    grid-template-columns: minmax(440px, min-content) minmax(440px, min-content) 5fr;
+    padding: 0.5em;
+    gap: 0.5em;
+    grid-template-areas:
+        "menu menu menu"
+        "lists options layout";
+`;
+
+const ItemMode = () => {
+    const [selected, setSelected] = useState<number | null>(null);
+
+    return (
+        <>
+            <ListPane>
+                <GlobalSystemSettings />
+                <GlobalFeetSettings />
+                <GlobalLayoutSettings />
                 <ItemList selected={selected} setSelected={setSelected} />
-            </OptionsPane>
+            </ListPane>
             {selected === null ? (
                 <NoneSelected>Select or Add an Item</NoneSelected>
             ) : (
@@ -29,21 +60,52 @@ export const GridfinityGamma = styled(({ ...props }: HTMLAttributes<HTMLDivEleme
                     <ItemControls selected={selected} />
                 </OptionsPane>
             )}
-            {selected === null ? (
-                <NoneSelected>Select or Add an Item</NoneSelected>
-            ) : (
-                <LayoutPane>
-                    <ItemLayout selected={selected} />
-                </LayoutPane>
-            )}
-        </Page>
+            <LayoutPane>
+                <PerItemLayout />
+            </LayoutPane>
+        </>
     );
-})`
-    display: grid;
-    grid-template-columns: minmax(440px, min-content) minmax(440px, min-content) 5fr;
-    grid-template-rows: 100%;
+};
+
+const MaterialMode = () => {
+    const [selected, setSelected] = useState<number | null>(null);
+
+    return (
+        <>
+            <ListPane>
+                <GlobalLayoutSettings />
+                <GlobalPackSettings />
+                <MissingMaterials />
+                <MaterialList selected={selected} setSelected={setSelected} />
+            </ListPane>
+            {selected === null ? (
+                <NoneSelected>Select or Add a Material</NoneSelected>
+            ) : (
+                <OptionsPane>
+                    <MaterialControls selected={selected} />
+                </OptionsPane>
+            )}
+            <LayoutPane>
+                <PerMaterialLayout />
+            </LayoutPane>
+        </>
+    );
+};
+
+const Menu = styled.div`
+    grid-area: menu;
+    display: flex;
+    gap: 0.25em;
+`;
+
+const ListPane = styled.div`
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25em;
+    border: 1px solid #fff2;
     padding: 0.5em;
-    gap: 0.5em;
+    grid-area: lists;
 `;
 
 const OptionsPane = styled.div`
@@ -53,6 +115,7 @@ const OptionsPane = styled.div`
     gap: 0.25em;
     border: 1px solid #fff2;
     padding: 0.5em;
+    grid-area: options;
 `;
 
 const LayoutPane = styled.div`
@@ -62,6 +125,7 @@ const LayoutPane = styled.div`
     gap: 0.25em;
     border: 1px solid #fff2;
     padding: 0.5em;
+    grid-area: layout;
 `;
 
 const NoneSelected = styled.div`
@@ -73,160 +137,97 @@ const NoneSelected = styled.div`
     justify-items: center;
     color: #fff8;
     border: 1px solid #fff2;
+    grid-area: options;
 `;
 
 const ItemControls = ({ selected }: { selected: number }) => {
     const [value, setValue] = useItemState(selected);
     const [globals] = useGlobalSettings();
 
-    const Comp = useMemo(() => {
-        return ITEM_DEFINITIONS[value.type].Controls;
-    }, [value.type]);
+    const Comp = ITEM_DEFINITIONS[value.type].Controls;
 
     return <Comp value={value as any} setValue={setValue as any} globals={globals} />;
 };
 
-const ItemLayout = ({ selected }: { selected: number }) => {
-    const [value] = useItemState(selected);
-    const [globals] = useGlobalSettings();
-
-    const SVGs = useMemo(() => {
-        const margin = convertLength(globals.layoutMargin, "mm").value;
-        const spacing = convertLength(globals.layoutSpacing, "mm").value;
-        const { type, ...props } = value;
-
-        const shapes = ITEM_DEFINITIONS[type].draw(props as any, globals);
-
-        const byThickness = shapes.reduce<{ [key: string]: Shape[] }>((acc, each) => {
-            const k = `${each.thickness.value}${each.thickness.unit}`;
-            if (!(k in acc)) {
-                acc[k] = [];
-            }
-            acc[k].push(each);
-            return acc;
-        }, {});
-
-        const materials = Object.keys(byThickness).reduce<{ [key: string]: { width: number; height: number; items: PackedOf<{ path: string; name: string; thickness: PhysicalLength }>[] } }>(
-            (acc, k) => {
-                const shapes = byThickness[k].map(({ width, height, ...payload }) => ({
-                    width: width + spacing,
-                    height: height + spacing,
-                    payload,
-                }));
-                const packed = packDynamic(shapes);
-
-                acc[k] = {
-                    width: packed.width,
-                    height: packed.height,
-                    items: packed.result,
-                };
-                return acc;
-            },
-            {}
-        );
-
-        return (
-            <>
-                {Object.entries(materials).map(([thickness, { width, height, items }]) => {
-                    return (
-                        <Material key={thickness}>
-                            <MatThickness>{thickness}</MatThickness>
-                            <Sheet width={width} height={height} margin={margin}>
-                                {items.map((obj, j) => {
-                                    const rot = obj.rotated ? `rotate(90, 0, 0)` : "";
-                                    const pos = `translate(${margin + obj.x},${margin + obj.y})`;
-                                    return (
-                                        <g key={j}>
-                                            <Item d={`m ${spacing / 2},${spacing / 2} ${obj.payload.path} m ${-spacing / 2},${-spacing / 2}`} transform={`${pos} ${rot}`}>
-                                                <title>{obj.payload.name}</title>
-                                            </Item>
-                                        </g>
-                                    );
-                                })}
-                            </Sheet>
-                        </Material>
-                    );
-                })}
-            </>
-        );
-    }, [value, globals]);
-
-    return <>{SVGs}</>;
-};
-
-const Item = styled.path`
-    vector-effect: non-scaling-stroke;
-    stroke: black;
-    fill: white;
-    &:hover {
-        fill: #def;
-    }
-`;
-
-const DPMM = 72.0 / 25.4;
-
-const Material = styled.div`
-    display: grid;
-    justify-items: center;
-`;
-const MatThickness = styled.div`
-    font-size: 1.5em;
-    border-bottom: 1px solid #fff3;
-`;
-const Svg = styled.svg`
-    background: white;
-`;
-
-const Sheet = styled(({ width, height, margin, children, className }: { width: number; height: number; margin: number; className?: string; children?: ReactNode }) => {
-    const ref = useRef<SVGSVGElement>(null);
+const MaterialControls = ({ selected }: { selected: number }) => {
+    const [value, setValue] = useMaterialState(selected);
 
     return (
-        <div className={className}>
-            <Svg
-                ref={ref}
-                viewBox={`0 0 ${width + margin * 2} ${height + margin * 2}`}
-                width={(width + margin * 2) * DPMM}
-                height={(height + margin * 2) * DPMM}
-                xmlns="http://www.w3.org/2000/svg"
-                xmlnsXlink="http://www.w3.org/1999/xlink"
-            >
-                {children}
-            </Svg>
-            <div className={"menu"}>
-                <SaveButton target={ref} />
-                <CopyButton target={ref} />
-            </div>
-        </div>
+        <>
+            <ControlPanel>
+                <Input label={"Width"}>
+                    <PhysicalLengthInput value={value.width} onValidValue={setValue("width")} min={0} />
+                </Input>
+                <Input label={"Height"}>
+                    <PhysicalLengthInput value={value.height} onValidValue={setValue("height")} min={0} />
+                </Input>
+                <Input label={"Thickness"}>
+                    <PhysicalLengthInput value={value.thickness} onValidValue={setValue("thickness")} min={0} />
+                </Input>
+                <Input label={"Margin"}>
+                    <CheckBox checked={value.hasLayoutMargin} onToggle={setValue("hasLayoutMargin")} tooltip={"Override global Margin?"} />
+                    <PhysicalLengthInput value={value.layoutMargin} onValidValue={setValue("layoutMargin")} min={0} disabled={!value.hasLayoutMargin} />
+                </Input>
+                <Input label={"Spacing"}>
+                    <CheckBox checked={value.hasLayoutSpacing} onToggle={setValue("hasLayoutSpacing")} tooltip={"Override global Spacing?"} />
+                    <PhysicalLengthInput value={value.layoutSpacing} onValidValue={setValue("layoutSpacing")} min={0} disabled={!value.hasLayoutSpacing} />
+                </Input>
+            </ControlPanel>
+        </>
     );
-})`
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 0.25em;
+};
 
-    & > .menu {
-        display: grid;
-        font-size: 2em;
-        align-content: start;
-        background: #0003;
+const MissingMaterials = () => {
+    const [itemList] = useItemList();
+    const [materialList] = useMaterialList();
+    const [globals] = useGlobalSettings();
+
+    const missing = useMemo(() => {
+        const materialThicknesses = new Set<string>();
+        const missingThicknesses = new Set<string>();
+
+        materialList.forEach((mat) => {
+            materialThicknesses.add(`${mat.thickness.value}${mat.thickness.unit}`);
+        });
+
+        itemList.forEach(({ type, ...props }) => {
+            const parts = ITEM_DEFINITIONS[type].draw(props as any, globals);
+            parts.forEach((part) => {
+                part.shapes.forEach(({ thickness }) => {
+                    const theThickness = `${thickness.value}${thickness.unit}`;
+                    if (!materialThicknesses.has(theThickness)) {
+                        missingThicknesses.add(theThickness);
+                    }
+                });
+            });
+        });
+
+        return Array.from(missingThicknesses);
+    }, [itemList, materialList]);
+
+    if (missing.length === 0) {
+        return <></>;
+    }
+
+    return (
+        <WarningBox>
+            Missing Materials of Thickness:
+            <MissingList>
+                {missing.map((each) => {
+                    return <li key={each}>{each}</li>;
+                })}
+            </MissingList>
+        </WarningBox>
+    );
+};
+
+const MissingList = styled.ul`
+    padding-left: 0.25em;
+    & > li {
+        &:before {
+            display: inline-block;
+            margin-right: 0.5em;
+            content: "»";
+        }
     }
 `;
-const SaveButton = ({ target }: { target: RefObject<SVGSVGElement> }) => {
-    const doSave = useCallback(() => {
-        if (target.current) {
-            const theBlob = new Blob([target.current.outerHTML], { type: "image/svg+xml" });
-            saveAs(theBlob, "sheet.svg");
-        }
-    }, [target]);
-
-    return <IconButton icon={iconActionSave} onAction={doSave} />;
-};
-
-const CopyButton = ({ target }: { target: RefObject<SVGSVGElement> }) => {
-    const doCopy = useCallback(() => {
-        if (target.current) {
-            navigator.clipboard.writeText(target.current.outerHTML);
-        }
-    }, [target]);
-
-    return <IconButton icon={iconActionCopy} onAction={doCopy} />;
-};

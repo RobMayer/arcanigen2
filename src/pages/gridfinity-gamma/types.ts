@@ -1,7 +1,9 @@
 import { FC, ReactNode } from "react";
 import { PhysicalLength } from "../../utility/types/units";
 import { BoxDefinition } from "./items/box";
-import { GridDefinition } from "./items/grid";
+import { BaseplateDefinition } from "./items/baseplate";
+import { FootJigDefinition } from "./items/footjig";
+import { SortMethod, SplitMethod, PickMethod, SortDirection } from "./helpers/packhelper";
 
 export type GlobalSettings = {
     layoutMargin: PhysicalLength;
@@ -29,44 +31,24 @@ export type GlobalSettings = {
 
     hasGridInset: boolean;
     gridInset: PhysicalLength;
+
+    packSortMethod: SortMethod;
+    packSortDirection: SortDirection;
+    packSplitMethod: SplitMethod;
+    packPickMethod: PickMethod;
+};
+
+export type Material = {
+    width: PhysicalLength;
+    height: PhysicalLength;
+    thickness: PhysicalLength;
+    hasLayoutMargin: boolean;
+    layoutMargin: PhysicalLength;
+    hasLayoutSpacing: boolean;
+    layoutSpacing: PhysicalLength;
 };
 
 export type Enum<T extends Record<any, any>> = T[keyof T];
-
-export const SortStrategies = {
-    AREA: "AREA",
-    SHORT: "SHORT",
-    LONG: "LONG",
-    PERIMETER: "PERIMETER",
-    DIFFERENCE: "DIFFERENCE",
-    RATIO: "RATIO",
-} as const;
-
-export type SortStrategy = Enum<typeof SortStrategies>;
-
-export const SortDirections = {
-    ASC: "ASC",
-    DESC: "DESC",
-} as const;
-
-export type SortDirection = Enum<typeof SortDirections>;
-
-export const SplitStrategies = {
-    LONG_LEFTOVER: "LONG_LEFTOVER",
-    SHORT_LEFTOVER: "SHORT_LEFTOVER",
-    LONG: "LONG",
-    SHORT: "SHORT",
-} as const;
-
-export type SplitStrategy = Enum<typeof SplitStrategies>;
-
-export const SelectionStrategies = {
-    SHORT: "SHORT",
-    LONG: "LONG",
-    AREA: "AREA",
-} as const;
-
-export type SelectionStrategy = Enum<typeof SelectionStrategies>;
 
 export const FootStyles = {
     BLOCK: "BLOCK",
@@ -85,7 +67,8 @@ export const FOOT_STYLE_OPTIONS: { [key in FootStyle]: ReactNode } = {
 // ITEM ENUMERATION
 export const ITEM_DEFINITIONS = {
     BOX: BoxDefinition,
-    GRID: GridDefinition,
+    BASEPLATE: BaseplateDefinition,
+    FOOTJIG: FootJigDefinition,
 } as const;
 
 export type ItemType = keyof typeof ITEM_DEFINITIONS;
@@ -100,17 +83,18 @@ export type ItemDefinition<P> = {
     getInitial: () => P;
     title: ReactNode;
     description: ReactNode;
-    draw: (item: P, globals: GlobalSettings) => Shape[];
+    draw: (item: P, globals: GlobalSettings) => LayoutPart[];
 };
 
 export type ItemControlProps<P> = {
     globals: GlobalSettings;
-    value: P;
-    setValue: CurriedSetter<P>;
+    value: P & { quantity: number };
+    setValue: CurriedSetter<P & { quantity: number }>;
 };
 
 export type ItemInstance<T extends ItemType> = {
     type: T;
+    quantity: number;
 } & ItemParams<(typeof ITEM_DEFINITIONS)[T]>;
 
 export type Setter<T> = T | ((v: T) => T);
@@ -126,6 +110,12 @@ export type Shape = {
     path: string;
     name: string;
     thickness: PhysicalLength;
+};
+
+export type LayoutPart = {
+    shapes: Shape[];
+    name: string;
+    copies: number;
 };
 
 export type Comparator<T> = (a: T, b: T) => number;

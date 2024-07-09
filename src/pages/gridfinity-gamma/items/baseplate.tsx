@@ -1,8 +1,8 @@
 import CheckBox from "../../../components/buttons/Checkbox";
 import { NumericInput } from "../../../components/inputs/NumericInput";
 import { FootOverrideControls, FootOverrides, initialFootOverrides, initialSystemOverrides, SystemOverrideControls, SystemOverrides } from "../helpers/overridehelper";
-import { FootStyles, GlobalSettings, ItemControlProps, ItemDefinition, Shape } from "../types";
-import { ControlPanel, Full, Input, Section, WarningBox } from "../widgets";
+import { FootStyles, GlobalSettings, ItemControlProps, ItemDefinition, LayoutPart } from "../types";
+import { ControlPanel, Full, Input, Sep, WarningBox } from "../widgets";
 import { convertLength } from "../../../utility/mathhelper";
 import { PhysicalLength } from "../../../utility/types/units";
 import { ControlledFoldout } from "../../../components/containers/Foldout";
@@ -10,7 +10,7 @@ import useUIState from "../../../utility/hooks/useUIState";
 import { PhysicalLengthInput } from "../../../components/inputs/PhysicalLengthInput";
 import { Draw } from "../helpers/drawhelper";
 
-export type GridParams = {
+export type BaseplateParams = {
     cellX: number;
     cellY: number;
     packFeet: boolean;
@@ -20,7 +20,7 @@ export type GridParams = {
 } & FootOverrides &
     SystemOverrides;
 
-const Controls = ({ value, globals, setValue }: ItemControlProps<GridParams>) => {
+const Controls = ({ value, globals, setValue }: ItemControlProps<BaseplateParams>) => {
     const footDepth = convertLength(value.hasFootDepth ? value.footDepth : globals.hasFootDepth ? globals.footDepth : globals.thickness, "mm").value;
     const footStyle = value.hasFootStyle ? value.footStyle : globals.footStyle;
     const footRunnerWidth = convertLength(value.hasFootRunnerWidth ? value.footRunnerWidth : globals.hasFootRunnerWidth ? globals.footRunnerWidth : globals.thickness, "mm").value;
@@ -32,8 +32,11 @@ const Controls = ({ value, globals, setValue }: ItemControlProps<GridParams>) =>
 
     return (
         <>
-            <Section>Grid</Section>
             <ControlPanel>
+                <Input label={"Quantity"}>
+                    <NumericInput value={value.quantity} onValidValue={setValue("quantity")} min={1} step={1} />
+                </Input>
+                <Sep />
                 <Input label={"Cell X"}>
                     <NumericInput value={value.cellX} onValidValue={setValue("cellX")} min={1} step={1} />
                 </Input>
@@ -66,7 +69,7 @@ const Controls = ({ value, globals, setValue }: ItemControlProps<GridParams>) =>
 };
 
 //TODO: UAGH!
-const draw = (item: GridParams, globals: GlobalSettings): Shape[] => {
+const draw = (item: BaseplateParams, globals: GlobalSettings): LayoutPart[] => {
     const gridSize = convertLength(item.hasGridSize ? item.gridSize : globals.gridSize, "mm").value;
     const gridClearance = convertLength(item.hasGridClearance ? item.gridClearance : globals.gridClearance, "mm").value;
     const footDepth = convertLength(item.hasFootDepth ? item.footDepth : globals.hasFootDepth ? globals.footDepth : globals.thickness, "mm").value;
@@ -104,32 +107,38 @@ const draw = (item: GridParams, globals: GlobalSettings): Shape[] => {
 
     return [
         {
-            width,
-            height,
-            path: Draw.offsetOrigin(width / 2, height / 2, [
-                // Primary Square
-                Draw.rect(gridSize * item.cellX - gridClearance * 2, gridSize * item.cellY - gridClearance * 2, "MIDDLE CENTER"),
-                Draw.array(
-                    { count: item.cellX, spacing: gridSize },
-                    { count: item.cellY, spacing: gridSize },
-                    Draw.cutRect(gridSize - gridInset * 2, gridSize - gridInset * 2, "MIDDLE CENTER"),
-                    "MIDDLE CENTER"
-                ),
-                cannotPackFeet ? "" : Draw.array({ count: item.cellX, spacing: gridSize }, { count: item.cellY, spacing: gridSize }, feetShape, "MIDDLE CENTER"),
-            ]),
-            name: "Grid",
-            thickness: item.hasGridThickness ? item.gridThickness : globals.thickness,
+            name: "Baseplate",
+            copies: 1,
+            shapes: [
+                {
+                    width,
+                    height,
+                    path: Draw.offsetOrigin(width / 2, height / 2, [
+                        // Primary Square
+                        Draw.rect(gridSize * item.cellX - gridClearance * 2, gridSize * item.cellY - gridClearance * 2, "MIDDLE CENTER"),
+                        Draw.array(
+                            { count: item.cellX, spacing: gridSize },
+                            { count: item.cellY, spacing: gridSize },
+                            Draw.cutRect(gridSize - gridInset * 2, gridSize - gridInset * 2, "MIDDLE CENTER"),
+                            "MIDDLE CENTER"
+                        ),
+                        cannotPackFeet ? "" : Draw.array({ count: item.cellX, spacing: gridSize }, { count: item.cellY, spacing: gridSize }, feetShape, "MIDDLE CENTER"),
+                    ]),
+                    name: "Baseplate",
+                    thickness: item.hasGridThickness ? item.gridThickness : globals.thickness,
+                },
+            ],
         },
     ];
 };
 
-export const GridDefinition: ItemDefinition<GridParams> = {
-    title: "Grid",
+export const BaseplateDefinition: ItemDefinition<BaseplateParams> = {
+    title: "Baseplate",
     description: "",
     draw,
     Controls,
     describe: (p) => {
-        return `Grid (${p.cellX}x${p.cellY})`;
+        return `Baseplate (${p.cellX}x${p.cellY})`;
     },
     getInitial: () => {
         return {

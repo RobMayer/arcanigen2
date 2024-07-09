@@ -9,6 +9,43 @@ export const cartesian = (a: any[], b?: any[], ...c: any): any[] => (b ? cartesi
 
 /* TYPES */
 
+export type Enum<T extends Record<any, any>> = T[keyof T];
+
+export const SortStrategies = {
+    AREA: "AREA",
+    SHORT: "SHORT",
+    LONG: "LONG",
+    PERIMETER: "PERIMETER",
+    DIFFERENCE: "DIFFERENCE",
+    RATIO: "RATIO",
+} as const;
+
+export type SortStrategy = Enum<typeof SortStrategies>;
+
+export const SortDirections = {
+    ASC: "ASC",
+    DESC: "DESC",
+} as const;
+
+export type SortDirection = Enum<typeof SortDirections>;
+
+export const SplitStrategies = {
+    LONG_LEFTOVER: "LONG_LEFTOVER",
+    SHORT_LEFTOVER: "SHORT_LEFTOVER",
+    LONG: "LONG",
+    SHORT: "SHORT",
+} as const;
+
+export type SplitStrategy = Enum<typeof SplitStrategies>;
+
+export const SelectionStrategies = {
+    SHORT: "SHORT",
+    LONG: "LONG",
+    AREA: "AREA",
+} as const;
+
+export type SelectionStrategy = Enum<typeof SelectionStrategies>;
+
 export type Rectangle = {
     width: number;
     height: number;

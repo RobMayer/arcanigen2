@@ -7,7 +7,7 @@ import Modal, { useModal } from "../../../components/popups/Modal";
 import { ArraySelect } from "../../../components/selectors/ArraySelect";
 import { Section } from "../widgets";
 
-export const ItemList = ({ className, selected, setSelected }: { selected: number | null; setSelected: Dispatch<SetStateAction<null | number>>; className?: string }) => {
+export const ItemList = ({ selected, setSelected }: { selected: number | null; setSelected: Dispatch<SetStateAction<null | number>> }) => {
     const [list, listMethods] = useItemList();
     const controls = useModal();
 
@@ -25,7 +25,7 @@ export const ItemList = ({ className, selected, setSelected }: { selected: numbe
                         <ActionButton
                             key={type}
                             onAction={() => {
-                                listMethods.add({ type, ...ITEM_DEFINITIONS[type].getInitial() });
+                                listMethods.add({ type, quantity: 1, ...ITEM_DEFINITIONS[type].getInitial() });
                                 setSelected(list.length);
                                 controls.close();
                             }}

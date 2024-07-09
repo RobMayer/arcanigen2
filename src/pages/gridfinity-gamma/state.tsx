@@ -1,10 +1,11 @@
 import { proxy, useSnapshot } from "valtio";
-import { FootStyles, GlobalSettings, ItemInstance, ItemType } from "./types";
+import { FootStyles, GlobalSettings, ItemInstance, ItemType, Material } from "./types";
 import { useCallback, useMemo } from "react";
 
 type Store = {
     global: GlobalSettings;
     items: ItemInstance<ItemType>[];
+    materials: any[];
 };
 
 const state = proxy<{ store: Store }>({
@@ -33,8 +34,14 @@ const state = proxy<{ store: Store }>({
             footBracketWidth: { value: 6, unit: "mm" },
             hasGridInset: false,
             gridInset: { value: 0.125, unit: "in" },
+
+            packSortMethod: "AREA",
+            packSortDirection: "ASC",
+            packSplitMethod: "SHORTEST_REMAIN",
+            packPickMethod: "AREA",
         },
         items: [],
+        materials: [],
     },
 });
 
@@ -59,8 +66,14 @@ const setGridValue = <K extends keyof Store["global"]>(key: K, value?: Setter<St
     state.store.global[key] = v2;
 };
 
-export const useItemList = () => {
-    const list = useSnapshot(state).store.items;
+type ItemListMethods<T> = {
+    add: (item: T) => void;
+    delete: (idx: number | null) => void;
+    clear: () => void;
+};
+
+export const useItemList = (): [ItemInstance<ItemType>[], ItemListMethods<ItemInstance<ItemType>>] => {
+    const list = useSnapshot(state).store.items as ItemInstance<ItemType>[];
 
     const methods = useMemo(() => {
         return {
@@ -78,7 +91,29 @@ export const useItemList = () => {
         };
     }, []);
 
-    return [list, methods] as [typeof list, typeof methods];
+    return [list, methods];
+};
+
+export const useMaterialList = (): [Material[], ItemListMethods<Material>] => {
+    const list = useSnapshot(state).store.materials as Material[];
+
+    const methods = useMemo(() => {
+        return {
+            add: (item: Material) => {
+                state.store.materials.push(item);
+            },
+            delete: (idx: number | null) => {
+                if (idx !== null) {
+                    state.store.materials.splice(idx, 1);
+                }
+            },
+            clear: () => {
+                state.store.materials.splice(0, state.store.materials.length);
+            },
+        };
+    }, []);
+
+    return [list, methods];
 };
 
 export const useItemState = (idx: number) => {
@@ -99,4 +134,24 @@ export const useItemState = (idx: number) => {
     );
 
     return [value, setValue] as [ItemInstance<typeof value.type>, typeof setValue];
+};
+
+export const useMaterialState = (idx: number) => {
+    const value = useSnapshot(state).store.materials[idx] as Material;
+
+    const setValue = useCallback(
+        <K extends keyof Material>(key: K, v?: Setter<Material[K]>) => {
+            if (v === undefined) {
+                return (v2: Setter<Material[K]>) => {
+                    const v3 = typeof v2 === "function" ? v2(state.store.materials[idx][key]) : v2;
+                    state.store.materials[idx][key] = v3;
+                };
+            }
+            const v2 = typeof v === "function" ? v(state.store.materials[idx][key]) : v;
+            state.store.materials[idx][key] = v2;
+        },
+        [idx]
+    );
+
+    return [value, setValue] as [Material, typeof setValue];
 };
