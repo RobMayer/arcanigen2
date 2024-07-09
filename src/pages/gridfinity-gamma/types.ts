@@ -3,7 +3,6 @@ import { PhysicalLength } from "../../utility/types/units";
 import { BoxDefinition } from "./items/box";
 import { BaseplateDefinition } from "./items/baseplate";
 import { FootJigDefinition } from "./items/footjig";
-import { SortMethod, SplitMethod, PickMethod, SortDirection } from "./helpers/packhelper";
 
 export type GlobalSettings = {
     layoutMargin: PhysicalLength;
@@ -31,11 +30,6 @@ export type GlobalSettings = {
 
     hasGridInset: boolean;
     gridInset: PhysicalLength;
-
-    packSortMethod: SortMethod;
-    packSortDirection: SortDirection;
-    packSplitMethod: SplitMethod;
-    packPickMethod: PickMethod;
 };
 
 export type Material = {

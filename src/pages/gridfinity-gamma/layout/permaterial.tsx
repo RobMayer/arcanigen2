@@ -46,35 +46,18 @@ export const PerMaterialLayout = () => {
         }, {});
 
         const res = Object.entries(available).reduce<{
-            [key: string]: { margin: PhysicalLength; spacing: PhysicalLength; width: PhysicalLength; height: PhysicalLength; sheets: PackedOf<{ path: string; name: string }>[][] };
+            [key: string]: { margin: PhysicalLength; width: PhysicalLength; height: PhysicalLength; sheets: PackedOf<{ path: string; name: string }>[][] };
         }>((acc, [thicknessStr, material]) => {
             const calcWidth = convertLength(material.width, "mm").value;
             const calcHeight = convertLength(material.height, "mm").value;
             const calcSpacing = convertLength(material.hasLayoutSpacing ? material.layoutSpacing : globals.layoutSpacing, "mm").value;
 
-            const [fit, unfit] = packFixed(
-                calcWidth,
-                calcHeight,
-                toPack[thicknessStr].map((each) => {
-                    return {
-                        payload: each.payload,
-                        width: each.width + calcSpacing,
-                        height: each.height + calcSpacing,
-                    };
-                }),
-                {
-                    pickMethod: globals.packPickMethod,
-                    sortDirection: globals.packSortDirection,
-                    sortMethod: globals.packSortMethod,
-                    splitMethod: globals.packSplitMethod,
-                }
-            );
+            const [fit, unfit] = packFixed(calcWidth, calcHeight, toPack?.[thicknessStr] ?? [], calcSpacing);
 
             acc[thicknessStr] = {
                 width: material.width,
                 height: material.height,
                 margin: material.hasLayoutMargin ? material.layoutMargin : globals.layoutMargin,
-                spacing: material.hasLayoutSpacing ? material.layoutSpacing : globals.layoutSpacing,
                 sheets: fit,
             };
 
@@ -89,7 +72,7 @@ export const PerMaterialLayout = () => {
     return (
         <>
             {unallocated.length > 0 ? <WarningBox>Some Items could not fit on the materials provided.</WarningBox> : null}
-            {Object.entries(packed).map(([thicknessStr, { width, height, margin, spacing, sheets }]) => {
+            {Object.entries(packed).map(([thicknessStr, { width, height, margin, sheets }]) => {
                 return (
                     <MaterialWrapper key={thicknessStr}>
                         <MaterialName>
@@ -101,16 +84,15 @@ export const PerMaterialLayout = () => {
                             const calcWidth = convertLength(width, "mm").value;
                             const calcHeight = convertLength(height, "mm").value;
                             const calcMargin = convertLength(margin, "mm").value;
-                            const calcSpacing = convertLength(spacing, "mm").value;
 
                             return (
                                 <Sheet width={calcWidth} height={calcHeight} margin={calcMargin}>
                                     {items.map((obj, j) => {
                                         const rot = obj.rotated ? `rotate(90, 0, 0)` : "";
-                                        const pos = `translate(${calcMargin + obj.x},${calcMargin + obj.y})`;
+                                        const pos = `translate(${calcMargin + obj.x + (obj.rotated ? obj.width : 0)},${calcMargin + obj.y})`;
                                         return (
                                             <g key={j}>
-                                                <Item d={`m ${calcSpacing / 2},${calcSpacing / 2} ${obj.payload.path} m ${-calcSpacing / 2},${-calcSpacing / 2}`} transform={`${pos} ${rot}`}>
+                                                <Item d={obj.payload.path} transform={`${pos} ${rot}`}>
                                                     <title>{obj.payload.name}</title>
                                                 </Item>
                                             </g>

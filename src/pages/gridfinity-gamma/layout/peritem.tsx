@@ -52,11 +52,11 @@ const PartLayout = ({ name, shapes, totalCount }: { name: string; shapes: Shape[
 
         return Object.keys(byThickness).reduce<{ [key: string]: { width: number; height: number; items: PackedOf<{ path: string; name: string; thickness: PhysicalLength }>[] } }>((acc, k) => {
             const shapes = byThickness[k].map(({ width, height, ...payload }) => ({
-                width: width + spacing,
-                height: height + spacing,
+                width: width,
+                height: height,
                 payload,
             }));
-            const packed = packDynamic(shapes);
+            const packed = packDynamic(shapes, spacing);
 
             acc[k] = {
                 width: packed.width,
@@ -83,7 +83,7 @@ const PartLayout = ({ name, shapes, totalCount }: { name: string; shapes: Shape[
                                     const pos = `translate(${margin + obj.x},${margin + obj.y})`;
                                     return (
                                         <g key={j}>
-                                            <Item d={`m ${spacing / 2},${spacing / 2} ${obj.payload.path} m ${-spacing / 2},${-spacing / 2}`} transform={`${pos} ${rot}`}>
+                                            <Item d={obj.payload.path} transform={`${pos} ${rot}`}>
                                                 <title>{obj.payload.name}</title>
                                             </Item>
                                         </g>

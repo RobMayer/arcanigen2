@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import Page from "../../components/content/Page";
 import { HTMLAttributes, useMemo, useState } from "react";
-import { GlobalFeetSettings, GlobalLayoutSettings, GlobalPackSettings, GlobalSystemSettings } from "./options/globalitemsettings";
+import { GlobalFeetSettings, GlobalLayoutSettings, GlobalSystemSettings } from "./options/globalitemsettings";
 import { ItemList } from "./options/itemlist";
 import { useGlobalSettings, useItemList, useItemState, useMaterialList, useMaterialState } from "./state";
 import { ITEM_DEFINITIONS } from "./types";
@@ -74,7 +74,6 @@ const MaterialMode = () => {
         <>
             <ListPane>
                 <GlobalLayoutSettings />
-                <GlobalPackSettings />
                 <MissingMaterials />
                 <MaterialList selected={selected} setSelected={setSelected} />
             </ListPane>
@@ -156,13 +155,13 @@ const MaterialControls = ({ selected }: { selected: number }) => {
         <>
             <ControlPanel>
                 <Input label={"Width"}>
-                    <PhysicalLengthInput value={value.width} onValidValue={setValue("width")} min={0} />
+                    <PhysicalLengthInput value={value.width} onValidValue={setValue("width")} min={0} minExclusive />
                 </Input>
                 <Input label={"Height"}>
-                    <PhysicalLengthInput value={value.height} onValidValue={setValue("height")} min={0} />
+                    <PhysicalLengthInput value={value.height} onValidValue={setValue("height")} min={0} minExclusive />
                 </Input>
                 <Input label={"Thickness"}>
-                    <PhysicalLengthInput value={value.thickness} onValidValue={setValue("thickness")} min={0} />
+                    <PhysicalLengthInput value={value.thickness} onValidValue={setValue("thickness")} min={0} minExclusive />
                 </Input>
                 <Input label={"Margin"}>
                     <CheckBox checked={value.hasLayoutMargin} onToggle={setValue("hasLayoutMargin")} tooltip={"Override global Margin?"} />

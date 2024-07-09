@@ -4,10 +4,10 @@ import { ControlledFoldout } from "../../../components/containers/Foldout";
 import { PhysicalLengthInput } from "../../../components/inputs/PhysicalLengthInput";
 import ToggleList from "../../../components/selectors/ToggleList";
 import useUIState from "../../../utility/hooks/useUIState";
-import { PickMethod, SortDirection, SortMethod, SplitMethod } from "../helpers/packhelper";
 import { useGlobalSettings } from "../state";
 import { FOOT_STYLE_OPTIONS } from "../types";
 import { ControlPanel, Input, Sep } from "../widgets";
+import Checkbox from "../../../components/buttons/Checkbox";
 
 export const GlobalSystemSettings = () => {
     const [value, setValue] = useGlobalSettings();
@@ -92,56 +92,6 @@ export const GlobalLayoutSettings = () => {
                 </Input>
                 <Input label={"Spacing"}>
                     <PhysicalLengthInput value={value.layoutSpacing} onValidValue={setValue("layoutSpacing")} />
-                </Input>
-            </ControlPanel>
-        </ControlledFoldout>
-    );
-};
-
-const PICK_METHOD_OPTIONS: { [key in PickMethod]: ReactNode } = {
-    AREA: "More Area",
-    LONG: "Longer Side",
-    SHORT: "Shorter Side",
-} as const;
-
-const SORT_METHOD_OPTIONS: { [key in SortMethod]: ReactNode } = {
-    AREA: "By Area",
-    LONGEST: "By Longest Edge",
-    SHORTEST: "By Shortest Edge",
-    PERIMETER: "By Perimeter",
-    SQUARENESS: "By Squareness",
-} as const;
-
-const SORT_ORDER_OPTIONS: { [key in SortDirection]: ReactNode } = {
-    ASC: "Ascending",
-    DESC: "Descending",
-} as const;
-
-const SPLIT_METHOD_OPTIONS: { [key in SplitMethod]: ReactNode } = {
-    LONGEST: "Longest Edge",
-    SHORTEST: "Shortest Edge",
-    LONGEST_REMAIN: "Longest Edge Remaining",
-    SHORTEST_REMAIN: "Shortest Edge Remaining",
-} as const;
-
-export const GlobalPackSettings = () => {
-    const [value, setValue] = useGlobalSettings();
-    const [isOpen, setIsOpen] = useUIState("grinfinitygamma.items.global.pack", false);
-
-    return (
-        <ControlledFoldout isOpen={isOpen} onToggle={setIsOpen} label={"Pack Settings"}>
-            <ControlPanel>
-                <Input label={"Shape Sort Method"}>
-                    <ToggleList options={SORT_METHOD_OPTIONS} value={value.packSortMethod} onSelect={setValue("packSortMethod")} direction="vertical" />
-                </Input>
-                <Input label={"Shape Sort Direction"}>
-                    <ToggleList options={SORT_ORDER_OPTIONS} value={value.packSortDirection} onSelect={setValue("packSortDirection")} direction="vertical" />
-                </Input>
-                <Input label={"Empty Space Split"}>
-                    <ToggleList options={SPLIT_METHOD_OPTIONS} value={value.packSplitMethod} onSelect={setValue("packSplitMethod")} direction="vertical" />
-                </Input>
-                <Input label={"Empty Space Pick"}>
-                    <ToggleList options={PICK_METHOD_OPTIONS} value={value.packPickMethod} onSelect={setValue("packPickMethod")} direction="vertical" />
                 </Input>
             </ControlPanel>
         </ControlledFoldout>

@@ -34,11 +34,6 @@ const state = proxy<{ store: Store }>({
             footBracketWidth: { value: 6, unit: "mm" },
             hasGridInset: false,
             gridInset: { value: 0.125, unit: "in" },
-
-            packSortMethod: "AREA",
-            packSortDirection: "ASC",
-            packSplitMethod: "SHORTEST_REMAIN",
-            packPickMethod: "AREA",
         },
         items: [],
         materials: [],

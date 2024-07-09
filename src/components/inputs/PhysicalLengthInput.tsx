@@ -27,6 +27,8 @@ export type PhysicalLengthInputProps = {
     flavour?: Flavour;
     precision?: number | "none";
     tooltip?: string;
+    minExclusive?: boolean;
+    maxExclusive?: boolean;
 };
 
 type StrLength = {
@@ -57,6 +59,8 @@ export const PhysicalLengthInput = styled(
         flavour = "accent",
         precision = "none",
         tooltip,
+        minExclusive = false,
+        maxExclusive = false,
     }: PhysicalLengthInputProps) => {
         const wrapperRef = useRef<HTMLDivElement>(null);
         const valInputRef = useRef<HTMLInputElement>(null);
@@ -102,10 +106,10 @@ export const PhysicalLengthInput = styled(
                     reasons.add({ code: "BAD_INPUT", message: "must be numeric" });
                 } else {
                     validate?.({ value: Number(n), unit })?.forEach((e) => reasons.add(e));
-                    if (max !== undefined && n > max) {
+                    if (max !== undefined && (maxExclusive ? n >= max : n > max)) {
                         reasons.add({ code: "RANGE_OVERFLOW", message: `cannot be above ${max}` });
                     }
-                    if (min !== undefined && n < min) {
+                    if (min !== undefined && (minExclusive ? n <= min : n < min)) {
                         reasons.add({ code: "RANGE_UNDERFLOW", message: `cannot be below ${min}` });
                     }
                     if (step !== 0 && n % step !== 0) {
@@ -119,7 +123,7 @@ export const PhysicalLengthInput = styled(
                 setIsInvalid(ary.length !== 0);
                 return ary;
             },
-            [max, min, onValidateRef, step, validate, validatorRef]
+            [max, min, onValidateRef, step, validate, validatorRef, minExclusive, maxExclusive]
         );
         const doValidateRef = useStable<typeof doValidate>(doValidate);
         useEffect(() => {
