@@ -56,12 +56,25 @@ const PartLayout = ({ name, shapes, totalCount }: { name: string; shapes: Shape[
                 height: height,
                 payload,
             }));
-            const packed = packDynamic(shapes, spacing);
+            const [packed] = packDynamic(shapes, spacing);
+
+            if (packed.length === 0) {
+                return acc;
+            }
+
+            const { width, height } = packed[0].reduce<{ width: number; height: number }>(
+                (acc, each) => {
+                    acc.width = Math.max(acc.width, each.x + each.width);
+                    acc.height = Math.max(acc.height, each.y + each.height);
+                    return acc;
+                },
+                { width: -Infinity, height: -Infinity }
+            );
 
             acc[k] = {
-                width: packed.width,
-                height: packed.height,
-                items: packed.result,
+                width: width,
+                height: height,
+                items: packed[0],
             };
             return acc;
         }, {});
@@ -80,7 +93,7 @@ const PartLayout = ({ name, shapes, totalCount }: { name: string; shapes: Shape[
                             <Sheet width={width} height={height} margin={margin}>
                                 {items.map((obj, j) => {
                                     const rot = obj.rotated ? `rotate(90, 0, 0)` : "";
-                                    const pos = `translate(${margin + obj.x},${margin + obj.y})`;
+                                    const pos = `translate(${margin + obj.x + (obj.rotated ? obj.width : 0)},${margin + obj.y})`;
                                     return (
                                         <g key={j}>
                                             <Item d={obj.payload.path} transform={`${pos} ${rot}`}>

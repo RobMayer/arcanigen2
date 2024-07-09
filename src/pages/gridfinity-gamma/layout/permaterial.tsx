@@ -1,7 +1,7 @@
 import { ReactNode, RefObject, useCallback, useMemo, useRef } from "react";
 import { useGlobalSettings, useItemList, useMaterialList } from "../state";
 import { ITEM_DEFINITIONS, ItemInstance, ItemType, Material, Shape } from "../types";
-import { packDynamic, PackedOf, packFixed, RectOf } from "../helpers/packhelper";
+import { PackedOf, packFixed, RectOf } from "../helpers/packhelper";
 import { convertLength } from "../../../utility/mathhelper";
 import saveAs from "file-saver";
 import styled from "styled-components";
