@@ -59,7 +59,7 @@ export const MaterialList = ({ selected, setSelected }: { selected: number | nul
 };
 
 const List = styled(ArraySelect)`
-    flex: 1 0 50%;
+    flex: 1 0 30%;
 `;
 
 const Options = styled.div`

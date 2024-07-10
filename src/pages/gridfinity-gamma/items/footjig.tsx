@@ -5,7 +5,7 @@ import { PhysicalLength } from "../../../utility/types/units";
 import { Draw } from "../helpers/drawhelper";
 import { FootOverrideControls, FootOverrides, initialFootOverrides, initialSystemOverrides, SystemOverrideControls, SystemOverrides } from "../helpers/overridehelper";
 import { GlobalSettings, ItemControlProps, ItemDefinition, LayoutPart } from "../types";
-import { ControlPanel, Input, Sep } from "../widgets";
+import { ControlPanel, Input } from "../widgets";
 
 type FootJigParams = {
     cellX: number;
@@ -19,10 +19,6 @@ const Controls = ({ value, globals, setValue }: ItemControlProps<FootJigParams>)
     return (
         <>
             <ControlPanel>
-                <Input label={"Quantity"}>
-                    <NumericInput value={value.quantity} onValidValue={setValue("quantity")} min={1} step={1} />
-                </Input>
-                <Sep />
                 <Input label={"Cell X"}>
                     <NumericInput value={value.cellX} onValidValue={setValue("cellX")} min={1} step={1} />
                 </Input>
@@ -126,10 +122,11 @@ const draw = (item: FootJigParams, globals: GlobalSettings): LayoutPart[] => {
 
 export const FootJigDefinition: ItemDefinition<FootJigParams> = {
     title: "Foot Jig",
-    description: "",
+    snippet: "For aligning feet for gluing",
+    image: "footjig.png",
     draw,
     Controls,
-    describe: () => "Foot Jig",
+    getSummary: (p) => `Foot Jig ${p.cellX}x${p.cellY}`,
     getInitial: () => ({
         cellX: 1,
         cellY: 1,

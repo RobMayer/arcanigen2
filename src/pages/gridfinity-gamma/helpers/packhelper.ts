@@ -258,6 +258,7 @@ const doDynamicPack = <P>(items: RectOf<P>[], splitStrategy: keyof typeof SPLIT_
                 selectedOption = selectRectangleOption(item);
             }
             if (!selectedOption) {
+                console.error("ERM");
                 //throw new Error(`item at index ${idx} with dimensions ${item.width}x${item.height} exceeds bin dimensions of ${binWidth}x${binHeight}`);
                 return null;
             }

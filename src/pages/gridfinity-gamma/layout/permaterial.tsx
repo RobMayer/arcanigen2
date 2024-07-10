@@ -1,7 +1,6 @@
 import { ReactNode, RefObject, useCallback, useMemo, useRef } from "react";
 import { useGlobalSettings, useItemList, useMaterialList } from "../state";
-import { ITEM_DEFINITIONS, ItemInstance, ItemType, Material, Shape } from "../types";
-import { PackedOf, packFixed, RectOf } from "../helpers/packhelper";
+import { ITEM_DEFINITIONS, Material } from "../types";
 import { convertLength } from "../../../utility/mathhelper";
 import saveAs from "file-saver";
 import styled from "styled-components";
@@ -10,6 +9,7 @@ import { iconActionCopy } from "../../../components/icons/action/copy";
 import { iconActionSave } from "../../../components/icons/action/save";
 import { PhysicalLength } from "../../../utility/types/units";
 import { WarningBox } from "../widgets";
+import { Pack } from "../helpers/packhelper2";
 
 export const PerMaterialLayout = () => {
     const [items] = useItemList();
@@ -17,7 +17,7 @@ export const PerMaterialLayout = () => {
     const [globals] = useGlobalSettings();
 
     const [packed, unallocated] = useMemo(() => {
-        const discarded: RectOf<{ path: string; name: string }>[] = [];
+        const discarded: Pack.RectOf<{ path: string; name: string }>[] = [];
 
         const available = materials.reduce<{ [key: string]: Material }>((acc, each) => {
             const key = `${each.thickness.value}${each.thickness.unit}`;
@@ -27,7 +27,7 @@ export const PerMaterialLayout = () => {
             return acc;
         }, {});
 
-        const toPack = items.reduce<{ [key: string]: RectOf<{ path: string; name: string }>[] }>((acc, { type, quantity, ...props }) => {
+        const toPack = items.reduce<{ [key: string]: Pack.RectOf<{ path: string; name: string }>[] }>((acc, { type, quantity, ...props }) => {
             const items = ITEM_DEFINITIONS[type].draw(props as any, globals);
 
             items.forEach(({ shapes, copies, name: itemName }) => {
@@ -46,13 +46,13 @@ export const PerMaterialLayout = () => {
         }, {});
 
         const res = Object.entries(available).reduce<{
-            [key: string]: { margin: PhysicalLength; width: PhysicalLength; height: PhysicalLength; sheets: PackedOf<{ path: string; name: string }>[][] };
+            [key: string]: { margin: PhysicalLength; width: PhysicalLength; height: PhysicalLength; sheets: Pack.SheetOf<{ path: string; name: string }>[] };
         }>((acc, [thicknessStr, material]) => {
             const calcWidth = convertLength(material.width, "mm").value;
             const calcHeight = convertLength(material.height, "mm").value;
             const calcSpacing = convertLength(material.hasLayoutSpacing ? material.layoutSpacing : globals.layoutSpacing, "mm").value;
 
-            const [fit, unfit] = packFixed(calcWidth, calcHeight, toPack?.[thicknessStr] ?? [], calcSpacing);
+            const [fit, unfit] = Pack.pack(calcWidth, calcHeight, toPack?.[thicknessStr] ?? [], calcSpacing);
 
             acc[thicknessStr] = {
                 width: material.width,
@@ -78,15 +78,13 @@ export const PerMaterialLayout = () => {
                         <MaterialName>
                             {width.value}
                             {width.unit} x {height.value}
-                            {height.unit} @ {thicknessStr}
+                            {height.unit} @ {thicknessStr} ({sheets.length}x)
                         </MaterialName>
-                        {sheets.map((items) => {
-                            const calcWidth = convertLength(width, "mm").value;
-                            const calcHeight = convertLength(height, "mm").value;
+                        {sheets.map(({ width, height, items }, i) => {
                             const calcMargin = convertLength(margin, "mm").value;
 
                             return (
-                                <Sheet width={calcWidth} height={calcHeight} margin={calcMargin}>
+                                <Sheet width={width} height={height} margin={calcMargin} key={`${thicknessStr}_${i}`}>
                                     {items.map((obj, j) => {
                                         const rot = obj.rotated ? `rotate(90, 0, 0)` : "";
                                         const pos = `translate(${calcMargin + obj.x + (obj.rotated ? obj.width : 0)},${calcMargin + obj.y})`;

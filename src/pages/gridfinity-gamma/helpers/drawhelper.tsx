@@ -267,7 +267,7 @@ export namespace Draw {
             return rect(d, d, "MIDDLE CENTER");
         };
 
-        export const bracket = ({ footBracketWidth }: { footBracketWidth: number }, gap: number = 3) => {
+        export const bracket = ({ footBracketWidth }: { footBracketWidth: number }, gap: number = 2) => {
             const chamfer = footBracketWidth / 2;
             const offset = gap / 2;
             const SW = [

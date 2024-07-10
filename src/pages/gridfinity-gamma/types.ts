@@ -3,6 +3,7 @@ import { PhysicalLength } from "../../utility/types/units";
 import { BoxDefinition } from "./items/box";
 import { BaseplateDefinition } from "./items/baseplate";
 import { FootJigDefinition } from "./items/footjig";
+import { FeetDefinition } from "./items/feet";
 
 export type GlobalSettings = {
     layoutMargin: PhysicalLength;
@@ -63,6 +64,7 @@ export const ITEM_DEFINITIONS = {
     BOX: BoxDefinition,
     BASEPLATE: BaseplateDefinition,
     FOOTJIG: FootJigDefinition,
+    FEET: FeetDefinition,
 } as const;
 
 export type ItemType = keyof typeof ITEM_DEFINITIONS;
@@ -73,17 +75,18 @@ export type ItemDefinition<P> = {
     // getLayout: (item: P, globals: GlobalSettings) => { width: number; height: number; path: string }[];
     // getLabel: (item: P) => ReactNode;
     Controls: FC<ItemControlProps<P>>;
-    describe: (v: P) => ReactNode;
+    getSummary: (v: P) => ReactNode;
     getInitial: () => P;
     title: ReactNode;
-    description: ReactNode;
+    image?: string;
+    snippet: ReactNode;
     draw: (item: P, globals: GlobalSettings) => LayoutPart[];
 };
 
 export type ItemControlProps<P> = {
     globals: GlobalSettings;
-    value: P & { quantity: number };
-    setValue: CurriedSetter<P & { quantity: number }>;
+    value: P;
+    setValue: CurriedSetter<P>;
 };
 
 export type ItemInstance<T extends ItemType> = {

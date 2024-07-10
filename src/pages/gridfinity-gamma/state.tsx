@@ -61,7 +61,7 @@ const setGridValue = <K extends keyof Store["global"]>(key: K, value?: Setter<St
     state.store.global[key] = v2;
 };
 
-type ItemListMethods<T> = {
+export type ItemListMethods<T> = {
     add: (item: T) => void;
     delete: (idx: number | null) => void;
     clear: () => void;
@@ -129,6 +129,19 @@ export const useItemState = (idx: number) => {
     );
 
     return [value, setValue] as [ItemInstance<typeof value.type>, typeof setValue];
+};
+
+export const useItemQuantity = (idx: number) => {
+    const value = useSnapshot(state).store.items[idx].quantity;
+
+    const setValue = useCallback(
+        (n: number) => {
+            state.store.items[idx].quantity = n;
+        },
+        [idx]
+    );
+
+    return [value, setValue] as [number, (n: number) => void];
 };
 
 export const useMaterialState = (idx: number) => {

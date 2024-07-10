@@ -1,6 +1,6 @@
 import ActionButton from "../../../components/buttons/ActionButton";
 import Modal, { useModal } from "../../../components/popups/Modal";
-import ChangeLog from "../changeLog";
+import { ArcanigenChangelog } from "../changelog";
 
 const ShowChangelog = () => {
     const modalControls = useModal();
@@ -8,7 +8,7 @@ const ShowChangelog = () => {
     return (
         <>
             <Modal controls={modalControls} label={"Change Log"}>
-                <ChangeLog />
+                <ArcanigenChangelog />
             </Modal>
             <ActionButton onAction={modalControls.open}>Change Log</ActionButton>
         </>

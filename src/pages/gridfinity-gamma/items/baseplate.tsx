@@ -2,7 +2,7 @@ import CheckBox from "../../../components/buttons/Checkbox";
 import { NumericInput } from "../../../components/inputs/NumericInput";
 import { FootOverrideControls, FootOverrides, initialFootOverrides, initialSystemOverrides, SystemOverrideControls, SystemOverrides } from "../helpers/overridehelper";
 import { FootStyles, GlobalSettings, ItemControlProps, ItemDefinition, LayoutPart } from "../types";
-import { ControlPanel, Full, Input, Sep, WarningBox } from "../widgets";
+import { ControlPanel, Full, Input, WarningBox } from "../widgets";
 import { convertLength } from "../../../utility/mathhelper";
 import { PhysicalLength } from "../../../utility/types/units";
 import { ControlledFoldout } from "../../../components/containers/Foldout";
@@ -33,10 +33,6 @@ const Controls = ({ value, globals, setValue }: ItemControlProps<BaseplateParams
     return (
         <>
             <ControlPanel>
-                <Input label={"Quantity"}>
-                    <NumericInput value={value.quantity} onValidValue={setValue("quantity")} min={1} step={1} />
-                </Input>
-                <Sep />
                 <Input label={"Cell X"}>
                     <NumericInput value={value.cellX} onValidValue={setValue("cellX")} min={1} step={1} />
                 </Input>
@@ -98,7 +94,7 @@ const draw = (item: BaseplateParams, globals: GlobalSettings): LayoutPart[] => {
             feetShape = Draw.array({ count: 1, spacing: 0 }, { count, spacing }, Draw.Feet.runner({ footRunnerGap, footRunnerTab, footDepth, gridThickness }));
         }
         if (footStyle === FootStyles.BRACKET) {
-            feetShape = Draw.Feet.bracket({ footBracketWidth }, convertLength(globals.layoutSpacing, "mm").value);
+            feetShape = Draw.Feet.bracket({ footBracketWidth });
         }
     }
 
@@ -134,11 +130,12 @@ const draw = (item: BaseplateParams, globals: GlobalSettings): LayoutPart[] => {
 
 export const BaseplateDefinition: ItemDefinition<BaseplateParams> = {
     title: "Baseplate",
-    description: "",
+    snippet: "A grid for locking your box or other items into.",
+    image: "baseplate.png",
     draw,
     Controls,
-    describe: (p) => {
-        return `Baseplate (${p.cellX}x${p.cellY})`;
+    getSummary: (p) => {
+        return `Baseplate ${p.cellX}x${p.cellY}`;
     },
     getInitial: () => {
         return {

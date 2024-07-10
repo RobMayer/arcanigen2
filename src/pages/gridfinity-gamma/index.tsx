@@ -1,9 +1,9 @@
 import styled from "styled-components";
 import Page from "../../components/content/Page";
-import { HTMLAttributes, useMemo, useState } from "react";
+import { HTMLAttributes, ReactNode, useMemo, useState } from "react";
 import { GlobalFeetSettings, GlobalLayoutSettings, GlobalSystemSettings } from "./options/globalitemsettings";
 import { ItemList } from "./options/itemlist";
-import { useGlobalSettings, useItemList, useItemState, useMaterialList, useMaterialState } from "./state";
+import { useGlobalSettings, useItemList, useItemQuantity, useItemState, useMaterialList, useMaterialState } from "./state";
 import { ITEM_DEFINITIONS } from "./types";
 import { PerItemLayout } from "./layout/peritem";
 import RadioButton from "../../components/buttons/RadioButton";
@@ -13,30 +13,51 @@ import { PhysicalLengthInput } from "../../components/inputs/PhysicalLengthInput
 import CheckBox from "../../components/buttons/Checkbox";
 import useUIState from "../../utility/hooks/useUIState";
 import { PerMaterialLayout } from "./layout/permaterial";
+import { NumericInput } from "../../components/inputs/NumericInput";
+import IconButton from "../../components/buttons/IconButton";
+import { iconActionClose } from "../../components/icons/action/close";
+import ActionButton from "../../components/buttons/ActionButton";
+import { GridGammaChangelog } from "./changelog";
+import Modal, { useModal } from "../../components/popups/Modal";
+import { GridGammaAbout } from "./about";
 
 export const GridfinityGamma = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) => {
     const [mode, setMode] = useUIState("gridfinitygamma.mode", "ITEM");
 
+    const changeLogControls = useModal();
+    const aboutControls = useModal();
+
     return (
-        <Page {...props}>
-            <Menu>
-                <RadioButton value={mode} target={"ITEM"} onSelect={setMode}>
-                    Item Setup
-                </RadioButton>
-                <RadioButton value={mode} target={"MATERIAL"} onSelect={setMode}>
-                    Material Layout
-                </RadioButton>
-            </Menu>
-            {mode === "ITEM" ? <ItemMode /> : null}
-            {mode === "MATERIAL" ? <MaterialMode /> : null}
-        </Page>
+        <>
+            <Modal controls={changeLogControls} label={"Change Log"}>
+                <GridGammaChangelog />
+            </Modal>
+            <Modal controls={aboutControls} label={"About"}>
+                <GridGammaAbout />
+            </Modal>
+            <Page {...props}>
+                <Menu>
+                    <RadioButton value={mode} target={"ITEM"} onSelect={setMode}>
+                        Item Setup
+                    </RadioButton>
+                    <RadioButton value={mode} target={"MATERIAL"} onSelect={setMode}>
+                        Material Layout
+                    </RadioButton>
+                    <Spacer />
+                    <ActionButton onAction={changeLogControls.open}>Changelog</ActionButton>
+                    <ActionButton onAction={aboutControls.open}>About</ActionButton>
+                </Menu>
+                {mode === "ITEM" ? <ItemMode /> : null}
+                {mode === "MATERIAL" ? <MaterialMode /> : null}
+            </Page>
+        </>
     );
 })`
     display: grid;
     grid-template-rows: auto 1fr;
     grid-template-columns: minmax(440px, min-content) minmax(440px, min-content) 5fr;
-    padding: 0.5em;
-    gap: 0.5em;
+    padding: 0.25em;
+    gap: 0.25em;
     grid-template-areas:
         "menu menu menu"
         "lists options layout";
@@ -74,8 +95,9 @@ const MaterialMode = () => {
         <>
             <ListPane>
                 <GlobalLayoutSettings />
-                <MissingMaterials />
+                <ItemQuantities />
                 <MaterialList selected={selected} setSelected={setSelected} />
+                <MissingMaterials />
             </ListPane>
             {selected === null ? (
                 <NoneSelected>Select or Add a Material</NoneSelected>
@@ -95,6 +117,10 @@ const Menu = styled.div`
     grid-area: menu;
     display: flex;
     gap: 0.25em;
+`;
+
+const Spacer = styled.div`
+    flex: 1 1 auto;
 `;
 
 const ListPane = styled.div`
@@ -229,4 +255,59 @@ const MissingList = styled.ul`
             content: "»";
         }
     }
+`;
+
+const ItemQuantities = () => {
+    const [itemList] = useItemList();
+
+    return (
+        <>
+            <Section>Item Quantities</Section>
+            <ListEntries>
+                {itemList.map(({ type, quantity, ...props }, i) => {
+                    const title = ITEM_DEFINITIONS[type].getSummary(props as any);
+                    return <EachItemQuantity key={i} title={title} index={i} />;
+                })}
+            </ListEntries>
+        </>
+    );
+};
+
+const ListEntries = styled.div`
+    display: flex;
+    flex-direction: column;
+    padding: var(--framing);
+    background: var(--theme-area-bg);
+    border: 1px solid var(--theme-area-border);
+    color: var(--theme-area-color);
+    align-self: stretch;
+    align-items: start;
+    overflow-y: scroll;
+    gap: 0.25em;
+
+    flex: 1 0 40%;
+`;
+
+const EachItemQuantity = styled(({ title, index, className }: { title: ReactNode; index: number; className?: string }) => {
+    const [quantity, setQuantity] = useItemQuantity(index);
+
+    return (
+        <div className={className}>
+            <div>{title}</div>
+            <NumericInput min={0} step={1} value={quantity} onValidValue={setQuantity} />
+            <IconButton
+                icon={iconActionClose}
+                onAction={() => {
+                    setQuantity(0);
+                }}
+                flavour={"danger"}
+            />
+        </div>
+    );
+})`
+    display: grid;
+    grid-template-columns: 2fr 1fr auto;
+    align-self: stretch;
+    flex: 0 0 max-content;
+    align-items: center;
 `;

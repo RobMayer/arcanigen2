@@ -64,17 +64,17 @@ const Socials = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) => {
     return (
         <div {...props}>
             <div>
-                <Link href="https://www.instagram.com/thatrobhuman/" target="_blank" rel="noreferrer">
+                <Link url="https://www.instagram.com/thatrobhuman/" target="_blank" rel="noreferrer">
                     <Icon value={iconSocialInstagram} /> ThatRobHuman
                 </Link>
             </div>
             <div>
-                <Link href="https://github.com/RobMayer" target="_blank" rel="noreferrer">
+                <Link url="https://github.com/RobMayer" target="_blank" rel="noreferrer">
                     <Icon value={iconSocialGithub} /> RobMayer
                 </Link>
             </div>
             <div>
-                <Link href="https://discord.gg/rxvVzyNtjb" target="_blank" rel="noreferrer">
+                <Link url="https://discord.gg/rxvVzyNtjb" target="_blank" rel="noreferrer">
                     <Icon value={iconSocialDiscord} /> Nerdforge
                 </Link>
             </div>

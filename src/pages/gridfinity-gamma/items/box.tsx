@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { FootStyle, FootStyles, GlobalSettings, ItemControlProps, ItemDefinition, LayoutPart, Shape } from "../types";
-import { ControlPanel, Input, Section, Sep } from "../widgets";
+import { ControlPanel, Input, Sep } from "../widgets";
 import { NumericInput } from "../../../components/inputs/NumericInput";
 import ToggleList from "../../../components/selectors/ToggleList";
 import { ControlledFoldout } from "../../../components/containers/Foldout";
@@ -50,10 +50,6 @@ const Controls = ({ value, setValue }: ItemControlProps<BoxParams>) => {
     return (
         <>
             <ControlPanel>
-                <Input label={"Quantity"}>
-                    <NumericInput value={value.quantity} onValidValue={setValue("quantity")} min={1} step={1} />
-                </Input>
-                <Sep />
                 <Input label={"Cell X"}>
                     <NumericInput value={value.cellX} onValidValue={setValue("cellX")} min={1} step={1} />
                 </Input>
@@ -233,14 +229,15 @@ export type BoxParams = {
 
 export const BoxDefinition: ItemDefinition<BoxParams> = {
     title: "Box",
-    description: "it's a box...",
+    snippet: "A simple box. Has provisions for dividers.",
     draw,
+    image: "box.png",
     Controls,
-    describe: (p) => {
+    getSummary: (p) => {
         if (p.divX > 0 || p.divY > 0) {
-            return `Box (${p.cellX}x${p.cellY}x${p.cellZ} | divided ${p.divX + 1}x${p.divY + 1})`;
+            return `Box ${p.cellX}x${p.cellY}x${p.cellZ} (Divided ${p.divX + 1}x${p.divY + 1})`;
         }
-        return `Box (${p.cellX}x${p.cellY}x${p.cellZ})`;
+        return `Box ${p.cellX}x${p.cellY}x${p.cellZ}`;
     },
     getInitial: () => {
         return {

@@ -8,23 +8,16 @@ import { iconActionCopy } from "../../../components/icons/action/copy";
 import { iconActionSave } from "../../../components/icons/action/save";
 import { convertLength } from "../../../utility/mathhelper";
 import { PhysicalLength } from "../../../utility/types/units";
-import { PackedOf, packDynamic } from "../helpers/packhelper";
+import { Pack } from "../helpers/packhelper2";
 
 export const PerItemLayout = () => {
     const [itemlist] = useItemList();
     const [globals] = useGlobalSettings();
 
-    const itemsParts = useMemo(() => {
-        return itemlist.map((value) => {
-            const { type, ...props } = value;
-            return ITEM_DEFINITIONS[type].draw(props as any, globals);
-        });
-    }, [itemlist, globals]);
-
-    return itemlist.map(({ type, quantity, ...props }, i) => {
+    return itemlist.map(({ type, ...props }, i) => {
         const parts = ITEM_DEFINITIONS[type].draw(props as any, globals);
         return parts.map(({ name, shapes, copies }, j) => {
-            return <PartLayout name={name} totalCount={copies * quantity} shapes={shapes} key={`${i}_${j}`} />;
+            return <PartLayout name={name} totalCount={copies} shapes={shapes} key={`${i}_${j}`} />;
         });
     });
 };
@@ -50,32 +43,19 @@ const PartLayout = ({ name, shapes, totalCount }: { name: string; shapes: Shape[
             return acc;
         }, {});
 
-        return Object.keys(byThickness).reduce<{ [key: string]: { width: number; height: number; items: PackedOf<{ path: string; name: string; thickness: PhysicalLength }>[] } }>((acc, k) => {
+        return Object.keys(byThickness).reduce<{ [key: string]: { width: number; height: number; items: Pack.PackedOf<{ path: string; name: string; thickness: PhysicalLength }>[] } }>((acc, k) => {
             const shapes = byThickness[k].map(({ width, height, ...payload }) => ({
                 width: width,
                 height: height,
                 payload,
             }));
-            const [packed] = packDynamic(shapes, spacing);
+            const [packed] = Pack.pack(0, 0, shapes, spacing);
 
             if (packed.length === 0) {
                 return acc;
             }
 
-            const { width, height } = packed[0].reduce<{ width: number; height: number }>(
-                (acc, each) => {
-                    acc.width = Math.max(acc.width, each.x + each.width);
-                    acc.height = Math.max(acc.height, each.y + each.height);
-                    return acc;
-                },
-                { width: -Infinity, height: -Infinity }
-            );
-
-            acc[k] = {
-                width: width,
-                height: height,
-                items: packed[0],
-            };
+            acc[k] = packed[0];
             return acc;
         }, {});
     }, [shapes, spacing]);
@@ -83,7 +63,8 @@ const PartLayout = ({ name, shapes, totalCount }: { name: string; shapes: Shape[
     return (
         <>
             <PartName>
-                {name} ({totalCount}x)
+                {name}
+                {totalCount > 1 ? ` (${totalCount}x)` : null}
             </PartName>
             <Parts>
                 {Object.entries(sheets).map(([thickness, { width, height, items }]) => {
