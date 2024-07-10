@@ -40,7 +40,7 @@ const Splash = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) => {
             <h1>Greetings</h1>
             <img src="/kdy.svg" alt="logo" />
             <Socials />
-            <div>This is still a work in progress: use at your own peril</div>
+            <div>Projects</div>
             <GoButton />
         </div>
     );
@@ -96,7 +96,14 @@ const GoButton = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) => {
                     nav("/magic-circle/");
                 }}
             >
-                Proceed
+                Arcanigen
+            </ActionButton>
+            <ActionButton
+                onAction={() => {
+                    nav("/gridfinity-gamma/");
+                }}
+            >
+                GridFinity Gamma
             </ActionButton>
         </div>
     );
@@ -105,6 +112,7 @@ const GoButton = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) => {
     align-self: stretch;
     justify-self: stretch;
     display: grid;
-    font-size: 1.5em;
+    font-size: 1.25em;
     font-variant: small-caps;
+    gap: 0.5em;
 `;

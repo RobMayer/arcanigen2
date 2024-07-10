@@ -1,6 +1,6 @@
 import { ReactNode, RefObject, useCallback, useMemo, useRef } from "react";
-import { useGlobalSettings, useItemList } from "../state";
-import { ITEM_DEFINITIONS, Shape } from "../types";
+import { useGlobalSettings, useItemProps } from "../state";
+import { Shape } from "../types";
 import saveAs from "file-saver";
 import styled from "styled-components";
 import IconButton from "../../../components/buttons/IconButton";
@@ -8,30 +8,31 @@ import { iconActionCopy } from "../../../components/icons/action/copy";
 import { iconActionSave } from "../../../components/icons/action/save";
 import { convertLength } from "../../../utility/mathhelper";
 import { PhysicalLength } from "../../../utility/types/units";
-import { Pack } from "../helpers/packhelper2";
+import { Pack } from "../utility/packhelper";
 
-export const PerItemLayout = () => {
-    const [itemlist] = useItemList();
+export const PerItemLayout = ({ selected }: { selected: number }) => {
     const [globals] = useGlobalSettings();
+    const [props, definition] = useItemProps(selected);
 
-    return itemlist.map(({ type, ...props }, i) => {
-        const parts = ITEM_DEFINITIONS[type].draw(props as any, globals);
-        return parts.map(({ name, shapes, copies }, j) => {
-            return <PartLayout name={name} totalCount={copies} shapes={shapes} key={`${i}_${j}`} />;
-        });
+    const parts = useMemo(() => {
+        return definition.draw(props, globals);
+    }, [definition, globals, props]);
+
+    return parts.map(({ name, shapes, copies }, j) => {
+        return <PartLayout name={name} totalCount={copies} shapes={shapes} key={`${j}`} />;
     });
 };
 
 const PartLayout = ({ name, shapes, totalCount }: { name: string; shapes: Shape[]; totalCount: number }) => {
-    const [globals] = useGlobalSettings();
+    const [{ layoutSpacing, layoutMargin }] = useGlobalSettings();
 
     const spacing = useMemo(() => {
-        return convertLength(globals.layoutSpacing, "mm").value;
-    }, [globals.layoutSpacing]);
+        return convertLength(layoutSpacing, "mm").value;
+    }, [layoutSpacing]);
 
     const margin = useMemo(() => {
-        return convertLength(globals.layoutMargin, "mm").value;
-    }, [globals.layoutMargin]);
+        return convertLength(layoutMargin, "mm").value;
+    }, [layoutMargin]);
 
     const sheets = useMemo(() => {
         const byThickness = shapes.reduce<{ [key: string]: Shape[] }>((acc, each) => {

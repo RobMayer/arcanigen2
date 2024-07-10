@@ -2,8 +2,8 @@ import { NumericInput } from "../../../components/inputs/NumericInput";
 import { PhysicalLengthInput } from "../../../components/inputs/PhysicalLengthInput";
 import { convertLength } from "../../../utility/mathhelper";
 import { PhysicalLength } from "../../../utility/types/units";
-import { Draw } from "../helpers/drawhelper";
-import { FootOverrideControls, FootOverrides, initialFootOverrides, initialSystemOverrides, SystemOverrideControls, SystemOverrides } from "../helpers/overridehelper";
+import { Draw } from "../utility/drawhelper";
+import { FootOverrideControls, FootOverrides, initialFootOverrides, initialSystemOverrides, SystemOverrideControls, SystemOverrides } from "../utility/overridehelper";
 import { GlobalSettings, ItemControlProps, ItemDefinition, LayoutPart } from "../types";
 import { ControlPanel, Input } from "../widgets";
 

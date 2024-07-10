@@ -1,11 +1,11 @@
 import { proxy, useSnapshot } from "valtio";
-import { FootStyles, GlobalSettings, ItemInstance, ItemType, Material } from "./types";
+import { FootStyles, GlobalSettings, ITEM_DEFINITIONS, ItemDefinition, ItemInstance, ItemType, Material } from "./types";
 import { useCallback, useMemo } from "react";
 
 type Store = {
     global: GlobalSettings;
     items: ItemInstance<ItemType>[];
-    materials: any[];
+    materials: Material[];
 };
 
 const state = proxy<{ store: Store }>({
@@ -119,13 +119,13 @@ export const useItemState = (idx: number) => {
             if (v === undefined) {
                 return (v2: Setter<Omit<ItemInstance<typeof value.type>, "type">[K]>) => {
                     const v3 = typeof v2 === "function" ? v2(state.store.items[idx][key]) : v2;
-                    (state.store.items[idx][key] as any) = v3;
+                    state.store.items[idx][key] = v3 as ItemInstance<ItemType>[K];
                 };
             }
             const v2 = typeof v === "function" ? v(state.store.items[idx][key]) : v;
-            (state.store.items[idx][key] as any) = v2;
+            state.store.items[idx][key] = v2 as ItemInstance<ItemType>[K];
         },
-        [idx]
+        [idx, value]
     );
 
     return [value, setValue] as [ItemInstance<typeof value.type>, typeof setValue];
@@ -162,4 +162,10 @@ export const useMaterialState = (idx: number) => {
     );
 
     return [value, setValue] as [Material, typeof setValue];
+};
+
+export const useItemProps = (index: number) => {
+    const { type, ...props } = useSnapshot(state).store.items[index];
+
+    return [props, ITEM_DEFINITIONS[type]] as [typeof props, ItemDefinition<unknown>];
 };

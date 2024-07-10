@@ -1,6 +1,6 @@
 import CheckBox from "../../../components/buttons/Checkbox";
 import { NumericInput } from "../../../components/inputs/NumericInput";
-import { FootOverrideControls, FootOverrides, initialFootOverrides, initialSystemOverrides, SystemOverrideControls, SystemOverrides } from "../helpers/overridehelper";
+import { FootOverrideControls, FootOverrides, initialFootOverrides, initialSystemOverrides, SystemOverrideControls, SystemOverrides } from "../utility/overridehelper";
 import { FootStyles, GlobalSettings, ItemControlProps, ItemDefinition, LayoutPart } from "../types";
 import { ControlPanel, Full, Input, WarningBox } from "../widgets";
 import { convertLength } from "../../../utility/mathhelper";
@@ -8,7 +8,7 @@ import { PhysicalLength } from "../../../utility/types/units";
 import { ControlledFoldout } from "../../../components/containers/Foldout";
 import useUIState from "../../../utility/hooks/useUIState";
 import { PhysicalLengthInput } from "../../../components/inputs/PhysicalLengthInput";
-import { Draw } from "../helpers/drawhelper";
+import { Draw } from "../utility/drawhelper";
 
 export type BaseplateParams = {
     cellX: number;

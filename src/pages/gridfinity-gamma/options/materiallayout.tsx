@@ -1,6 +1,6 @@
 import { ReactNode, RefObject, useCallback, useMemo, useRef } from "react";
 import { useGlobalSettings, useItemList, useMaterialList } from "../state";
-import { ITEM_DEFINITIONS, Material } from "../types";
+import { ITEM_DEFINITIONS, ItemDefinition, Material } from "../types";
 import { convertLength } from "../../../utility/mathhelper";
 import saveAs from "file-saver";
 import styled from "styled-components";
@@ -9,7 +9,7 @@ import { iconActionCopy } from "../../../components/icons/action/copy";
 import { iconActionSave } from "../../../components/icons/action/save";
 import { PhysicalLength } from "../../../utility/types/units";
 import { WarningBox } from "../widgets";
-import { Pack } from "../helpers/packhelper2";
+import { Pack } from "../utility/packhelper";
 
 export const PerMaterialLayout = () => {
     const [items] = useItemList();
@@ -28,7 +28,7 @@ export const PerMaterialLayout = () => {
         }, {});
 
         const toPack = items.reduce<{ [key: string]: Pack.RectOf<{ path: string; name: string }>[] }>((acc, { type, quantity, ...props }) => {
-            const items = ITEM_DEFINITIONS[type].draw(props as any, globals);
+            const items = (ITEM_DEFINITIONS[type] as ItemDefinition<unknown>).draw(props, globals);
 
             items.forEach(({ shapes, copies, name: itemName }) => {
                 shapes.forEach((shape) => {

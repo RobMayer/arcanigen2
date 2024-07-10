@@ -5,6 +5,16 @@ import { BaseplateDefinition } from "./items/baseplate";
 import { FootJigDefinition } from "./items/footjig";
 import { FeetDefinition } from "./items/feet";
 
+// ITEM ENUMERATION
+export const ITEM_DEFINITIONS = {
+    BOX: BoxDefinition,
+    BASEPLATE: BaseplateDefinition,
+    FOOTJIG: FootJigDefinition,
+    FEET: FeetDefinition,
+} as const;
+
+export type ItemType = keyof typeof ITEM_DEFINITIONS;
+
 export type GlobalSettings = {
     layoutMargin: PhysicalLength;
     layoutSpacing: PhysicalLength;
@@ -43,7 +53,7 @@ export type Material = {
     layoutSpacing: PhysicalLength;
 };
 
-export type Enum<T extends Record<any, any>> = T[keyof T];
+export type Enum<T extends Record<string | number | symbol, unknown>> = T[keyof T];
 
 export const FootStyles = {
     BLOCK: "BLOCK",
@@ -58,16 +68,6 @@ export const FOOT_STYLE_OPTIONS: { [key in FootStyle]: ReactNode } = {
     BRACKET: "Bracket",
     RUNNER: "Runner",
 } as const;
-
-// ITEM ENUMERATION
-export const ITEM_DEFINITIONS = {
-    BOX: BoxDefinition,
-    BASEPLATE: BaseplateDefinition,
-    FOOTJIG: FootJigDefinition,
-    FEET: FeetDefinition,
-} as const;
-
-export type ItemType = keyof typeof ITEM_DEFINITIONS;
 
 type ItemParams<D> = D extends ItemDefinition<infer P> ? P : never;
 

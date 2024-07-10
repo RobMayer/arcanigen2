@@ -1,4 +1,3 @@
-import { ReactNode } from "react";
 import CheckBox from "../../../components/buttons/Checkbox";
 import { ControlledFoldout } from "../../../components/containers/Foldout";
 import { PhysicalLengthInput } from "../../../components/inputs/PhysicalLengthInput";
@@ -7,7 +6,6 @@ import useUIState from "../../../utility/hooks/useUIState";
 import { useGlobalSettings } from "../state";
 import { FOOT_STYLE_OPTIONS } from "../types";
 import { ControlPanel, Input, Sep } from "../widgets";
-import Checkbox from "../../../components/buttons/Checkbox";
 
 export const GlobalSystemSettings = () => {
     const [value, setValue] = useGlobalSettings();

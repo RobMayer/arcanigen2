@@ -8,9 +8,9 @@ import useUIState from "../../../utility/hooks/useUIState";
 import { PhysicalLength } from "../../../utility/types/units";
 import Checkbox from "../../../components/buttons/Checkbox";
 import { PhysicalLengthInput } from "../../../components/inputs/PhysicalLengthInput";
-import { FootOverrideControls, FootOverrides, initialFootOverrides, initialSystemOverrides, SystemOverrideControls, SystemOverrides } from "../helpers/overridehelper";
+import { FootOverrideControls, FootOverrides, initialFootOverrides, initialSystemOverrides, SystemOverrideControls, SystemOverrides } from "../utility/overridehelper";
 import { convertLength } from "../../../utility/mathhelper";
-import { Draw } from "../helpers/drawhelper";
+import { Draw } from "../utility/drawhelper";
 
 export const FootLayouts = {
     DENSE: "SLOT_DENSE",

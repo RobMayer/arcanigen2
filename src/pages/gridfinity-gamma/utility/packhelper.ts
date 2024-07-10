@@ -277,10 +277,10 @@ export namespace Pack {
     /* Options */
 
     const SORT_DIRS = {
-        ASC: (fn: (...args: any[]) => number) => fn,
+        ASC: (fn: (...args: unknown[]) => number) => fn,
         DESC:
-            (fn: (...args: any[]) => number) =>
-            (...args: any[]) =>
+            (fn: (...args: unknown[]) => number) =>
+            (...args: unknown[]) =>
                 fn(...args) * -1,
     } as const;
 
@@ -373,7 +373,9 @@ export namespace Pack {
         return [rectangle1, rectangle2];
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const bunchOfConcats = (a: any[], b: any[]) => ([] as any[]).concat(...a.map((d) => b.map((e) => [].concat(d, e))));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cartesian = (a: any[], b?: any[], ...c: any): any[] => (b ? cartesian(bunchOfConcats(a, b), ...c) : a);
 
     const runSelect = (rectangles: Box[], width: number, height: number, method: (rect: Box, width: number, height: number) => number) => {

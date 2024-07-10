@@ -13,7 +13,7 @@ export const ItemList = ({ selected, setSelected }: { selected: number | null; s
 
     const existingItems = useMemo(() => {
         return list.map((each) => {
-            return ITEM_DEFINITIONS[each.type].getSummary(each as any);
+            return (ITEM_DEFINITIONS[each.type] as ItemDefinition<unknown>).getSummary(each);
         });
     }, [list]);
 
@@ -24,7 +24,8 @@ export const ItemList = ({ selected, setSelected }: { selected: number | null; s
                     {Object.keys(ITEM_DEFINITIONS).map((type: ItemType) => {
                         return (
                             <ItemButton
-                                def={ITEM_DEFINITIONS[type]}
+                                key={type}
+                                def={ITEM_DEFINITIONS[type] as ItemDefinition<unknown>}
                                 onAdd={() => {
                                     listMethods.add({ type, quantity: 1, ...ITEM_DEFINITIONS[type].getInitial() });
                                     setSelected(list.length);
@@ -95,7 +96,7 @@ const AddItemOptions = styled.div`
     margin: 0 auto;
 `;
 
-const ItemButton = styled(({ def, className, onAdd }: { def: ItemDefinition<any>; className?: string; onAdd: () => void }) => {
+const ItemButton = styled(({ def, className, onAdd }: { def: ItemDefinition<unknown>; className?: string; onAdd: () => void }) => {
     return (
         <div className={className}>
             {def.image ? <img src={`/images/gridfinity-items/${def.image}`} /> : <NoImage />}
