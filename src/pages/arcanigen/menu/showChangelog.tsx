@@ -1,6 +1,6 @@
 import ActionButton from "../../../components/buttons/ActionButton";
 import Modal, { useModal } from "../../../components/popups/Modal";
-import { ArcanigenChangelog } from "../changelog";
+import { ArcanigenChangelog } from "../tempChangelog";
 
 const ShowChangelog = () => {
     const modalControls = useModal();
