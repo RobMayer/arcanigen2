@@ -116,7 +116,7 @@ const Menu = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) => {
 const Body = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) => {
     return <div {...props} />;
 })`
-    overflow-y: auto;
+    display: contents;
 `;
 
 export const TabMenuItems = {

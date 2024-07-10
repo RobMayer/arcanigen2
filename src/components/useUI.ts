@@ -40,6 +40,12 @@ const useHover = (ref: RefObject<HTMLElement>, disabled = false) => {
         }
     }, [ref, disabled]);
 
+    useEffect(() => {
+        if (disabled) {
+            setIsHover(false);
+        }
+    }, [disabled]);
+
     return isHover;
 };
 
@@ -74,6 +80,13 @@ const useFocus = (ref: RefObject<HTMLElement>, disabled = false): [isFocus: bool
         }
     }, [ref, disabled]);
 
+    useEffect(() => {
+        if (disabled) {
+            setIsFocus(false);
+            setIsFocusSoft(false);
+        }
+    }, [disabled]);
+
     return [isFocus, isFocusSoft, isFocus && !isFocusSoft];
 };
 
@@ -103,6 +116,12 @@ const useFocusContainer = (ref: RefObject<HTMLElement>, disabled = false): boole
             };
         }
     }, [ref, disabled]);
+
+    useEffect(() => {
+        if (disabled) {
+            setIsFocus(false);
+        }
+    }, [disabled]);
 
     return isFocus;
 };
@@ -153,6 +172,12 @@ const useMoveGrip = (ref: RefObject<HTMLElement>, onMove?: (e: MouseEvent) => vo
         }
     }, [disabled, ref]);
 
+    useEffect(() => {
+        if (disabled) {
+            setIsMoving(false);
+        }
+    }, [disabled]);
+
     return isMoving;
 };
 
@@ -194,6 +219,12 @@ const useKeyAction = (ref: RefObject<HTMLElement>, onAction?: (target: HTMLEleme
         }
     }, [ref, disabled]);
 
+    useEffect(() => {
+        if (disabled) {
+            setIsActive(false);
+        }
+    }, [disabled]);
+
     return isActive;
 };
 
@@ -234,6 +265,12 @@ const useMouseAction = (ref: RefObject<HTMLElement>, onAction?: (target: HTMLEle
             };
         }
     }, [ref, disabled]);
+
+    useEffect(() => {
+        if (disabled) {
+            setIsActive(false);
+        }
+    }, [disabled]);
 
     return isActive;
 };
@@ -298,6 +335,12 @@ const useDroppable = (ref: RefObject<HTMLElement>, onDrop: { [mime: string]: (pa
         }
     }, [ref, disabled]);
 
+    useEffect(() => {
+        if (disabled) {
+            setIsDropping(false);
+        }
+    }, [disabled]);
+
     return isDropping;
 };
 
@@ -337,6 +380,12 @@ const useDraggable = (ref: RefObject<HTMLElement>, data: { [mime: string]: strin
             };
         }
     }, [ref, disabled]);
+
+    useEffect(() => {
+        if (disabled) {
+            setIsDragging(false);
+        }
+    }, [disabled]);
 
     return isDragging;
 };

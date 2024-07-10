@@ -82,8 +82,7 @@ const ControlledFoldout = ({ bar: Bar = DefaultBar, isOpen, onToggle, label, bar
 export { Foldout, ControlledFoldout };
 
 const Body = styled.div`
-    overflow-y: auto;
-    flex: 1 0 0%;
+    display: contents;
 `;
 
 const BarWrapper = styled.div`
