@@ -1,19 +1,16 @@
 import { FC, ReactNode } from "react";
 import { PhysicalLength } from "../../utility/types/units";
-import { BoxDefinition } from "./items/box";
-import { BaseplateDefinition } from "./items/baseplate";
-import { FootJigDefinition } from "./items/footjig";
-import { FeetDefinition } from "./items/feet";
+import { ITEM_DEFINITIONS } from "./definitions";
 
 // ITEM ENUMERATION
-export const ITEM_DEFINITIONS = {
-    BOX: BoxDefinition,
-    BASEPLATE: BaseplateDefinition,
-    FOOTJIG: FootJigDefinition,
-    FEET: FeetDefinition,
-} as const;
-
 export type ItemType = keyof typeof ITEM_DEFINITIONS;
+
+export const ItemCategories = {
+    GRID: "GRID",
+    FREE: "FREE",
+    TOOL: "TOOL",
+} as const;
+export type ItemCategory = Enum<typeof ItemCategories>;
 
 export type GlobalSettings = {
     layoutMargin: PhysicalLength;
@@ -81,6 +78,7 @@ export type ItemDefinition<P> = {
     image?: string;
     snippet: ReactNode;
     draw: (item: P, globals: GlobalSettings) => LayoutPart[];
+    category: ItemCategory;
 };
 
 export type ItemControlProps<P> = {

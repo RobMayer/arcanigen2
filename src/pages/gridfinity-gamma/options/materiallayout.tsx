@@ -1,6 +1,6 @@
 import { ReactNode, RefObject, useCallback, useMemo, useRef } from "react";
 import { useGlobalSettings, useItemList, useMaterialList } from "../state";
-import { ITEM_DEFINITIONS, ItemDefinition, Material } from "../types";
+import { ItemDefinition, Material } from "../types";
 import { convertLength } from "../../../utility/mathhelper";
 import saveAs from "file-saver";
 import styled from "styled-components";
@@ -10,6 +10,7 @@ import { iconActionSave } from "../../../components/icons/action/save";
 import { PhysicalLength } from "../../../utility/types/units";
 import { WarningBox } from "../widgets";
 import { Pack } from "../utility/packhelper";
+import { ITEM_DEFINITIONS } from "../definitions";
 
 export const PerMaterialLayout = () => {
     const [items] = useItemList();

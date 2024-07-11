@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { FootStyle, FootStyles, GlobalSettings, ItemControlProps, ItemDefinition, LayoutPart, Shape } from "../types";
+import { FootStyle, FootStyles, GlobalSettings, ItemCategories, ItemControlProps, ItemDefinition, LayoutPart, Shape } from "../types";
 import { ControlPanel, Input, Sep } from "../widgets";
 import { NumericInput } from "../../../components/inputs/NumericInput";
 import ToggleList from "../../../components/selectors/ToggleList";
@@ -44,7 +44,7 @@ export const TOP_STYLE_OPTIONS: { [key in TopStyle]: ReactNode } = {
     [TopStyles.INSET]: "Inset",
 };
 
-const Controls = ({ value, setValue }: ItemControlProps<BoxParams>) => {
+const Controls = ({ value, setValue }: ItemControlProps<GridBoxParams>) => {
     const [isOpen, setIsOpen] = useUIState("gridfinity.items.box.thickness", false);
 
     return (
@@ -103,7 +103,7 @@ const Controls = ({ value, setValue }: ItemControlProps<BoxParams>) => {
     );
 };
 
-const draw = (item: BoxParams, globals: GlobalSettings): LayoutPart[] => {
+const draw = (item: GridBoxParams, globals: GlobalSettings): LayoutPart[] => {
     const gridSize = convertLength(item.hasGridSize ? item.gridSize : globals.gridSize, "mm").value;
     const stackSize = convertLength(item.hasStackSize ? item.stackSize : globals.stackSize, "mm").value;
 
@@ -160,7 +160,7 @@ const draw = (item: BoxParams, globals: GlobalSettings): LayoutPart[] => {
     const shapes: Shape[] = [
         { name: "Bottom", thickness: resBottomThickness, ...drawBottom(calculatedParams) },
         { name: "Front", thickness: resWallThickness, ...drawEnd(calculatedParams) },
-        { name: "Bottom", thickness: resWallThickness, ...drawEnd(calculatedParams) },
+        { name: "Back", thickness: resWallThickness, ...drawEnd(calculatedParams) },
         { name: "Left", thickness: resWallThickness, ...drawSide(calculatedParams) },
         { name: "Right", thickness: resWallThickness, ...drawSide(calculatedParams) },
     ];
@@ -191,14 +191,14 @@ const draw = (item: BoxParams, globals: GlobalSettings): LayoutPart[] => {
 
     return [
         {
-            name: "Box",
+            name: "GridBox",
             copies: 1,
             shapes,
         },
     ];
 };
 
-export type BoxParams = {
+export type GridBoxParams = {
     cellX: number;
     cellY: number;
     cellZ: number;
@@ -219,33 +219,29 @@ export type BoxParams = {
     divThickness: PhysicalLength;
     hasGridThickness: boolean;
     gridThickness: PhysicalLength;
-
-    hasGridTab: boolean;
-    gridTab: PhysicalLength;
-    hasStackTab: boolean;
-    stackTab: PhysicalLength;
 } & FootOverrides &
     SystemOverrides;
 
-export const BoxDefinition: ItemDefinition<BoxParams> = {
-    title: "Box",
-    snippet: "A simple box. Has provisions for dividers.",
+export const GridboxDefinition: ItemDefinition<GridBoxParams> = {
+    title: "Grid Box",
+    snippet: "A Grid-aligned box. Has provisions for dividers.",
+    category: ItemCategories.GRID,
     draw,
     image: "box.png",
     Controls,
     getSummary: (p) => {
         if (p.divX > 0 || p.divY > 0) {
-            return `Box ${p.cellX}x${p.cellY}x${p.cellZ} (Divided ${p.divX + 1}x${p.divY + 1})`;
+            return `Grid-Box ${p.cellX}x${p.cellY}x${p.cellZ} (Divided ${p.divX + 1}x${p.divY + 1})`;
         }
-        return `Box ${p.cellX}x${p.cellY}x${p.cellZ}`;
+        return `Grid-Box ${p.cellX}x${p.cellY}x${p.cellZ}`;
     },
     getInitial: () => {
         return {
-            cellX: 1,
-            cellY: 1,
+            cellX: 2,
+            cellY: 2,
             cellZ: 2,
-            divX: 0,
-            divY: 0,
+            divX: 2,
+            divY: 2,
             footLayout: FootLayouts.SPARSE,
             topStyle: TopStyles.NONE,
 
@@ -423,12 +419,11 @@ const drawEnd = ({
     footDepth: number;
     topStyle: TopStyle;
 }): { width: number; height: number; path: string } => {
-    const divSpacing = (gridSize * cellX - gridClearance * 2 - wallThickness) / (divX + 1);
-
     const gridModeHeightAdjust = topStyle === TopStyles.GRID ? gridThickness : 0;
 
     const width = gridSize * cellX - gridClearance * 2;
     const height = stackSize * cellZ - gridModeHeightAdjust;
+    const divSpacing = (gridSize * cellX - gridClearance * 2 - wallThickness) / (divX + 1);
 
     const path: string[] = [
         Draw.tabbedRect(width, height, {
@@ -697,6 +692,7 @@ const drawDivX = ({
 
     const zOffset = (topOffset - bottomThickness) / 2;
     const height = stackSize * cellZ - topOffset - bottomThickness;
+    const divXSpacing = (gridSize * cellX - gridClearance * 2 - wallThickness) / (divX + 1);
 
     return {
         width,
@@ -713,7 +709,7 @@ const drawDivX = ({
                 count: divX,
                 width: divThickness,
                 depth: -height / 2,
-                spacing: (gridSize * cellX - gridClearance * 2 - wallThickness) / (divX + 1),
+                spacing: divXSpacing,
             },
             west: {
                 count: cellZ,
@@ -778,6 +774,7 @@ const drawDivY = ({
 
     const zOffset = (topOffset - bottomThickness) / 2;
     const height = stackSize * cellZ - topOffset - bottomThickness;
+    const divYSpacing = (gridSize * cellY - gridClearance * 2 - wallThickness) / (divY + 1);
 
     return {
         width,
@@ -787,7 +784,7 @@ const drawDivY = ({
                 count: divY,
                 width: divThickness,
                 depth: -height / 2,
-                spacing: (gridSize * cellY - gridClearance * 2 - wallThickness) / (divY + 1),
+                spacing: divYSpacing,
             },
             east: {
                 count: cellZ,

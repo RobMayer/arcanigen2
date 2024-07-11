@@ -113,8 +113,9 @@ export const ModalWrappers = {
         outline: 1px solid var(--effect-border-muted);
         width: calc(100% - 16px);
         min-width: fit-content;
-        max-width: 36rem;
-        max-height: 90%;
+        width: fit-content;
+        max-width: 80vw;
+        max-height: 80vh;
         padding: 1px;
         background: var(--layer0);
         display: grid;

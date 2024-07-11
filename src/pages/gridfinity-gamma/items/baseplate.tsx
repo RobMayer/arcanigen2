@@ -1,7 +1,7 @@
 import CheckBox from "../../../components/buttons/Checkbox";
 import { NumericInput } from "../../../components/inputs/NumericInput";
 import { FootOverrideControls, FootOverrides, initialFootOverrides, initialSystemOverrides, SystemOverrideControls, SystemOverrides } from "../utility/overridehelper";
-import { FootStyles, GlobalSettings, ItemControlProps, ItemDefinition, LayoutPart } from "../types";
+import { FootStyles, GlobalSettings, ItemCategories, ItemControlProps, ItemDefinition, LayoutPart } from "../types";
 import { ControlPanel, Full, Input, WarningBox } from "../widgets";
 import { convertLength } from "../../../utility/mathhelper";
 import { PhysicalLength } from "../../../utility/types/units";
@@ -133,6 +133,7 @@ export const BaseplateDefinition: ItemDefinition<BaseplateParams> = {
     snippet: "A grid for locking your box or other items into.",
     image: "baseplate.png",
     draw,
+    category: ItemCategories.GRID,
     Controls,
     getSummary: (p) => {
         return `Baseplate ${p.cellX}x${p.cellY}`;

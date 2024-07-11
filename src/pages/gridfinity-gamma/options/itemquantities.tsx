@@ -1,11 +1,12 @@
 import styled from "styled-components";
 import { useItemList, useItemQuantity } from "../state";
-import { ITEM_DEFINITIONS, ItemDefinition } from "../types";
+import { ItemDefinition } from "../types";
 import { Section } from "../widgets";
 import { ReactNode } from "react";
 import IconButton from "../../../components/buttons/IconButton";
 import { iconActionClose } from "../../../components/icons/action/close";
 import { NumericInput } from "../../../components/inputs/NumericInput";
+import { ITEM_DEFINITIONS } from "../definitions";
 
 export const ItemQuantities = () => {
     const [itemList] = useItemList();

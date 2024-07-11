@@ -2,7 +2,7 @@ import { convertLength } from "../../../utility/mathhelper";
 import { PhysicalLength } from "../../../utility/types/units";
 import { Draw } from "../utility/drawhelper";
 import { FootOverrideControls, FootOverrides, initialFootOverrides, initialSystemOverrides, SystemOverrideControls, SystemOverrides } from "../utility/overridehelper";
-import { GlobalSettings, LayoutPart, ItemControlProps, ItemDefinition, FootStyles } from "../types";
+import { GlobalSettings, LayoutPart, ItemControlProps, ItemDefinition, FootStyles, ItemCategories } from "../types";
 
 type FeetParams = {
     hasGridThickness: boolean;
@@ -101,6 +101,7 @@ export const FeetDefinition: ItemDefinition<FeetParams> = {
     title: "Feet",
     snippet: "Glue these to the bottom of your objects so that they fit into a baseplate",
     image: "feet.png",
+    category: ItemCategories.GRID,
     draw,
     Controls,
     getSummary: () => `Feet`,

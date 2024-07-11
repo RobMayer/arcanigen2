@@ -2,6 +2,7 @@
 
 import Page from "!/components/content/Page";
 import styled from "styled-components";
+import { Helmet } from "react-helmet";
 // import NodeView from "./nodeView";
 import { HTMLAttributes, useRef } from "react";
 import NodeView from "./nodeView";
@@ -18,6 +19,13 @@ const ArcanigenPage = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) => {
 
     return (
         <Page {...props}>
+            <Helmet>
+                <meta property="og:title" content="Arcanigen" />
+                <meta property="og:url" content="https://www.thatrobhuman.com/arcanigen/" />
+                <meta property="og:image" content="https://www.thatrobhuman.com/images/arcanigen.png" />
+                <meta property="og:description" content="Tool for creating vaguely-radially-symmetrical shapes, like Magic Circles and other such sigils." />
+                <title>ThatRobHuman - Arcanigen</title>
+            </Helmet>
             <ArcaneGraphMenu />
             <TwoPane>
                 <NodeView originRef={originRef} canvasRef={canvasRef} />

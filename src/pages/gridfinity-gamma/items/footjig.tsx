@@ -4,7 +4,7 @@ import { convertLength } from "../../../utility/mathhelper";
 import { PhysicalLength } from "../../../utility/types/units";
 import { Draw } from "../utility/drawhelper";
 import { FootOverrideControls, FootOverrides, initialFootOverrides, initialSystemOverrides, SystemOverrideControls, SystemOverrides } from "../utility/overridehelper";
-import { GlobalSettings, ItemControlProps, ItemDefinition, LayoutPart } from "../types";
+import { GlobalSettings, ItemCategories, ItemControlProps, ItemDefinition, LayoutPart } from "../types";
 import { ControlPanel, Input } from "../widgets";
 
 type FootJigParams = {
@@ -124,6 +124,7 @@ export const FootJigDefinition: ItemDefinition<FootJigParams> = {
     title: "Foot Jig",
     snippet: "For aligning feet for gluing",
     image: "footjig.png",
+    category: ItemCategories.TOOL,
     draw,
     Controls,
     getSummary: (p) => `Foot Jig ${p.cellX}x${p.cellY}`,

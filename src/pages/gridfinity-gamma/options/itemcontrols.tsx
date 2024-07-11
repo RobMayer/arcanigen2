@@ -1,5 +1,5 @@
+import { ITEM_DEFINITIONS } from "../definitions";
 import { useItemState, useGlobalSettings } from "../state";
-import { ITEM_DEFINITIONS } from "../types";
 
 export const ItemControls = ({ selected }: { selected: number }) => {
     const [value, setValue] = useItemState(selected);

@@ -1,6 +1,7 @@
 import { proxy, useSnapshot } from "valtio";
-import { FootStyles, GlobalSettings, ITEM_DEFINITIONS, ItemDefinition, ItemInstance, ItemType, Material } from "./types";
+import { FootStyles, GlobalSettings, ItemDefinition, ItemInstance, ItemType, Material } from "./types";
 import { useCallback, useMemo } from "react";
+import { ITEM_DEFINITIONS } from "./definitions";
 
 type Store = {
     global: GlobalSettings;

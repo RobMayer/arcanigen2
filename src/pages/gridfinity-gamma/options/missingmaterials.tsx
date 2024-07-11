@@ -1,8 +1,9 @@
 import { useMemo } from "react";
 import styled from "styled-components";
 import { useItemList, useMaterialList, useGlobalSettings } from "../state";
-import { ITEM_DEFINITIONS, ItemDefinition } from "../types";
+import { ItemDefinition } from "../types";
 import { WarningBox } from "../widgets";
+import { ITEM_DEFINITIONS } from "../definitions";
 
 export const MissingMaterials = () => {
     const [itemList] = useItemList();

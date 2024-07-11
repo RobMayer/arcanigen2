@@ -27,6 +27,8 @@ export type NumericInputProps = {
     precision?: number | "none";
     variant?: string;
     tooltip?: string;
+    minExclusive?: boolean;
+    maxExclusive?: boolean;
 };
 
 export const NumericInput = styled(
@@ -51,6 +53,8 @@ export const NumericInput = styled(
         precision = "none",
         variant,
         tooltip,
+        minExclusive = false,
+        maxExclusive = false,
     }: NumericInputProps) => {
         const wrapperRef = useRef<HTMLDivElement>(null);
         const inputRef = useRef<HTMLInputElement>(null);
@@ -92,10 +96,10 @@ export const NumericInput = styled(
                 if (isNaN(n) || cur === "") {
                     reasons.add({ code: "BAD_INPUT", message: "must be numeric" });
                 } else {
-                    if (max !== undefined && n > max) {
+                    if (max !== undefined && (maxExclusive ? n >= max : n > max)) {
                         reasons.add({ code: "RANGE_OVERFLOW", message: `cannot be above ${max}` });
                     }
-                    if (min !== undefined && n < min) {
+                    if (min !== undefined && (minExclusive ? n <= min : n < min)) {
                         reasons.add({ code: "RANGE_UNDERFLOW", message: `cannot be below ${min}` });
                     }
                     if (step !== 0 && n % step !== 0) {
@@ -109,7 +113,7 @@ export const NumericInput = styled(
                 setIsInvalid(ary.length !== 0);
                 return ary;
             },
-            [max, min, onValidateRef, step, validate, validatorRef]
+            [max, min, onValidateRef, step, validate, validatorRef, minExclusive, maxExclusive]
         );
 
         const doValidateRef = useStable<typeof doValidate>(doValidate);
@@ -253,7 +257,7 @@ export const NumericInput = styled(
         const cN = useMemo(() => {
             const vars = (variant ?? "")
                 .split(" ")
-                .map((e) => (Boolean(e) ? `variant-${e}` : ""))
+                .map((e) => (e ? `variant-${e}` : ""))
                 .join(" ");
             if (disabled) {
                 return `${className ?? ""} flavour-${flavour} ${vars} state-disabled`;

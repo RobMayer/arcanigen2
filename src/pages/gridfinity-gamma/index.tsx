@@ -18,6 +18,7 @@ import { MaterialControls } from "./options/materialcontrols";
 import { MissingMaterials } from "./options/missingmaterials";
 import { iconArrowLeft } from "../../components/icons/arrow/left";
 import { Icon } from "../../components/icons";
+import { Helmet } from "react-helmet";
 
 export const GridfinityGamma = styled(({ ...props }: HTMLAttributes<HTMLDivElement>) => {
     const [mode, setMode] = useUIState("gridfinitygamma.mode", "ITEM");
@@ -34,6 +35,13 @@ export const GridfinityGamma = styled(({ ...props }: HTMLAttributes<HTMLDivEleme
                 <GridGammaAbout />
             </Modal>
             <Page {...props}>
+                <Helmet>
+                    <meta property="og:title" content="Gridfinity Gamma" />
+                    <meta property="og:url" content="https://www.thatrobhuman.com/gridfinity-gamma/" />
+                    <meta property="og:image" content="https://www.thatrobhuman.com/images/gridfinity-gamma.png" />
+                    <meta property="og:description" content="An unofficial variant of Gridfinity for use with Laser Cutters instead of 3d Printers." />
+                    <title>ThatRobHuman - Gridfinity Gamma</title>
+                </Helmet>
                 <Menu>
                     <RadioButton value={mode} target={"ITEM"} onSelect={setMode}>
                         Item Setup
