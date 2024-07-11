@@ -9,6 +9,7 @@ export const ItemCategories = {
     GRID: "GRID",
     FREE: "FREE",
     TOOL: "TOOL",
+    OTHER: "OTHER",
 } as const;
 export type ItemCategory = Enum<typeof ItemCategories>;
 

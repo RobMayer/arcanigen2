@@ -26,6 +26,11 @@ const Controls = ({ value, setValue }: ItemControlProps<GridTrayParams>) => {
                     <NumericInput value={value.cellZ} onValidValue={setValue("cellZ")} min={1} step={1} />
                 </Input>
                 <Sep />
+                <Input label={"Baseplate Padding"}>
+                    <Checkbox checked={value.includeBaseplate} onToggle={setValue("includeBaseplate")}>
+                        Leave Room for Baseplate
+                    </Checkbox>
+                </Input>
             </ControlPanel>
             <ControlledFoldout isOpen={isOpen} onToggle={setIsOpen} label={"Thickness Overrides"}>
                 <ControlPanel>
@@ -36,6 +41,10 @@ const Controls = ({ value, setValue }: ItemControlProps<GridTrayParams>) => {
                     <Input label={"Bottom Thickness"}>
                         <Checkbox checked={value.hasBottomThickness} onToggle={setValue("hasBottomThickness")} tooltip={"Override Global Thickness?"} />
                         <PhysicalLengthInput value={value.bottomThickness} onValidValue={setValue("bottomThickness")} disabled={!value.hasBottomThickness} />
+                    </Input>
+                    <Input label={"Grid Thickness"}>
+                        <Checkbox checked={value.hasGridThickness} onToggle={setValue("hasGridThickness")} tooltip={"Override Global Thickness?"} />
+                        <PhysicalLengthInput value={value.gridThickness} onValidValue={setValue("gridThickness")} disabled={!value.hasGridThickness} />
                     </Input>
                 </ControlPanel>
             </ControlledFoldout>
@@ -53,24 +62,36 @@ const draw = (item: GridTrayParams, globals: GlobalSettings): LayoutPart[] => {
 
     const bottomThickness = convertLength(resBottomThickness, "mm").value;
     const wallThickness = convertLength(resWallThickness, "mm").value;
-    const gridInset = convertLength(item.hasGridInset ? item.gridInset : globals.hasGridInset ? globals.gridInset : globals.thickness, "mm").value;
+    const gridThickness = item.includeBaseplate ? convertLength(item.hasGridThickness ? item.gridThickness : globals.thickness, "mm").value : 0;
+    // const gridInset = convertLength(item.hasGridInset ? item.gridInset : globals.hasGridInset ? globals.gridInset : globals.thickness, "mm").value;
 
     const gridClearance = convertLength(item.hasGridClearance ? item.gridClearance : globals.gridClearance, "mm").value;
     const gridTab = convertLength(item.hasGridTab ? item.gridTab : globals.gridTab, "mm").value;
     const stackTab = convertLength(item.hasStackTab ? item.stackTab : globals.stackTab, "mm").value;
 
+    const sizeX = gridSize * item.cellX + wallThickness * 2 + gridClearance * 2;
+    const sizeY = gridSize * item.cellY + wallThickness * 2 + gridClearance * 2;
+    const sizeZ = stackSize * item.cellZ + bottomThickness + gridThickness;
+
     const calculatedParams = {
-        cellX: item.cellX,
-        cellY: item.cellY,
-        cellZ: item.cellZ,
-        gridSize,
-        stackSize,
-        stackTab,
-        gridClearance,
-        gridTab,
-        wallThickness,
+        topSquat: 0,
         bottomThickness,
-        gridInset,
+        wallThickness,
+
+        sizeX,
+        tabXCount: item.cellX,
+        tabXSize: gridTab,
+        tabXSpacing: gridSize,
+
+        sizeY,
+        tabYCount: item.cellY,
+        tabYSize: gridTab,
+        tabYSpacing: gridSize,
+
+        sizeZ,
+        tabZCount: item.cellZ,
+        tabZSize: stackTab,
+        tabZSpacing: stackSize,
     };
 
     const shapes: Shape[] = [
@@ -94,11 +115,15 @@ export type GridTrayParams = {
     cellX: number;
     cellY: number;
     cellZ: number;
+    includeBaseplate: boolean;
 
     hasWallThickness: boolean;
     wallThickness: PhysicalLength;
     hasBottomThickness: boolean;
     bottomThickness: PhysicalLength;
+
+    hasGridThickness: boolean;
+    gridThickness: PhysicalLength;
 } & SystemOverrides;
 
 export const GridTrayDefinition: ItemDefinition<GridTrayParams> = {
@@ -116,9 +141,12 @@ export const GridTrayDefinition: ItemDefinition<GridTrayParams> = {
             cellX: 1,
             cellY: 1,
             cellZ: 2,
+            includeBaseplate: true,
 
             hasWallThickness: false,
             wallThickness: { value: 0.125, unit: "in" },
+            hasGridThickness: false,
+            gridThickness: { value: 0.125, unit: "in" },
 
             hasBottomThickness: false,
             bottomThickness: { value: 0.125, unit: "in" },
@@ -128,160 +156,174 @@ export const GridTrayDefinition: ItemDefinition<GridTrayParams> = {
 };
 
 const drawBottom = ({
-    cellX,
-    cellY,
+    sizeX,
+    tabXCount,
+    tabXSize,
+    tabXSpacing,
+    sizeY,
+    tabYCount,
+    tabYSize,
+    tabYSpacing,
     wallThickness,
-    gridSize,
-    gridClearance,
-    gridTab,
 }: {
-    cellX: number;
-    cellY: number;
+    sizeX: number;
+    tabXSize: number;
+    tabXCount: number;
+    tabXSpacing: number;
+    sizeY: number;
+    tabYSize: number;
+    tabYCount: number;
+    tabYSpacing: number;
     wallThickness: number;
-    gridSize: number;
-    gridClearance: number;
-    gridTab: number;
 }): { width: number; height: number; path: string } => {
-    const width = gridSize * cellX + gridClearance * 2 + wallThickness * 2;
-    const height = gridSize * cellY + gridClearance * 2 + wallThickness * 2;
+    const width = sizeX;
+    const height = sizeY;
 
-    const path: string[] = [
-        Draw.tabbedRect(width, height, {
+    return {
+        width,
+        height,
+        path: Draw.tabbedRect(width, height, {
             north: {
-                count: cellX,
-                spacing: gridSize,
+                count: tabXCount,
+                spacing: tabXSpacing,
                 depth: -wallThickness,
-                width: gridTab,
+                width: tabXSize,
             },
             east: {
-                count: cellY,
-                spacing: gridSize,
+                count: tabYCount,
+                spacing: tabYSpacing,
                 depth: -wallThickness,
-                width: gridTab,
+                width: tabYSize,
             },
             south: {
-                count: cellX,
-                spacing: gridSize,
+                count: tabXCount,
+                spacing: tabXSpacing,
                 depth: -wallThickness,
-                width: gridTab,
+                width: tabXSize,
             },
             west: {
-                count: cellY,
-                spacing: gridSize,
+                count: tabYCount,
+                spacing: tabYSpacing,
                 depth: -wallThickness,
-                width: gridTab,
+                width: tabYSize,
+            },
+        }),
+    };
+};
+
+const drawEnd = ({
+    sizeX,
+    tabXCount,
+    tabXSize,
+    tabXSpacing,
+    sizeZ,
+    tabZCount,
+    tabZSize,
+    tabZSpacing,
+    wallThickness,
+    bottomThickness,
+    topSquat,
+}: {
+    sizeX: number;
+    tabXCount: number;
+    tabXSize: number;
+    tabXSpacing: number;
+    sizeZ: number;
+    tabZCount: number;
+    tabZSize: number;
+    tabZSpacing: number;
+    wallThickness: number;
+    bottomThickness: number;
+    topSquat: number;
+}): { width: number; height: number; path: string } => {
+    const path: string[] = [
+        Draw.tabbedRect(sizeX, sizeZ - topSquat, {
+            east: {
+                width: tabZSize,
+                spacing: tabZSpacing,
+                count: tabZCount,
+                depth: -wallThickness,
+                offset: -topSquat / 2,
+            },
+            south: {
+                width: tabXSize,
+                spacing: tabXSpacing,
+                count: tabXCount,
+                depth: bottomThickness,
+            },
+            west: {
+                width: tabZSize,
+                spacing: tabZSpacing,
+                count: tabZCount,
+                depth: -wallThickness,
+                offset: topSquat / 2,
             },
         }),
     ];
 
     return {
-        width,
-        height,
+        width: sizeX,
+        height: sizeZ - topSquat,
         path: path.join(" "),
     };
 };
 
-const drawEnd = ({
-    cellX,
-    cellZ,
-    gridSize,
-    stackSize,
-    gridClearance,
-    gridTab,
-    stackTab,
-    wallThickness,
-    bottomThickness,
-}: {
-    cellX: number;
-    cellZ: number;
-    gridSize: number;
-    stackSize: number;
-    gridClearance: number;
-    gridTab: number;
-    stackTab: number;
-    wallThickness: number;
-    bottomThickness: number;
-}): { width: number; height: number; path: string } => {
-    const width = gridSize * cellX + gridClearance * 2 + wallThickness * 2;
-    const height = stackSize * cellZ + bottomThickness;
-
-    return {
-        width,
-        height,
-        path: Draw.tabbedRect(width, height, {
-            east: {
-                width: stackTab,
-                spacing: stackSize,
-                count: cellZ,
-                depth: -wallThickness,
-                // offset: -gridModeHeightAdjust / 2,
-            },
-            south: {
-                width: gridTab,
-                spacing: gridSize,
-                count: cellX,
-                depth: bottomThickness,
-            },
-            west: {
-                width: stackTab,
-                spacing: stackSize,
-                count: cellZ,
-                depth: -wallThickness,
-                // offset: gridModeHeightAdjust / 2,
-            },
-        }),
-    };
-};
-
 const drawSide = ({
-    cellY,
-    cellZ,
-    gridSize,
-    stackSize,
-    gridClearance,
-    gridTab,
-    stackTab,
+    sizeY,
+    tabYCount,
+    tabYSize,
+    tabYSpacing,
+    sizeZ,
+    tabZCount,
+    tabZSize,
+    tabZSpacing,
     wallThickness,
     bottomThickness,
+    topSquat,
 }: {
-    cellY: number;
-    cellZ: number;
-    gridSize: number;
-    stackSize: number;
-    gridClearance: number;
-    gridTab: number;
-    stackTab: number;
+    sizeY: number;
+    tabYCount: number;
+    tabYSize: number;
+    tabYSpacing: number;
+    sizeZ: number;
+    tabZCount: number;
+    tabZSize: number;
+    tabZSpacing: number;
+
     wallThickness: number;
     bottomThickness: number;
+    topSquat: number;
 }): { width: number; height: number; path: string } => {
-    const width = gridSize * cellY + gridClearance * 2 + wallThickness * 2;
-    const height = stackSize * cellZ + bottomThickness;
+    const path: string[] = [];
 
-    return {
-        width,
-        height,
-        path: Draw.tabbedRect(width, height, {
-            north: null,
+    path.push(
+        Draw.tabbedRect(sizeY, sizeZ - topSquat, {
             east: {
-                width: stackTab,
-                spacing: stackSize,
-                count: cellZ,
+                width: tabZSize,
+                spacing: tabZSpacing,
+                count: tabZCount,
                 depth: wallThickness,
-                // offset: -gridModeHeightAdjust / 2,
+                offset: -topSquat / 2,
             },
             south: {
-                width: gridTab,
-                spacing: gridSize,
-                count: cellY,
+                width: tabYSize,
+                spacing: tabYSpacing,
+                count: tabYCount,
                 depth: bottomThickness,
             },
             west: {
-                width: stackTab,
-                spacing: stackSize,
-                count: cellZ,
+                width: tabZSize,
+                spacing: tabZSpacing,
+                count: tabZCount,
                 depth: wallThickness,
-                // offset: gridModeHeightAdjust / 2,
+                offset: -topSquat / 2,
             },
-        }),
+        })
+    );
+
+    return {
+        width: sizeY,
+        height: sizeZ - topSquat,
+        path: path.join(" "),
     };
 };

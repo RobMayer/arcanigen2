@@ -100,8 +100,8 @@ const Controls = ({ value, setValue }: ItemControlProps<FreeBoxParams>) => {
                 <Input label={"Top Style"}>
                     <ToggleList value={value.topStyle} options={TOP_STYLE_OPTIONS} onSelect={setValue("topStyle")} />
                 </Input>
-                <Input label={"Top Inset"}>
-                    <PhysicalLengthInput value={value.topInset} onValidCommit={setValue("topInset")} min={0} />
+                <Input label={"Inset Depth"}>
+                    <PhysicalLengthInput value={value.insetDepth} onValidCommit={setValue("insetDepth")} min={0} />
                 </Input>
 
                 <Section>Dividers</Section>
@@ -111,8 +111,8 @@ const Controls = ({ value, setValue }: ItemControlProps<FreeBoxParams>) => {
                 <Input label={"Dividers Y"}>
                     <NumericInput value={value.divY} onValidCommit={setValue("divY")} min={0} step={1} />
                 </Input>
-                <Input label={"Divider Inset"}>
-                    <PhysicalLengthInput value={value.divInset} onValidCommit={setValue("divInset")} min={0} />
+                <Input label={"Divider Depth"}>
+                    <PhysicalLengthInput value={value.divDepth} onValidCommit={setValue("divDepth")} min={0} />
                 </Input>
                 <Input label={"Divider Tab Size"}>
                     <PhysicalLengthInput value={value.tabDivSize} onValidCommit={setValue("tabDivSize")} min={0} minExclusive />
@@ -158,8 +158,8 @@ const draw = (item: FreeBoxParams, globals: GlobalSettings): LayoutPart[] => {
     const topThickness = convertLength(resTopThickness, "mm").value;
     const divThickness = convertLength(resDivThickness, "mm").value;
 
-    const topInset = convertLength(item.topInset, "mm").value;
-    const divInset = convertLength(item.divInset, "mm").value;
+    const insetDepth = convertLength(item.insetDepth, "mm").value;
+    const divDepth = convertLength(item.divDepth, "mm").value;
 
     const clearanceX = convertLength(item.clearanceX, "mm").value;
     const clearanceY = convertLength(item.clearanceY, "mm").value;
@@ -168,7 +168,7 @@ const draw = (item: FreeBoxParams, globals: GlobalSettings): LayoutPart[] => {
     let boxTopOffset = 0;
     let divTopOffset = 0;
     if (item.topStyle === TopStyles.NONE) {
-        divTopOffset = divInset;
+        divTopOffset = divDepth;
         boxTopOffset = 0;
     }
     if (item.topStyle === TopStyles.FLUSH) {
@@ -176,8 +176,8 @@ const draw = (item: FreeBoxParams, globals: GlobalSettings): LayoutPart[] => {
         boxTopOffset = topThickness;
     }
     if (item.topStyle === TopStyles.INSET) {
-        divTopOffset = topInset + topThickness;
-        boxTopOffset = topInset + topThickness;
+        divTopOffset = insetDepth + topThickness;
+        boxTopOffset = insetDepth + topThickness;
     }
 
     const targetX = convertLength(item.sizeX, "mm").value;
@@ -226,7 +226,7 @@ const draw = (item: FreeBoxParams, globals: GlobalSettings): LayoutPart[] => {
         wallThickness,
         bottomThickness,
         topThickness,
-        topInset,
+        insetDepth,
         divThickness,
         topStyle: item.topStyle,
         divXSpacing,
@@ -298,12 +298,12 @@ export type FreeBoxParams = {
 
     divX: number;
     divY: number;
-    divInset: PhysicalLength;
+    divDepth: PhysicalLength;
     tabDivSize: PhysicalLength;
     tabDivCount: number;
 
     topStyle: TopStyle;
-    topInset: PhysicalLength;
+    insetDepth: PhysicalLength;
 
     hasWallThickness: boolean;
     wallThickness: PhysicalLength;
@@ -351,10 +351,10 @@ export const FreeBoxDefinition: ItemDefinition<FreeBoxParams> = {
             tabDivSize: { value: 6, unit: "mm" },
             tabDivCount: 2,
             topStyle: TopStyles.NONE,
-            topInset: { value: 0.125, unit: "in" },
+            insetDepth: { value: 0.125, unit: "in" },
 
             thickness: { value: 0.125, unit: "in" },
-            divInset: { value: 0.125, unit: "in" },
+            divDepth: { value: 0.125, unit: "in" },
 
             hasWallThickness: false,
             wallThickness: { value: 0.125, unit: "in" },
@@ -444,7 +444,7 @@ const drawEnd = ({
     tabDivCount,
     topStyle,
     tabDivSpacing,
-    topInset,
+    insetDepth,
     divHeight,
     divXSpacing,
     topSquat,
@@ -467,7 +467,7 @@ const drawEnd = ({
     divThickness: number;
     topStyle: TopStyle;
     tabDivSpacing: number;
-    topInset: number;
+    insetDepth: number;
     divHeight: number;
     divXSpacing: number;
     topSquat: number;
@@ -507,14 +507,14 @@ const drawEnd = ({
     ];
 
     if (topStyle === TopStyles.INSET) {
-        const [set, reset] = Draw.offsetOrigin(sizeX / 2, topInset);
+        const [set, reset] = Draw.offsetOrigin(sizeX / 2, insetDepth);
         path.push(set);
         path.push(Draw.array({ count: tabXCount, spacing: tabXSpacing }, { count: 1, spacing: 0 }, Draw.cutRect(tabXSize, topThickness, "TOP CENTER"), "TOP CENTER"));
         path.push(reset);
     }
 
     if (divX > 0) {
-        const [set, reset] = Draw.offsetOrigin(sizeX / 2, sizeZ - divHeight - bottomThickness + divHeight / 2);
+        const [set, reset] = Draw.offsetOrigin(sizeX / 2, sizeZ - topSquat - divHeight - bottomThickness + divHeight / 2);
         path.push(set);
         path.push(Draw.array({ count: divX, spacing: divXSpacing }, { count: tabDivCount, spacing: tabDivSpacing }, Draw.cutRect(divThickness, tabDivSize, "MIDDLE CENTER"), "MIDDLE CENTER"));
         path.push(reset);
@@ -522,7 +522,7 @@ const drawEnd = ({
 
     return {
         width: sizeX,
-        height: sizeZ,
+        height: sizeZ - topSquat,
         path: path.join(" "),
     };
 };
@@ -544,7 +544,7 @@ const drawSide = ({
     tabDivSize,
     tabDivCount,
     topStyle,
-    topInset,
+    insetDepth,
     divHeight,
     tabDivSpacing,
     divYSpacing,
@@ -569,7 +569,7 @@ const drawSide = ({
     divThickness: number;
 
     topStyle: TopStyle;
-    topInset: number;
+    insetDepth: number;
     divHeight: number;
     divYSpacing: number;
     topSquat: number;
@@ -611,14 +611,14 @@ const drawSide = ({
     );
 
     if (topStyle === TopStyles.INSET) {
-        const [set, reset] = Draw.offsetOrigin(sizeY / 2, topInset);
+        const [set, reset] = Draw.offsetOrigin(sizeY / 2, insetDepth);
         path.push(set);
         path.push(Draw.array({ count: tabYCount, spacing: tabYSpacing }, { count: 1, spacing: 0 }, Draw.cutRect(tabYSize, topThickness, "TOP CENTER"), "TOP CENTER"));
         path.push(reset);
     }
 
     if (divY > 0) {
-        const [set, reset] = Draw.offsetOrigin(sizeY / 2, sizeZ - divHeight - bottomThickness + divHeight / 2);
+        const [set, reset] = Draw.offsetOrigin(sizeY / 2, sizeZ - topSquat - divHeight - bottomThickness + divHeight / 2);
         path.push(set);
         path.push(Draw.array({ count: divY, spacing: divYSpacing }, { count: tabDivCount, spacing: tabDivSpacing }, Draw.cutRect(divThickness, tabDivSize, "MIDDLE CENTER"), "MIDDLE CENTER"));
         path.push(reset);
@@ -626,7 +626,7 @@ const drawSide = ({
 
     return {
         width: sizeY,
-        height: sizeZ,
+        height: sizeZ - topSquat,
         path: path.join(" "),
     };
 };
@@ -635,24 +635,25 @@ const drawTop = ({
     sizeX,
     tabXSize,
     tabXCount,
+    tabXSpacing,
     sizeY,
     tabYSize,
     tabYCount,
+    tabYSpacing,
     wallThickness,
 }: {
     sizeX: number;
     tabXSize: number;
     tabXCount: number;
+    tabXSpacing: number;
     sizeY: number;
     tabYSize: number;
     tabYCount: number;
+    tabYSpacing: number;
     wallThickness: number;
 }): { width: number; height: number; path: string } => {
     const width = sizeX;
     const height = sizeY;
-
-    const tabXSpacing = (sizeX - wallThickness * 2) / tabXCount;
-    const tabYSpacing = (sizeY - wallThickness * 2) / tabYCount;
 
     return {
         width,

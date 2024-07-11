@@ -9,6 +9,7 @@ const CATEGORY_NAMES: { [key in ItemCategory]: ReactNode } = {
     [ItemCategories.GRID]: "Grid-based",
     [ItemCategories.FREE]: "Freeform",
     [ItemCategories.TOOL]: "Tools",
+    [ItemCategories.OTHER]: "Other",
 };
 
 const ByCategory = Object.keys(ITEM_DEFINITIONS).reduce<{ [key: string]: { name: ReactNode; items: ItemType[] } }>((acc, type: ItemType) => {
@@ -16,12 +17,15 @@ const ByCategory = Object.keys(ITEM_DEFINITIONS).reduce<{ [key: string]: { name:
     if (!(def.category in acc)) {
         acc[def.category] = { name: CATEGORY_NAMES[def.category], items: [] };
     }
-    acc[def.category].items.push(type);
+    acc[def.category]?.items.push(type);
     return acc;
 }, {});
 
 export const AddItem = ({ onPick }: { onPick: (type: ItemType) => void }) => {
-    return Object.keys(ByCategory).map((catKey: ItemCategory) => {
+    return Object.keys(ItemCategories).map((catKey: ItemCategory) => {
+        if ((ByCategory[catKey]?.items ?? []).length === 0) {
+            return null;
+        }
         return (
             <Fragment key={catKey}>
                 <Section>{CATEGORY_NAMES[catKey]}</Section>
