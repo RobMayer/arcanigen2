@@ -77,6 +77,8 @@ const draw = (item: GridTrayParams, globals: GlobalSettings): LayoutPart[] => {
         topSquat: 0,
         bottomThickness,
         wallThickness,
+        hasTop: false,
+        topThickness: 0,
 
         sizeX,
         tabXCount: item.cellX,
@@ -95,11 +97,11 @@ const draw = (item: GridTrayParams, globals: GlobalSettings): LayoutPart[] => {
     };
 
     const shapes: Shape[] = [
-        { name: "Bottom", thickness: resBottomThickness, ...drawBottom(calculatedParams) },
-        { name: "Front", thickness: resWallThickness, ...drawEnd(calculatedParams) },
-        { name: "Bottom", thickness: resWallThickness, ...drawEnd(calculatedParams) },
-        { name: "Left", thickness: resWallThickness, ...drawSide(calculatedParams) },
-        { name: "Right", thickness: resWallThickness, ...drawSide(calculatedParams) },
+        { name: "Bottom", width: sizeX, height: sizeY, thickness: resBottomThickness, path: Draw.Box.bottom(calculatedParams) },
+        { name: "Front", width: sizeX, height: sizeZ, thickness: resWallThickness, path: Draw.Box.end(calculatedParams) },
+        { name: "Bottom", width: sizeX, height: sizeZ, thickness: resWallThickness, path: Draw.Box.end(calculatedParams) },
+        { name: "Left", width: sizeY, height: sizeZ, thickness: resWallThickness, path: Draw.Box.side(calculatedParams) },
+        { name: "Right", width: sizeY, height: sizeZ, thickness: resWallThickness, path: Draw.Box.side(calculatedParams) },
     ];
 
     return [
@@ -134,7 +136,7 @@ export const GridTrayDefinition: ItemDefinition<GridTrayParams> = {
     category: ItemCategories.GRID,
     Controls,
     getSummary: (p) => {
-        return `GridTray ${p.cellX}x${p.cellY}x${p.cellZ}`;
+        return `Grid Tray ${p.cellX}x${p.cellY}x${p.cellZ}`;
     },
     getInitial: () => {
         return {
@@ -153,177 +155,4 @@ export const GridTrayDefinition: ItemDefinition<GridTrayParams> = {
             ...initialSystemOverrides(),
         };
     },
-};
-
-const drawBottom = ({
-    sizeX,
-    tabXCount,
-    tabXSize,
-    tabXSpacing,
-    sizeY,
-    tabYCount,
-    tabYSize,
-    tabYSpacing,
-    wallThickness,
-}: {
-    sizeX: number;
-    tabXSize: number;
-    tabXCount: number;
-    tabXSpacing: number;
-    sizeY: number;
-    tabYSize: number;
-    tabYCount: number;
-    tabYSpacing: number;
-    wallThickness: number;
-}): { width: number; height: number; path: string } => {
-    const width = sizeX;
-    const height = sizeY;
-
-    return {
-        width,
-        height,
-        path: Draw.tabbedRect(width, height, {
-            north: {
-                count: tabXCount,
-                spacing: tabXSpacing,
-                depth: -wallThickness,
-                width: tabXSize,
-            },
-            east: {
-                count: tabYCount,
-                spacing: tabYSpacing,
-                depth: -wallThickness,
-                width: tabYSize,
-            },
-            south: {
-                count: tabXCount,
-                spacing: tabXSpacing,
-                depth: -wallThickness,
-                width: tabXSize,
-            },
-            west: {
-                count: tabYCount,
-                spacing: tabYSpacing,
-                depth: -wallThickness,
-                width: tabYSize,
-            },
-        }),
-    };
-};
-
-const drawEnd = ({
-    sizeX,
-    tabXCount,
-    tabXSize,
-    tabXSpacing,
-    sizeZ,
-    tabZCount,
-    tabZSize,
-    tabZSpacing,
-    wallThickness,
-    bottomThickness,
-    topSquat,
-}: {
-    sizeX: number;
-    tabXCount: number;
-    tabXSize: number;
-    tabXSpacing: number;
-    sizeZ: number;
-    tabZCount: number;
-    tabZSize: number;
-    tabZSpacing: number;
-    wallThickness: number;
-    bottomThickness: number;
-    topSquat: number;
-}): { width: number; height: number; path: string } => {
-    const path: string[] = [
-        Draw.tabbedRect(sizeX, sizeZ - topSquat, {
-            east: {
-                width: tabZSize,
-                spacing: tabZSpacing,
-                count: tabZCount,
-                depth: -wallThickness,
-                offset: -topSquat / 2,
-            },
-            south: {
-                width: tabXSize,
-                spacing: tabXSpacing,
-                count: tabXCount,
-                depth: bottomThickness,
-            },
-            west: {
-                width: tabZSize,
-                spacing: tabZSpacing,
-                count: tabZCount,
-                depth: -wallThickness,
-                offset: topSquat / 2,
-            },
-        }),
-    ];
-
-    return {
-        width: sizeX,
-        height: sizeZ - topSquat,
-        path: path.join(" "),
-    };
-};
-
-const drawSide = ({
-    sizeY,
-    tabYCount,
-    tabYSize,
-    tabYSpacing,
-    sizeZ,
-    tabZCount,
-    tabZSize,
-    tabZSpacing,
-    wallThickness,
-    bottomThickness,
-    topSquat,
-}: {
-    sizeY: number;
-    tabYCount: number;
-    tabYSize: number;
-    tabYSpacing: number;
-    sizeZ: number;
-    tabZCount: number;
-    tabZSize: number;
-    tabZSpacing: number;
-
-    wallThickness: number;
-    bottomThickness: number;
-    topSquat: number;
-}): { width: number; height: number; path: string } => {
-    const path: string[] = [];
-
-    path.push(
-        Draw.tabbedRect(sizeY, sizeZ - topSquat, {
-            east: {
-                width: tabZSize,
-                spacing: tabZSpacing,
-                count: tabZCount,
-                depth: wallThickness,
-                offset: -topSquat / 2,
-            },
-            south: {
-                width: tabYSize,
-                spacing: tabYSpacing,
-                count: tabYCount,
-                depth: bottomThickness,
-            },
-            west: {
-                width: tabZSize,
-                spacing: tabZSpacing,
-                count: tabZCount,
-                depth: wallThickness,
-                offset: -topSquat / 2,
-            },
-        })
-    );
-
-    return {
-        width: sizeY,
-        height: sizeZ - topSquat,
-        path: path.join(" "),
-    };
 };

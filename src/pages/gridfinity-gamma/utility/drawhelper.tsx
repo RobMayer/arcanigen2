@@ -403,47 +403,19 @@ export namespace Draw {
             wallThickness: number;
         };
 
-        export const bottom = (args: BottomArgs) => {
-            const width = args.sizeX;
-            const height = args.sizeY;
-
-            return {
-                width,
-                height,
-                path: Draw.tabbedRect(width, height, {
-                    north: {
-                        count: args.tabXCount,
-                        spacing: args.tabXSpacing,
-                        depth: -args.wallThickness,
-                        width: args.tabXSize,
-                    },
-                    east: {
-                        count: args.tabYCount,
-                        spacing: args.tabYSpacing,
-                        depth: -args.wallThickness,
-                        width: args.tabYSize,
-                    },
-                    south: {
-                        count: args.tabXCount,
-                        spacing: args.tabXSpacing,
-                        depth: -args.wallThickness,
-                        width: args.tabXSize,
-                    },
-                    west: {
-                        count: args.tabYCount,
-                        spacing: args.tabYSpacing,
-                        depth: -args.wallThickness,
-                        width: args.tabYSize,
-                    },
-                }),
-            };
+        type TopArgs = {
+            sizeX: number;
+            tabXSize: number;
+            tabXCount: number;
+            tabXSpacing: number;
+            sizeY: number;
+            tabYSize: number;
+            tabYCount: number;
+            tabYSpacing: number;
+            wallThickness: number;
         };
 
-        type EndArgs = {
-            sizeX: number;
-            tabXCount: number;
-            tabXSize: number;
-            tabXSpacing: number;
+        type EdgeArgs<D extends "X" | "Y"> = {
             sizeZ: number;
             tabZCount: number;
             tabZSize: number;
@@ -452,89 +424,272 @@ export namespace Draw {
             wallThickness: number;
             bottomThickness: number;
             topThickness: number;
-            topStyle: string;
+            hasTop?: boolean;
+            topSquat?: number;
+        } & (D extends "X"
+            ? {
+                  sizeX: number;
+                  tabXCount: number;
+                  tabXSize: number;
+                  tabXSpacing: number;
+              }
+            : {
+                  sizeY: number;
+                  tabYCount: number;
+                  tabYSize: number;
+                  tabYSpacing: number;
+              });
 
-            //insetDepth: number;
-
-            topSquat: number;
-        };
-
-        type EndTabArgs = {
-            divX: number;
-            divXSpacing: number;
+        type WithDivArgs<D extends "X" | "Y"> = {
             divThickness: number;
             tabDivSize: number;
             tabDivCount: number;
             tabDivSpacing: number;
             divHeight: number;
-        };
+        } & (D extends "X"
+            ? {
+                  divX: number;
+                  divXSpacing: number;
+              }
+            : {
+                  divY: number;
+                  divYSpacing: number;
+              });
 
-        export const end = ({ sizeX, tabXCount, tabXSize, tabXSpacing, sizeZ, tabZCount, tabZSize, tabZSpacing, wallThickness, bottomThickness, topThickness, topStyle, topSquat }: EndArgs) => {
-            const path = Draw.tabbedRect(sizeX, sizeZ - topSquat, {
-                north:
-                    topStyle === "NONE" || topStyle === "INSET"
-                        ? null
-                        : {
-                              width: tabXSize,
-                              spacing: tabXSpacing,
-                              count: tabXCount,
-                              depth: -topThickness,
-                          },
+        type DivArgs<D extends "X" | "Y"> = {
+            tabDivSize: number;
+            tabDivCount: number;
+            wallThickness: number;
+            topThickness: number;
+            divThickness: number;
+            divHeight: number;
+            tabDivSpacing: number;
+        } & (D extends "X"
+            ? {
+                  divXSpacing: number;
+                  divX: number;
+                  sizeX: number;
+              }
+            : {
+                  divYSpacing: number;
+                  divY: number;
+                  sizeY: number;
+              });
+
+        export const bottom = (args: BottomArgs) => {
+            return Draw.tabbedRect(args.sizeX, args.sizeY, {
+                north: {
+                    count: args.tabXCount,
+                    spacing: args.tabXSpacing,
+                    depth: -args.wallThickness,
+                    width: args.tabXSize,
+                },
                 east: {
-                    width: tabZSize,
-                    spacing: tabZSpacing,
-                    count: tabZCount,
-                    depth: -wallThickness,
-                    offset: -topSquat / 2,
+                    count: args.tabYCount,
+                    spacing: args.tabYSpacing,
+                    depth: -args.wallThickness,
+                    width: args.tabYSize,
                 },
                 south: {
-                    width: tabXSize,
-                    spacing: tabXSpacing,
-                    count: tabXCount,
-                    depth: bottomThickness,
+                    count: args.tabXCount,
+                    spacing: args.tabXSpacing,
+                    depth: -args.wallThickness,
+                    width: args.tabXSize,
                 },
                 west: {
-                    width: tabZSize,
-                    spacing: tabZSpacing,
-                    count: tabZCount,
-                    depth: -wallThickness,
-                    offset: topSquat / 2,
+                    count: args.tabYCount,
+                    spacing: args.tabYSpacing,
+                    depth: -args.wallThickness,
+                    width: args.tabYSize,
                 },
             });
-            return {
-                width: sizeX,
-                height: sizeZ - topSquat,
-                path: path,
-            };
         };
 
-        end.withFeet = (args: EndTabArgs & EndArgs) => {
-            const { width, height, path } = end(args);
+        export const end = (args: EdgeArgs<"X">) => {
+            return Draw.tabbedRect(args.sizeX, args.sizeZ - (args?.topSquat ?? 0), {
+                north: !(args?.hasTop ?? false)
+                    ? null
+                    : {
+                          width: args.tabXSize,
+                          spacing: args.tabXSpacing,
+                          count: args.tabXCount,
+                          depth: -args.topThickness,
+                      },
+                east: {
+                    width: args.tabZSize,
+                    spacing: args.tabZSpacing,
+                    count: args.tabZCount,
+                    depth: -args.wallThickness,
+                    offset: -(args?.topSquat ?? 0) / 2,
+                },
+                south: {
+                    width: args.tabXSize,
+                    spacing: args.tabXSpacing,
+                    count: args.tabXCount,
+                    depth: args.bottomThickness,
+                },
+                west: {
+                    width: args.tabZSize,
+                    spacing: args.tabZSpacing,
+                    count: args.tabZCount,
+                    depth: -args.wallThickness,
+                    offset: (args?.topSquat ?? 0) / 2,
+                },
+            });
+        };
+
+        end.withDividers = (args: EdgeArgs<"X"> & WithDivArgs<"X">) => {
+            const path = [end(args)];
 
             if (args.divX > 0) {
-                const [set, reset] = Draw.offsetOrigin(args.sizeX / 2, args.sizeZ - args.topSquat - args.divHeight - args.bottomThickness + args.divHeight / 2);
-                return {
-                    width,
-                    height,
-                    path: [
-                        path,
-                        set,
-                        Draw.array(
-                            { count: args.divX, spacing: args.divXSpacing },
-                            { count: args.tabDivCount, spacing: args.tabDivSpacing },
-                            Draw.cutRect(args.divThickness, args.tabDivSize, "MIDDLE CENTER"),
-                            "MIDDLE CENTER"
-                        ),
-                        reset,
-                    ].join(" "),
-                };
+                const [set, reset] = Draw.offsetOrigin(args.sizeX / 2, args.sizeZ - (args?.topSquat ?? 0) - args.divHeight - args.bottomThickness + args.divHeight / 2);
+                path.push(set);
+                path.push(
+                    Draw.array(
+                        { count: args.divX, spacing: args.divXSpacing },
+                        { count: args.tabDivCount, spacing: args.tabDivSpacing },
+                        Draw.cutRect(args.divThickness, args.tabDivSize, "MIDDLE CENTER"),
+                        "MIDDLE CENTER"
+                    )
+                );
+                path.push(reset);
             }
 
-            return {
-                width,
-                height,
-                path: path,
-            };
+            return path.join(" ");
+        };
+
+        export const side = (args: EdgeArgs<"Y">) => {
+            return Draw.tabbedRect(args.sizeY, args.sizeZ - (args?.topSquat ?? 0), {
+                north: !(args?.hasTop ?? false)
+                    ? null
+                    : {
+                          width: args.tabYSize,
+                          spacing: args.tabYSpacing,
+                          count: args.tabYCount,
+                          depth: -args.topThickness,
+                      },
+                east: {
+                    width: args.tabZSize,
+                    spacing: args.tabZSpacing,
+                    count: args.tabZCount,
+                    depth: args.wallThickness,
+                    offset: -(args?.topSquat ?? 0) / 2,
+                },
+                south: {
+                    width: args.tabYSize,
+                    spacing: args.tabYSpacing,
+                    count: args.tabYCount,
+                    depth: args.bottomThickness,
+                },
+                west: {
+                    width: args.tabZSize,
+                    spacing: args.tabZSpacing,
+                    count: args.tabZCount,
+                    depth: args.wallThickness,
+                    offset: -(args?.topSquat ?? 0) / 2,
+                },
+            });
+        };
+
+        side.withDividers = (args: EdgeArgs<"Y"> & WithDivArgs<"Y">) => {
+            const path = [side(args)];
+
+            if (args.divY > 0) {
+                const [set, reset] = Draw.offsetOrigin(args.sizeY / 2, args.sizeZ - (args?.topSquat ?? 0) - args.divHeight - args.bottomThickness + args.divHeight / 2);
+                path.push(set);
+                path.push(
+                    Draw.array(
+                        { count: args.divY, spacing: args.divYSpacing },
+                        { count: args.tabDivCount, spacing: args.tabDivSpacing },
+                        Draw.cutRect(args.divThickness, args.tabDivSize, "MIDDLE CENTER"),
+                        "MIDDLE CENTER"
+                    )
+                );
+                path.push(reset);
+            }
+
+            return path.join(" ");
+        };
+
+        export const top = (args: TopArgs) => {
+            return Draw.tabbedRect(args.sizeX, args.sizeY, {
+                north: {
+                    count: args.tabXCount,
+                    spacing: args.tabXSpacing,
+                    depth: args.wallThickness,
+                    width: args.tabXSize,
+                },
+                east: {
+                    count: args.tabYCount,
+                    spacing: args.tabYSpacing,
+                    depth: args.wallThickness,
+                    width: args.tabYSize,
+                },
+                south: {
+                    count: args.tabXCount,
+                    spacing: args.tabXSpacing,
+                    depth: args.wallThickness,
+                    width: args.tabXSize,
+                },
+                west: {
+                    count: args.tabYCount,
+                    spacing: args.tabYSpacing,
+                    depth: args.wallThickness,
+                    width: args.tabYSize,
+                },
+            });
+        };
+
+        export const divX = (args: DivArgs<"X">) => {
+            return Draw.tabbedRect(args.sizeX, args.divHeight, {
+                east: {
+                    count: args.tabDivCount,
+                    width: args.tabDivSize,
+                    spacing: args.tabDivSpacing,
+                    depth: args.wallThickness,
+                },
+                south: {
+                    count: args.divX,
+                    width: args.divThickness,
+                    depth: -args.divHeight / 2,
+                    spacing: args.divXSpacing,
+                },
+                west: {
+                    count: args.tabDivCount,
+                    width: args.tabDivSize,
+                    spacing: args.tabDivSpacing,
+                    depth: args.wallThickness,
+                },
+            });
+        };
+
+        export const divY = (args: DivArgs<"Y">) => {
+            return Draw.tabbedRect(args.sizeY, args.divHeight, {
+                east: {
+                    count: args.tabDivCount,
+                    width: args.tabDivSize,
+                    spacing: args.tabDivSpacing,
+                    depth: args.wallThickness,
+                },
+                north: {
+                    count: args.divY,
+                    width: args.divThickness,
+                    depth: -args.divHeight / 2,
+                    spacing: args.divYSpacing,
+                },
+                west: {
+                    count: args.tabDivCount,
+                    width: args.tabDivSize,
+                    spacing: args.tabDivSpacing,
+                    depth: args.wallThickness,
+                },
+            });
+        };
+
+        export const insetTopSlots = ({ width, depth, count, spacing, thickness, size }: { width: number; depth: number; count: number; spacing: number; thickness: number; size: number }) => {
+            const [set, reset] = Draw.offsetOrigin(width / 2, depth);
+
+            return `${set} ${Draw.array({ count, spacing }, { count: 1, spacing: 0 }, Draw.cutRect(size, thickness, "TOP CENTER"), "TOP CENTER")} ${reset}`;
         };
     }
 }

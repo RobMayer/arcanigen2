@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { FootStyle, FootStyles, GlobalSettings, ItemCategories, ItemControlProps, ItemDefinition, LayoutPart, Shape } from "../types";
+import { FootStyles, GlobalSettings, ItemCategories, ItemControlProps, ItemDefinition, LayoutPart, Shape } from "../types";
 import { ControlPanel, Input, Sep } from "../widgets";
 import { NumericInput } from "../../../components/inputs/NumericInput";
 import ToggleList from "../../../components/selectors/ToggleList";
@@ -193,6 +193,7 @@ const draw = (item: GridBoxParams, globals: GlobalSettings): LayoutPart[] => {
         tabDivSize: stackTab,
         tabDivCount: item.cellZ,
         tabDivSpacing,
+        hasTop: item.topStyle === TopStyles.GRID || item.topStyle === TopStyles.FLUSH,
 
         wallThickness,
         bottomThickness,
@@ -217,34 +218,118 @@ const draw = (item: GridBoxParams, globals: GlobalSettings): LayoutPart[] => {
         footRunnerTab,
     };
 
-    const shapes: Shape[] = [
-        { name: "Bottom", thickness: resBottomThickness, ...drawBottom(calculatedParams) },
-        { name: "Front", thickness: resWallThickness, ...drawEnd(calculatedParams) },
-        { name: "Back", thickness: resWallThickness, ...drawEnd(calculatedParams) },
-        { name: "Left", thickness: resWallThickness, ...drawSide(calculatedParams) },
-        { name: "Right", thickness: resWallThickness, ...drawSide(calculatedParams) },
-    ];
+    const shapes: Shape[] = [];
+
+    {
+        const path = Draw.Box.bottom(calculatedParams);
+        const footSlots =
+            footLayout !== FootLayouts.NONE && footStyle === FootStyles.RUNNER
+                ? drawRunnerFeetSlots({
+                      gridSize,
+                      cellX: item.cellX,
+                      cellY: item.cellY,
+                      gridInset,
+                      footClearance,
+                      footLayout,
+                      footRunnerGap,
+                      footRunnerTab,
+                      footRunnerWidth,
+                  })
+                : "";
+
+        shapes.push({
+            name: "Bottom",
+            thickness: resBottomThickness,
+            width: calculatedParams.sizeX,
+            height: calculatedParams.sizeY,
+            path: `${path} ${footSlots}`,
+        });
+    }
+
+    {
+        const path = Draw.Box.end.withDividers(calculatedParams);
+        const insetSlots =
+            item.topStyle === TopStyles.INSET
+                ? Draw.Box.insetTopSlots({
+                      width: calculatedParams.sizeX,
+                      count: calculatedParams.tabXCount,
+                      depth: calculatedParams.insetDepth,
+                      spacing: calculatedParams.tabXSpacing,
+                      thickness: calculatedParams.topThickness,
+                      size: calculatedParams.tabXSize,
+                  })
+                : "";
+
+        shapes.push({
+            name: "Front",
+            thickness: resWallThickness,
+            width: calculatedParams.sizeX,
+            height: calculatedParams.sizeZ - (calculatedParams?.topSquat ?? 0),
+            path: `${path} ${insetSlots}`,
+        });
+        shapes.push({
+            name: "Back",
+            thickness: resWallThickness,
+            width: calculatedParams.sizeX,
+            height: calculatedParams.sizeZ - (calculatedParams?.topSquat ?? 0),
+            path: `${path} ${insetSlots}`,
+        });
+    }
+
+    {
+        const path = Draw.Box.side.withDividers(calculatedParams);
+        const insetSlots =
+            item.topStyle === TopStyles.INSET
+                ? Draw.Box.insetTopSlots({
+                      width: calculatedParams.sizeY,
+                      count: calculatedParams.tabYCount,
+                      depth: calculatedParams.insetDepth,
+                      spacing: calculatedParams.tabYSpacing,
+                      thickness: calculatedParams.topThickness,
+                      size: calculatedParams.tabYSize,
+                  })
+                : "";
+
+        shapes.push({
+            name: "Left",
+            thickness: resWallThickness,
+            width: calculatedParams.sizeY,
+            height: calculatedParams.sizeZ - (calculatedParams?.topSquat ?? 0),
+            path: `${path} ${insetSlots}`,
+        });
+        shapes.push({
+            name: "Right",
+            thickness: resWallThickness,
+            width: calculatedParams.sizeY,
+            height: calculatedParams.sizeZ - (calculatedParams?.topSquat ?? 0),
+            path: `${path} ${insetSlots}`,
+        });
+    }
 
     if (item.topStyle !== TopStyles.NONE) {
-        shapes.push({ name: "Top", thickness: resTopThickness, ...drawTop(calculatedParams) });
+        shapes.push({ name: "Top", thickness: resTopThickness, width: calculatedParams.sizeX, height: calculatedParams.sizeY, path: Draw.Box.top(calculatedParams) });
     }
 
     if (item.divY > 0) {
-        for (let dX = 1; dX <= item.divY; dX++) {
+        for (let dX = 1; dX <= item.divX; dX++) {
             shapes.push({
                 name: "X-Axis Divider",
                 thickness: resDivThickness,
-                ...drawDivX(calculatedParams),
+                width: calculatedParams.sizeY,
+                height: calculatedParams.divHeight,
+                path: Draw.Box.divY(calculatedParams),
             });
         }
     }
 
     if (item.divX > 0) {
-        for (let dY = 1; dY <= item.divX; dY++) {
+        for (let dY = 1; dY <= item.divY; dY++) {
             shapes.push({
                 name: "Y-Axis Divider",
                 thickness: resDivThickness,
-                ...drawDivY(calculatedParams),
+                width: calculatedParams.sizeX,
+                height: calculatedParams.divHeight,
+                path: Draw.Box.divX(calculatedParams),
             });
         }
     }
@@ -293,17 +378,17 @@ export const GridboxDefinition: ItemDefinition<GridBoxParams> = {
     Controls,
     getSummary: (p) => {
         if (p.divX > 0 || p.divY > 0) {
-            return `Grid-Box ${p.cellX}x${p.cellY}x${p.cellZ} (Divided ${p.divX + 1}x${p.divY + 1})`;
+            return `Grid Box ${p.cellX}x${p.cellY}x${p.cellZ} (div ${p.divX + 1}x${p.divY + 1})`;
         }
-        return `Grid-Box ${p.cellX}x${p.cellY}x${p.cellZ}`;
+        return `Grid Box ${p.cellX}x${p.cellY}x${p.cellZ}`;
     },
     getInitial: () => {
         return {
-            cellX: 2,
-            cellY: 2,
+            cellX: 1,
+            cellY: 1,
             cellZ: 2,
-            divX: 2,
-            divY: 2,
+            divX: 0,
+            divY: 0,
             footLayout: FootLayouts.SPARSE,
             topStyle: TopStyles.NONE,
 
@@ -327,499 +412,81 @@ export const GridboxDefinition: ItemDefinition<GridBoxParams> = {
     },
 };
 
-const drawBottom = ({
-    sizeX,
-    tabXCount,
-    tabXSize,
-    tabXSpacing,
-    sizeY,
-    tabYCount,
-    tabYSize,
-    tabYSpacing,
-    wallThickness,
-
+const drawRunnerFeetSlots = ({
+    gridSize,
     cellX,
     cellY,
-    gridSize,
-    footStyle,
-    footLayout,
-    footClearance,
-    footRunnerWidth,
-    footRunnerTab,
-    footRunnerGap,
     gridInset,
+    footClearance,
+    footLayout,
+    footRunnerGap,
+    footRunnerTab,
+    footRunnerWidth,
 }: {
-    sizeX: number;
-    tabXSize: number;
-    tabXCount: number;
-    tabXSpacing: number;
-    sizeY: number;
-    tabYSize: number;
-    tabYCount: number;
-    tabYSpacing: number;
-    wallThickness: number;
-
+    gridSize: number;
     cellX: number;
     cellY: number;
-    gridSize: number;
-
-    footStyle: FootStyle;
-    footLayout: FootLayout;
-    footClearance: number;
-    footRunnerWidth: number;
-    footRunnerTab: number;
-    footRunnerGap: number;
     gridInset: number;
-}): { width: number; height: number; path: string } => {
-    const width = sizeX;
-    const height = sizeY;
-
-    const path: string[] = [
-        Draw.tabbedRect(width, height, {
-            north: {
-                count: tabXCount,
-                spacing: tabXSpacing,
-                depth: -wallThickness,
-                width: tabXSize,
-            },
-            east: {
-                count: tabYCount,
-                spacing: tabYSpacing,
-                depth: -wallThickness,
-                width: tabYSize,
-            },
-            south: {
-                count: tabXCount,
-                spacing: tabXSpacing,
-                depth: -wallThickness,
-                width: tabXSize,
-            },
-            west: {
-                count: tabYCount,
-                spacing: tabYSpacing,
-                depth: -wallThickness,
-                width: tabYSize,
-            },
-        }),
-    ];
-
-    if (footLayout !== FootLayouts.NONE && footStyle === FootStyles.RUNNER) {
-        const [start, end] = Draw.offsetOrigin(gridSize / 2, gridSize / 2);
-
-        path.push(start);
-
-        const offsetPrimary = gridSize / 2 - gridInset - footClearance - footRunnerWidth / 2;
-        const offsetSecondary = footRunnerGap / 2 + footRunnerTab / 2;
-
-        const footN = `m ${-offsetSecondary},${-offsetPrimary} ${Draw.cutRect(
-            footRunnerTab,
-            footRunnerWidth,
-            "MIDDLE CENTER"
-        )} m ${offsetSecondary},${offsetPrimary} m ${offsetSecondary},${-offsetPrimary} ${Draw.cutRect(footRunnerTab, footRunnerWidth, "MIDDLE CENTER")} m ${-offsetSecondary},${offsetPrimary}`;
-        const footS = `m ${-offsetSecondary},${offsetPrimary} ${Draw.cutRect(
-            footRunnerTab,
-            footRunnerWidth,
-            "MIDDLE CENTER"
-        )} m ${offsetSecondary},${-offsetPrimary} m ${offsetSecondary},${offsetPrimary} ${Draw.cutRect(footRunnerTab, footRunnerWidth, "MIDDLE CENTER")} m ${-offsetSecondary},${-offsetPrimary}`;
-
-        const footW = `m ${-offsetPrimary},${-offsetSecondary} ${Draw.cutRect(
-            footRunnerWidth,
-            footRunnerTab,
-            "MIDDLE CENTER"
-        )} m ${offsetPrimary},${offsetSecondary} m ${-offsetPrimary},${offsetSecondary} ${Draw.cutRect(footRunnerWidth, footRunnerTab, "MIDDLE CENTER")} m ${offsetPrimary},${-offsetSecondary}`;
-        const footE = `m ${offsetPrimary},${-offsetSecondary} ${Draw.cutRect(
-            footRunnerWidth,
-            footRunnerTab,
-            "MIDDLE CENTER"
-        )} m ${-offsetPrimary},${offsetSecondary} m ${offsetPrimary},${offsetSecondary} ${Draw.cutRect(footRunnerWidth, footRunnerTab, "MIDDLE CENTER")} m ${-offsetPrimary},${-offsetSecondary}`;
-
-        if (footLayout === FootLayouts.DENSE) {
-            for (let x = 0; x < cellX; x++) {
-                for (let y = 0; y < cellY; y++) {
-                    path.push(`m ${gridSize * x},${gridSize * y}`, footN, footS, footW, footE, `m ${-(gridSize * x)},${-(gridSize * y)}`);
-                }
-            }
-        } else if (footLayout === FootLayouts.SPARSE) {
-            for (let x = 0; x < cellX; x++) {
-                path.push(`m ${gridSize * x},0`, footN, `m ${-(gridSize * x)},0`);
-                path.push(`m ${gridSize * x},${gridSize * (cellY - 1)}`, footS, `m ${-(gridSize * x)},${-(gridSize * (cellY - 1))}`);
-            }
-            for (let y = 0; y < cellY; y++) {
-                path.push(`m 0,${gridSize * y}`, footW, `m 0,${-(gridSize * y)}`);
-                path.push(`m ${gridSize * (cellX - 1)},${gridSize * y}`, footE, `m ${-(gridSize * (cellX - 1))},${-(gridSize * y)}`);
-            }
-        } else if (footLayout === FootLayouts.MINIMAL) {
-            path.push(`m 0,0 ${footW} ${footN} m 0,0`);
-            path.push(`m ${(cellX - 1) * gridSize},0 ${footE} ${cellX > 1 ? footN : ""} m ${-((cellX - 1) * gridSize)},0`);
-            path.push(`m 0,${(cellY - 1) * gridSize} ${cellY > 1 ? footW : ""} ${footS} m 0,${-((cellY - 1) * gridSize)}`);
-            path.push(`m ${(cellX - 1) * gridSize},${(cellY - 1) * gridSize} ${cellY > 1 ? footE : ""} ${cellX > 1 ? footS : ""} m ${-((cellX - 1) * gridSize)},${-((cellY - 1) * gridSize)}`);
-        }
-
-        path.push(end);
-    }
-
-    return {
-        width,
-        height,
-        path: path.join(" "),
-    };
-};
-
-const drawEnd = ({
-    sizeX,
-    tabXCount,
-    tabXSize,
-    tabXSpacing,
-    sizeZ,
-    tabZCount,
-    tabZSize,
-    tabZSpacing,
-    divX,
-    wallThickness,
-    bottomThickness,
-    topThickness,
-    divThickness,
-    tabDivSize,
-    tabDivCount,
-    topStyle,
-    tabDivSpacing,
-    insetDepth,
-    divHeight,
-    divXSpacing,
-    topSquat,
-}: {
-    sizeX: number;
-    tabXCount: number;
-    tabXSize: number;
-    tabXSpacing: number;
-    sizeZ: number;
-    tabZCount: number;
-    tabZSize: number;
-    tabZSpacing: number;
-    divX: number;
-    tabDivSize: number;
-    tabDivCount: number;
-
-    wallThickness: number;
-    bottomThickness: number;
-    topThickness: number;
-    divThickness: number;
-    topStyle: TopStyle;
-    tabDivSpacing: number;
-    insetDepth: number;
-    divHeight: number;
-    divXSpacing: number;
-    topSquat: number;
-}): { width: number; height: number; path: string } => {
-    const path: string[] = [
-        Draw.tabbedRect(sizeX, sizeZ - topSquat, {
-            north:
-                topStyle === TopStyles.NONE || topStyle === TopStyles.INSET
-                    ? null
-                    : {
-                          width: tabXSize,
-                          spacing: tabXSpacing,
-                          count: tabXCount,
-                          depth: -topThickness,
-                      },
-            east: {
-                width: tabZSize,
-                spacing: tabZSpacing,
-                count: tabZCount,
-                depth: -wallThickness,
-                offset: -topSquat / 2,
-            },
-            south: {
-                width: tabXSize,
-                spacing: tabXSpacing,
-                count: tabXCount,
-                depth: bottomThickness,
-            },
-            west: {
-                width: tabZSize,
-                spacing: tabZSpacing,
-                count: tabZCount,
-                depth: -wallThickness,
-                offset: topSquat / 2,
-            },
-        }),
-    ];
-
-    if (topStyle === TopStyles.INSET) {
-        const [set, reset] = Draw.offsetOrigin(sizeX / 2, insetDepth);
-        path.push(set);
-        path.push(Draw.array({ count: tabXCount, spacing: tabXSpacing }, { count: 1, spacing: 0 }, Draw.cutRect(tabXSize, topThickness, "TOP CENTER"), "TOP CENTER"));
-        path.push(reset);
-    }
-
-    if (divX > 0) {
-        const [set, reset] = Draw.offsetOrigin(sizeX / 2, sizeZ - topSquat - divHeight - bottomThickness + divHeight / 2);
-        path.push(set);
-        path.push(Draw.array({ count: divX, spacing: divXSpacing }, { count: tabDivCount, spacing: tabDivSpacing }, Draw.cutRect(divThickness, tabDivSize, "MIDDLE CENTER"), "MIDDLE CENTER"));
-        path.push(reset);
-    }
-
-    return {
-        width: sizeX,
-        height: sizeZ - topSquat,
-        path: path.join(" "),
-    };
-};
-
-const drawSide = ({
-    sizeY,
-    tabYCount,
-    tabYSize,
-    tabYSpacing,
-    sizeZ,
-    tabZCount,
-    tabZSize,
-    tabZSpacing,
-    divY,
-    wallThickness,
-    bottomThickness,
-    topThickness,
-    divThickness,
-    tabDivSize,
-    tabDivCount,
-    topStyle,
-    insetDepth,
-    divHeight,
-    tabDivSpacing,
-    divYSpacing,
-    topSquat,
-}: {
-    sizeY: number;
-    tabYCount: number;
-    tabYSize: number;
-    tabYSpacing: number;
-    sizeZ: number;
-    tabZCount: number;
-    tabZSize: number;
-    tabZSpacing: number;
-    divY: number;
-    tabDivSize: number;
-    tabDivCount: number;
-    tabDivSpacing: number;
-
-    wallThickness: number;
-    bottomThickness: number;
-    topThickness: number;
-    divThickness: number;
-
-    topStyle: TopStyle;
-    insetDepth: number;
-    divHeight: number;
-    divYSpacing: number;
-    topSquat: number;
-}): { width: number; height: number; path: string } => {
+    footClearance: number;
+    footLayout: FootLayout;
+    footRunnerGap: number;
+    footRunnerTab: number;
+    footRunnerWidth: number;
+}) => {
     const path: string[] = [];
 
-    path.push(
-        Draw.tabbedRect(sizeY, sizeZ - topSquat, {
-            north:
-                topStyle === TopStyles.NONE || topStyle === TopStyles.INSET
-                    ? null
-                    : {
-                          width: tabYSize,
-                          spacing: tabYSpacing,
-                          count: tabYCount,
-                          depth: -topThickness,
-                      },
-            east: {
-                width: tabZSize,
-                spacing: tabZSpacing,
-                count: tabZCount,
-                depth: wallThickness,
-                offset: -topSquat / 2,
-            },
-            south: {
-                width: tabYSize,
-                spacing: tabYSpacing,
-                count: tabYCount,
-                depth: bottomThickness,
-            },
-            west: {
-                width: tabZSize,
-                spacing: tabZSpacing,
-                count: tabZCount,
-                depth: wallThickness,
-                offset: -topSquat / 2,
-            },
-        })
-    );
+    const [start, end] = Draw.offsetOrigin(gridSize / 2, gridSize / 2);
 
-    if (topStyle === TopStyles.INSET) {
-        const [set, reset] = Draw.offsetOrigin(sizeY / 2, insetDepth);
-        path.push(set);
-        path.push(Draw.array({ count: tabYCount, spacing: tabYSpacing }, { count: 1, spacing: 0 }, Draw.cutRect(tabYSize, topThickness, "TOP CENTER"), "TOP CENTER"));
-        path.push(reset);
+    path.push(start);
+
+    const offsetPrimary = gridSize / 2 - gridInset - footClearance - footRunnerWidth / 2;
+    const offsetSecondary = footRunnerGap / 2 + footRunnerTab / 2;
+
+    const footN = `m ${-offsetSecondary},${-offsetPrimary} ${Draw.cutRect(
+        footRunnerTab,
+        footRunnerWidth,
+        "MIDDLE CENTER"
+    )} m ${offsetSecondary},${offsetPrimary} m ${offsetSecondary},${-offsetPrimary} ${Draw.cutRect(footRunnerTab, footRunnerWidth, "MIDDLE CENTER")} m ${-offsetSecondary},${offsetPrimary}`;
+    const footS = `m ${-offsetSecondary},${offsetPrimary} ${Draw.cutRect(
+        footRunnerTab,
+        footRunnerWidth,
+        "MIDDLE CENTER"
+    )} m ${offsetSecondary},${-offsetPrimary} m ${offsetSecondary},${offsetPrimary} ${Draw.cutRect(footRunnerTab, footRunnerWidth, "MIDDLE CENTER")} m ${-offsetSecondary},${-offsetPrimary}`;
+
+    const footW = `m ${-offsetPrimary},${-offsetSecondary} ${Draw.cutRect(
+        footRunnerWidth,
+        footRunnerTab,
+        "MIDDLE CENTER"
+    )} m ${offsetPrimary},${offsetSecondary} m ${-offsetPrimary},${offsetSecondary} ${Draw.cutRect(footRunnerWidth, footRunnerTab, "MIDDLE CENTER")} m ${offsetPrimary},${-offsetSecondary}`;
+    const footE = `m ${offsetPrimary},${-offsetSecondary} ${Draw.cutRect(
+        footRunnerWidth,
+        footRunnerTab,
+        "MIDDLE CENTER"
+    )} m ${-offsetPrimary},${offsetSecondary} m ${offsetPrimary},${offsetSecondary} ${Draw.cutRect(footRunnerWidth, footRunnerTab, "MIDDLE CENTER")} m ${-offsetPrimary},${-offsetSecondary}`;
+
+    if (footLayout === FootLayouts.DENSE) {
+        for (let x = 0; x < cellX; x++) {
+            for (let y = 0; y < cellY; y++) {
+                path.push(`m ${gridSize * x},${gridSize * y}`, footN, footS, footW, footE, `m ${-(gridSize * x)},${-(gridSize * y)}`);
+            }
+        }
+    } else if (footLayout === FootLayouts.SPARSE) {
+        for (let x = 0; x < cellX; x++) {
+            path.push(`m ${gridSize * x},0`, footN, `m ${-(gridSize * x)},0`);
+            path.push(`m ${gridSize * x},${gridSize * (cellY - 1)}`, footS, `m ${-(gridSize * x)},${-(gridSize * (cellY - 1))}`);
+        }
+        for (let y = 0; y < cellY; y++) {
+            path.push(`m 0,${gridSize * y}`, footW, `m 0,${-(gridSize * y)}`);
+            path.push(`m ${gridSize * (cellX - 1)},${gridSize * y}`, footE, `m ${-(gridSize * (cellX - 1))},${-(gridSize * y)}`);
+        }
+    } else if (footLayout === FootLayouts.MINIMAL) {
+        path.push(`m 0,0 ${footW} ${footN} m 0,0`);
+        path.push(`m ${(cellX - 1) * gridSize},0 ${footE} ${cellX > 1 ? footN : ""} m ${-((cellX - 1) * gridSize)},0`);
+        path.push(`m 0,${(cellY - 1) * gridSize} ${cellY > 1 ? footW : ""} ${footS} m 0,${-((cellY - 1) * gridSize)}`);
+        path.push(`m ${(cellX - 1) * gridSize},${(cellY - 1) * gridSize} ${cellY > 1 ? footE : ""} ${cellX > 1 ? footS : ""} m ${-((cellX - 1) * gridSize)},${-((cellY - 1) * gridSize)}`);
     }
 
-    if (divY > 0) {
-        const [set, reset] = Draw.offsetOrigin(sizeY / 2, sizeZ - topSquat - divHeight - bottomThickness + divHeight / 2);
-        path.push(set);
-        path.push(Draw.array({ count: divY, spacing: divYSpacing }, { count: tabDivCount, spacing: tabDivSpacing }, Draw.cutRect(divThickness, tabDivSize, "MIDDLE CENTER"), "MIDDLE CENTER"));
-        path.push(reset);
-    }
+    path.push(end);
 
-    return {
-        width: sizeY,
-        height: sizeZ - topSquat,
-        path: path.join(" "),
-    };
-};
-
-const drawTop = ({
-    sizeX,
-    tabXSize,
-    tabXCount,
-    tabXSpacing,
-    sizeY,
-    tabYSize,
-    tabYCount,
-    tabYSpacing,
-    wallThickness,
-}: {
-    sizeX: number;
-    tabXSize: number;
-    tabXCount: number;
-    tabXSpacing: number;
-    sizeY: number;
-    tabYSize: number;
-    tabYCount: number;
-    tabYSpacing: number;
-    wallThickness: number;
-}): { width: number; height: number; path: string } => {
-    const width = sizeX;
-    const height = sizeY;
-
-    return {
-        width,
-        height,
-        path: Draw.tabbedRect(width, height, {
-            north: {
-                count: tabXCount,
-                spacing: tabXSpacing,
-                depth: wallThickness,
-                width: tabXSize,
-            },
-            east: {
-                count: tabYCount,
-                spacing: tabYSpacing,
-                depth: wallThickness,
-                width: tabYSize,
-            },
-            south: {
-                count: tabXCount,
-                spacing: tabXSpacing,
-                depth: wallThickness,
-                width: tabXSize,
-            },
-            west: {
-                count: tabYCount,
-                spacing: tabYSpacing,
-                depth: wallThickness,
-                width: tabYSize,
-            },
-        }),
-    };
-};
-
-const drawDivX = ({
-    sizeX,
-    tabDivSize,
-    tabDivCount,
-    divX,
-    wallThickness,
-    divThickness,
-    divHeight,
-    divXSpacing,
-    tabDivSpacing,
-}: {
-    sizeX: number;
-    tabDivSize: number;
-    tabDivCount: number;
-    divX: number;
-    wallThickness: number;
-    bottomThickness: number;
-    topThickness: number;
-    divThickness: number;
-    divHeight: number;
-    divXSpacing: number;
-    tabDivSpacing: number;
-}): { width: number; height: number; path: string } => {
-    return {
-        width: sizeX,
-        height: divHeight,
-        path: Draw.tabbedRect(sizeX, divHeight, {
-            east: {
-                count: tabDivCount,
-                width: tabDivSize,
-                spacing: tabDivSpacing,
-                depth: wallThickness,
-                // offset: -zOffset,
-            },
-            south: {
-                count: divX,
-                width: divThickness,
-                depth: -divHeight / 2,
-                spacing: divXSpacing,
-            },
-            west: {
-                count: tabDivCount,
-                width: tabDivSize,
-                spacing: tabDivSpacing,
-                depth: wallThickness,
-                // offset: zOffset,
-            },
-        }),
-    };
-};
-
-const drawDivY = ({
-    sizeY,
-    tabDivSize,
-    tabDivCount,
-    divY,
-    wallThickness,
-    divThickness,
-    divHeight,
-    divYSpacing,
-    tabDivSpacing,
-}: {
-    sizeY: number;
-    tabDivSize: number;
-    tabDivCount: number;
-    divY: number;
-    wallThickness: number;
-    divThickness: number;
-    divHeight: number;
-    divYSpacing: number;
-    tabDivSpacing: number;
-}) => {
-    return {
-        width: sizeY,
-        height: divHeight,
-        path: Draw.tabbedRect(sizeY, divHeight, {
-            east: {
-                count: tabDivCount,
-                width: tabDivSize,
-                spacing: tabDivSpacing,
-                depth: wallThickness,
-            },
-            north: {
-                count: divY,
-                width: divThickness,
-                depth: -divHeight / 2,
-                spacing: divYSpacing,
-            },
-            west: {
-                count: tabDivCount,
-                width: tabDivSize,
-                spacing: tabDivSpacing,
-                depth: wallThickness,
-            },
-        }),
-    };
+    return path.join(" ");
 };
