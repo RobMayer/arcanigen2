@@ -3,6 +3,10 @@ import { Changelog } from "../../components/utility/changelog";
 export const GridGammaChangelog = () => {
     return (
         <Changelog>
+            <Changelog.Release version={"v2.1.0"} on={"12-07-2024"}>
+                <Changelog.Feature>Added "Freeform Box"</Changelog.Feature>
+                <Changelog.Improvement>Save/Load objects to/from disk</Changelog.Improvement>
+            </Changelog.Release>
             <Changelog.Release version={"v2.0.0"} on={"09-07-2024"}>
                 <Changelog.Feature>Complete Rewrite of, well, everything</Changelog.Feature>
                 <Changelog.Improvement>Added Changelog</Changelog.Improvement>
