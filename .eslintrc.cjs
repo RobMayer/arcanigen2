@@ -14,7 +14,7 @@ module.exports = {
             {
                 args: "none",
                 argsIgnorePattern: "^_",
-                caughtErrors: "all",
+                caughtErrors: "none",
                 caughtErrorsIgnorePattern: "^_",
                 destructuredArrayIgnorePattern: "^_",
                 varsIgnorePattern: "^_",

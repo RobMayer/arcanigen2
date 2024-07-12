@@ -1,13 +1,14 @@
 import { Dispatch, SetStateAction, useMemo } from "react";
 import styled from "styled-components";
 import ActionButton from "../../../components/buttons/ActionButton";
-import { useItemList } from "../state";
-import { ItemDefinition, ItemType } from "../types";
+import { useItemList, useItemState } from "../state";
+import { ItemDefinition, ItemInstance, ItemType } from "../types";
 import Modal, { useModal } from "../../../components/popups/Modal";
 import { ArraySelect } from "../../../components/selectors/ArraySelect";
 import { Section } from "../widgets";
 import { AddItem } from "./additem";
 import { ITEM_DEFINITIONS } from "../definitions";
+import saveAs from "file-saver";
 
 export const ItemList = ({ selected, setSelected }: { selected: number | null; setSelected: Dispatch<SetStateAction<null | number>> }) => {
     const [list, listMethods] = useItemList();
@@ -39,6 +40,8 @@ export const ItemList = ({ selected, setSelected }: { selected: number | null; s
                 >
                     Add
                 </ActionButton>
+                <LoadButton />
+                {selected === null ? <ActionButton disabled>Save</ActionButton> : <SaveButton selected={selected} />}
                 <ActionButton
                     onAction={() => {
                         listMethods.delete(selected);
@@ -75,3 +78,74 @@ const Options = styled.div`
     grid-auto-columns: 1fr;
     gap: 0.5em;
 `;
+
+const SaveButton = ({ selected }: { selected: number }) => {
+    const [value] = useItemState(selected);
+
+    return (
+        <ActionButton
+            onAction={() => {
+                const definition = ITEM_DEFINITIONS[value.type];
+                const { type, quantity, ...props } = value;
+                const blob = new Blob([JSON.stringify({ type, ...props })], { type: "application/json;charset=utf-8" });
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                saveAs(blob, `${definition.getSummary(value as any)}.ggo`);
+            }}
+        >
+            Save
+        </ActionButton>
+    );
+};
+
+const LoadButton = () => {
+    const [, listMethods] = useItemList();
+
+    return (
+        <ActionButton>
+            Load
+            <input
+                type="file"
+                onChange={(e) => {
+                    const thing = e.target.files?.[0];
+                    if (thing) {
+                        handleUpload(e.target, thing, ({ type, quantity, ...props }) => {
+                            listMethods.add({
+                                type,
+                                quantity: 1,
+                                ...props,
+                            });
+                        });
+                    }
+                }}
+                accept=".ggo"
+            />
+        </ActionButton>
+    );
+};
+
+const handleUpload = (element: HTMLInputElement, file: File, dispatch: (value: ItemInstance<ItemType>) => void) => {
+    if (file) {
+        const reader = new FileReader();
+        reader.readAsText(file);
+        reader.onload = (evt) => {
+            if (evt?.target?.result && typeof evt.target.result === "string") {
+                try {
+                    const json = JSON.parse(evt.target.result) as ItemInstance<ItemType>;
+                    if (json) {
+                        dispatch(json);
+                    } else {
+                        console.error("problem parsing uploaded file");
+                    }
+                } catch (e) {
+                    console.error("problem parsing json");
+                } finally {
+                    element.value = "";
+                }
+            }
+        };
+        reader.onerror = (evt) => {
+            console.error("problem reading file");
+            element.value = "";
+        };
+    }
+};

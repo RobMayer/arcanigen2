@@ -73,9 +73,9 @@ export type ItemDefinition<P> = {
     // getLayout: (item: P, globals: GlobalSettings) => { width: number; height: number; path: string }[];
     // getLabel: (item: P) => ReactNode;
     Controls: FC<ItemControlProps<P>>;
-    getSummary: (v: P) => ReactNode;
+    getSummary: (v: P) => string;
     getInitial: () => P;
-    title: ReactNode;
+    title: string;
     image?: string;
     snippet: ReactNode;
     draw: (item: P, globals: GlobalSettings) => LayoutPart[];
