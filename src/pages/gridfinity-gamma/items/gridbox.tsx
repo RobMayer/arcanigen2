@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { FootStyles, GlobalSettings, ItemCategories, ItemControlProps, ItemDefinition, LayoutPart, Shape } from "../types";
+import { FOOT_LAYOUT_OPTIONS, FootLayout, FootLayouts, FootStyles, GlobalSettings, ItemCategories, ItemControlProps, ItemDefinition, LayoutPart, Shape } from "../types";
 import { ControlPanel, Input, Sep } from "../widgets";
 import { NumericInput } from "../../../components/inputs/NumericInput";
 import ToggleList from "../../../components/selectors/ToggleList";
@@ -12,32 +12,16 @@ import { FootOverrideControls, FootOverrides, initialFootOverrides, initialSyste
 import { convertLength } from "../../../utility/mathhelper";
 import { Draw } from "../utility/drawhelper";
 
-export const FootLayouts = {
-    DENSE: "SLOT_DENSE",
-    SPARSE: "SLOT_SPARSE",
-    MINIMAL: "SLOT_MINIMAL",
-    NONE: "NONE",
-} as const;
-
-export type FootLayout = (typeof FootLayouts)[keyof typeof FootLayouts];
-
-export const FOOT_LAYOUT_OPTIONS: { [key in FootLayout]: ReactNode } = {
-    [FootLayouts.DENSE]: "Dense",
-    [FootLayouts.SPARSE]: "Sparse",
-    [FootLayouts.MINIMAL]: "Minimal",
-    [FootLayouts.NONE]: "None",
-};
-
-export const TopStyles = {
+const TopStyles = {
     NONE: "NONE",
     GRID: "GRID",
     FLUSH: "FLUSH",
     INSET: "INSET",
 } as const;
 
-export type TopStyle = (typeof TopStyles)[keyof typeof TopStyles];
+type TopStyle = (typeof TopStyles)[keyof typeof TopStyles];
 
-export const TOP_STYLE_OPTIONS: { [key in TopStyle]: ReactNode } = {
+const TOP_STYLE_OPTIONS: { [key in TopStyle]: ReactNode } = {
     [TopStyles.NONE]: "None",
     [TopStyles.GRID]: "Grid",
     [TopStyles.FLUSH]: "Flush",
@@ -101,8 +85,8 @@ const Controls = ({ value, setValue }: ItemControlProps<GridBoxParams>) => {
                     </Input>
                 </ControlPanel>
             </ControlledFoldout>
-            <FootOverrideControls value={value} setValue={setValue} foldout={"gridfinity.items.box.footOverrides"} />
-            <SystemOverrideControls value={value} setValue={setValue} foldout={"gridfinity.items.box.systemOverrides"} />
+            <FootOverrideControls value={value} setValue={setValue} foldout={"gridfinity.items.gridbox.footOverrides"} />
+            <SystemOverrideControls value={value} setValue={setValue} foldout={"gridfinity.items.gridbox.systemOverrides"} />
         </>
     );
 };

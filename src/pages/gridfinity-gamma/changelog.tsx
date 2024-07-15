@@ -3,6 +3,10 @@ import { Changelog } from "../../components/utility/changelog";
 export const GridGammaChangelog = () => {
     return (
         <Changelog>
+            <Changelog.Release version={"v2.2.0"} on={"14-07-2024"}>
+                <Changelog.Feature>Added "Grid-based Drawers"</Changelog.Feature>
+                <Changelog.Bugfix>Fixed a bug with Item-Setup layout sheet calculation.</Changelog.Bugfix>
+            </Changelog.Release>
             <Changelog.Release version={"v2.1.0"} on={"12-07-2024"}>
                 <Changelog.Feature>Added "Freeform Box"</Changelog.Feature>
                 <Changelog.Improvement>Save/Load objects to/from disk</Changelog.Improvement>

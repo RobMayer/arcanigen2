@@ -67,6 +67,22 @@ export const FOOT_STYLE_OPTIONS: { [key in FootStyle]: ReactNode } = {
     RUNNER: "Runner",
 } as const;
 
+export const FootLayouts = {
+    DENSE: "SLOT_DENSE",
+    SPARSE: "SLOT_SPARSE",
+    MINIMAL: "SLOT_MINIMAL",
+    NONE: "NONE",
+} as const;
+
+export type FootLayout = (typeof FootLayouts)[keyof typeof FootLayouts];
+
+export const FOOT_LAYOUT_OPTIONS: { [key in FootLayout]: ReactNode } = {
+    [FootLayouts.DENSE]: "Dense",
+    [FootLayouts.SPARSE]: "Sparse",
+    [FootLayouts.MINIMAL]: "Minimal",
+    [FootLayouts.NONE]: "None",
+};
+
 type ItemParams<D> = D extends ItemDefinition<infer P> ? P : never;
 
 export type ItemDefinition<P> = {

@@ -53,7 +53,7 @@ export namespace Pack {
         }
         if (dynamicBoth) {
             sortOrder = "DESC";
-            sortStrategy = "AREA";
+            sortStrategy = "LONG_SIDE";
         }
 
         let sheetCount = 0;
@@ -81,8 +81,7 @@ export namespace Pack {
                     y: 0,
                     b: 0,
                 });
-
-                runningWidth += w + kerf;
+                runningWidth = runningWidth + w + kerf;
             } else {
                 freeRectangles.push({
                     w: runningWidth,
@@ -91,7 +90,7 @@ export namespace Pack {
                     y: runningHeight + kerf,
                     b: 0,
                 });
-                runningHeight += h + kerf;
+                runningHeight = runningHeight + h + kerf;
             }
         };
 
@@ -144,14 +143,14 @@ export namespace Pack {
             // set up first box for first item...
             const start = sortedItems[0];
             freeRectangles.push({
-                w: dynamicWidth ? start.width : width,
-                h: dynamicHeight ? start.height : height,
+                w: dynamicWidth ? start.width + kerf : width,
+                h: dynamicHeight ? start.height + kerf : height,
                 x: 0,
                 y: 0,
                 b: 0,
             });
-            runningWidth += dynamicWidth ? start.width : width;
-            runningHeight += dynamicHeight ? start.height : height;
+            runningWidth += dynamicWidth ? start.width + kerf : width;
+            runningHeight += dynamicHeight ? start.height + kerf : height;
         }
 
         const sheets = sortedItems
@@ -160,12 +159,25 @@ export namespace Pack {
                 if (!selectedOption) {
                     if (dynamicWidth || dynamicHeight) {
                         if (dynamicWidth && dynamicHeight) {
+                            const canGrowRight = item.height <= runningHeight;
+                            const canGrowDown = item.width <= runningWidth;
+
                             const resIfRight = getSquareness({ width: runningWidth + item.width, height: runningHeight });
                             const resIfDown = getSquareness({ width: runningWidth, height: runningHeight + item.height });
-                            if (resIfDown > resIfRight) {
+
+                            const shouldGrowRight = resIfRight > resIfDown && canGrowRight;
+                            const shouldGrowDown = resIfDown >= resIfRight && canGrowDown;
+
+                            if (shouldGrowDown) {
+                                growSheet("DOWN", item.width, item.height);
+                            } else if (shouldGrowRight) {
+                                growSheet("RIGHT", item.width, item.height);
+                            } else if (canGrowRight) {
+                                growSheet("RIGHT", item.width, item.height);
+                            } else if (canGrowDown) {
                                 growSheet("DOWN", item.width, item.height);
                             } else {
-                                growSheet("RIGHT", item.width, item.height);
+                                console.error("COULD NOT FIT", item);
                             }
                         } else if (dynamicHeight) {
                             growSheet("DOWN", item.width, item.height);
@@ -178,6 +190,7 @@ export namespace Pack {
                     selectedOption = selectRectangleOption(freeRectangles, item, kerf, allowRotation, selectionStrategy, splitStrategy);
                 }
                 if (!selectedOption) {
+                    discarded.push(item);
                     //throw new Error(`item at index ${idx} with dimensions ${item.width}x${item.height} exceeds bin dimensions of ${binWidth}x${binHeight}`);
                     return null;
                 }
@@ -232,7 +245,7 @@ export namespace Pack {
             sortStrats = ["WIDTH"];
         }
         if (dynamicHeight && dynamicWidth) {
-            sortStrats = ["AREA"];
+            sortStrats = ["LONG_SIDE"];
         }
 
         const strategies = cartesian(Object.keys(SELECT_METHODS), Object.keys(SPLIT_METHODS), sortStrats, dynamicHeight || dynamicWidth ? ["DESC"] : Object.keys(SORT_DIRS), [true, false]);
