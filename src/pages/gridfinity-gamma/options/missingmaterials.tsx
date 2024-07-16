@@ -19,7 +19,7 @@ export const MissingMaterials = () => {
         });
 
         itemList.forEach(({ type, ...props }) => {
-            const parts = (ITEM_DEFINITIONS[type] as ItemDefinition<unknown>).draw(props, globals);
+            const parts = (ITEM_DEFINITIONS[type] as ItemDefinition<unknown>).render(props, globals);
             parts.forEach((part) => {
                 part.shapes.forEach(({ thickness }) => {
                     const theThickness = `${thickness.value}${thickness.unit}`;

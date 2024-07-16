@@ -109,9 +109,11 @@ const LoadButton = () => {
                     const thing = e.target.files?.[0];
                     if (thing) {
                         handleUpload(e.target, thing, ({ type, quantity, ...props }) => {
+                            const def = ITEM_DEFINITIONS[type].getInitial();
                             listMethods.add({
                                 type,
                                 quantity: 1,
+                                ...def,
                                 ...props,
                             });
                         });

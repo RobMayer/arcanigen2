@@ -4,7 +4,7 @@ import { convertLength } from "../../../utility/mathhelper";
 import { PhysicalLength } from "../../../utility/types/units";
 import { Draw } from "../utility/drawhelper";
 import { FootOverrideControls, FootOverrides, initialFootOverrides, initialSystemOverrides, SystemOverrideControls, SystemOverrides } from "../utility/overridehelper";
-import { GlobalSettings, ItemCategories, ItemControlProps, ItemDefinition, LayoutPart } from "../types";
+import { ItemCategories, ItemControls, ItemDefinition, ItemRenderer } from "../types";
 import { ControlPanel, Input } from "../widgets";
 
 type FootJigParams = {
@@ -15,7 +15,7 @@ type FootJigParams = {
 } & FootOverrides &
     SystemOverrides;
 
-const Controls = ({ value, globals, setValue }: ItemControlProps<FootJigParams>) => {
+const Controls: ItemControls<FootJigParams> = ({ value, globals, setValue }) => {
     return (
         <>
             <ControlPanel>
@@ -38,7 +38,7 @@ const Controls = ({ value, globals, setValue }: ItemControlProps<FootJigParams>)
     );
 };
 
-const draw = (item: FootJigParams, globals: GlobalSettings): LayoutPart[] => {
+const render: ItemRenderer<FootJigParams> = (item, globals) => {
     const gridSize = convertLength(item.hasGridSize ? item.gridSize : globals.gridSize, "mm").value;
     const gridClearance = convertLength(item.hasGridClearance ? item.gridClearance : globals.gridClearance, "mm").value;
 
@@ -125,7 +125,7 @@ export const FootJigDefinition: ItemDefinition<FootJigParams> = {
     snippet: "For aligning feet for gluing",
     image: "footjig.png",
     category: ItemCategories.TOOL,
-    draw,
+    render,
     Controls,
     getSummary: (p) => `Foot Jig ${p.cellX}x${p.cellY}`,
     getInitial: () => ({

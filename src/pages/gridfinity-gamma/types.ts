@@ -88,21 +88,23 @@ type ItemParams<D> = D extends ItemDefinition<infer P> ? P : never;
 export type ItemDefinition<P> = {
     // getLayout: (item: P, globals: GlobalSettings) => { width: number; height: number; path: string }[];
     // getLabel: (item: P) => ReactNode;
-    Controls: FC<ItemControlProps<P>>;
+    Controls: ItemControls<P>;
     getSummary: (v: P) => string;
     getInitial: () => P;
     title: string;
     image?: string;
     snippet: ReactNode;
-    draw: (item: P, globals: GlobalSettings) => LayoutPart[];
+    render: ItemRenderer<P>;
     category: ItemCategory;
 };
 
-export type ItemControlProps<P> = {
+export type ItemControls<P> = FC<{
     globals: GlobalSettings;
     value: P;
     setValue: CurriedSetter<P>;
-};
+}>;
+
+export type ItemRenderer<P> = (item: P, globals: GlobalSettings) => LayoutPart[];
 
 export type ItemInstance<T extends ItemType> = {
     type: T;

@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { FOOT_LAYOUT_OPTIONS, FootLayout, FootLayouts, FootStyles, GlobalSettings, ItemCategories, ItemControlProps, ItemDefinition, LayoutPart, Shape } from "../types";
+import { Enum, FOOT_LAYOUT_OPTIONS, FootLayout, FootLayouts, FootStyles, ItemCategories, ItemControls, ItemDefinition, ItemRenderer, Shape } from "../types";
 import { ControlPanel, Input, Sep } from "../widgets";
 import { NumericInput } from "../../../components/inputs/NumericInput";
 import ToggleList from "../../../components/selectors/ToggleList";
@@ -19,7 +19,7 @@ const TopStyles = {
     INSET: "INSET",
 } as const;
 
-type TopStyle = (typeof TopStyles)[keyof typeof TopStyles];
+type TopStyle = Enum<typeof TopStyles>;
 
 const TOP_STYLE_OPTIONS: { [key in TopStyle]: ReactNode } = {
     [TopStyles.NONE]: "None",
@@ -28,8 +28,8 @@ const TOP_STYLE_OPTIONS: { [key in TopStyle]: ReactNode } = {
     [TopStyles.INSET]: "Inset",
 };
 
-const Controls = ({ value, setValue }: ItemControlProps<GridBoxParams>) => {
-    const [isOpen, setIsOpen] = useUIState("gridfinity.items.box.thickness", false);
+const Controls: ItemControls<GridBoxParams> = ({ value, setValue }) => {
+    const [isOpen, setIsOpen] = useUIState("gridfinity.items.gridbox.thickness", false);
 
     return (
         <>
@@ -55,6 +55,9 @@ const Controls = ({ value, setValue }: ItemControlProps<GridBoxParams>) => {
                 </Input>
                 <Input label={"Top Style"}>
                     <ToggleList value={value.topStyle} options={TOP_STYLE_OPTIONS} onSelect={setValue("topStyle")} />
+                </Input>
+                <Input label={"Include Top"}>
+                    <Checkbox checked={value.includeTop} onToggle={setValue("includeTop")} disabled={value.topStyle === TopStyles.NONE} />
                 </Input>
                 <Input label={"Inset Depth"}>
                     <Checkbox checked={value.hasInsetDepth} onToggle={setValue("hasInsetDepth")} tooltip={"Override Foot Depth?"} />
@@ -91,7 +94,7 @@ const Controls = ({ value, setValue }: ItemControlProps<GridBoxParams>) => {
     );
 };
 
-const draw = (item: GridBoxParams, globals: GlobalSettings): LayoutPart[] => {
+const render: ItemRenderer<GridBoxParams> = (item, globals) => {
     const gridSize = convertLength(item.hasGridSize ? item.gridSize : globals.gridSize, "mm").value;
     const stackSize = convertLength(item.hasStackSize ? item.stackSize : globals.stackSize, "mm").value;
 
@@ -208,7 +211,7 @@ const draw = (item: GridBoxParams, globals: GlobalSettings): LayoutPart[] => {
         const path = Draw.Box.bottom(calculatedParams);
         const footSlots =
             footLayout !== FootLayouts.NONE && footStyle === FootStyles.RUNNER
-                ? drawRunnerFeetSlots({
+                ? Draw.Feet.runnerSlots({
                       gridSize,
                       cellX: item.cellX,
                       cellY: item.cellY,
@@ -290,11 +293,11 @@ const draw = (item: GridBoxParams, globals: GlobalSettings): LayoutPart[] => {
         });
     }
 
-    if (item.topStyle !== TopStyles.NONE) {
+    if (item.topStyle !== TopStyles.NONE && item.includeTop) {
         shapes.push({ name: "Top", thickness: resTopThickness, width: calculatedParams.sizeX, height: calculatedParams.sizeY, path: Draw.Box.top(calculatedParams) });
     }
 
-    if (item.divY > 0) {
+    if (item.divX > 0) {
         for (let dX = 1; dX <= item.divX; dX++) {
             shapes.push({
                 name: "X-Axis Divider",
@@ -306,7 +309,7 @@ const draw = (item: GridBoxParams, globals: GlobalSettings): LayoutPart[] => {
         }
     }
 
-    if (item.divX > 0) {
+    if (item.divY > 0) {
         for (let dY = 1; dY <= item.divY; dY++) {
             shapes.push({
                 name: "Y-Axis Divider",
@@ -337,6 +340,7 @@ export type GridBoxParams = {
 
     footLayout: FootLayout;
     topStyle: TopStyle;
+    includeTop: boolean;
     hasInsetDepth: boolean;
     insetDepth: PhysicalLength;
 
@@ -357,7 +361,7 @@ export const GridboxDefinition: ItemDefinition<GridBoxParams> = {
     title: "Grid Box",
     snippet: "A Grid-aligned box. Has provisions for dividers.",
     category: ItemCategories.GRID,
-    draw,
+    render,
     image: "box.png",
     Controls,
     getSummary: (p) => {
@@ -389,88 +393,10 @@ export const GridboxDefinition: ItemDefinition<GridBoxParams> = {
             topThickness: { value: 0.125, unit: "in" },
             hasDivThickness: false,
             divThickness: { value: 0.125, unit: "in" },
+            includeTop: true,
 
             ...initialSystemOverrides(),
             ...initialFootOverrides(),
         };
     },
-};
-
-const drawRunnerFeetSlots = ({
-    gridSize,
-    cellX,
-    cellY,
-    gridInset,
-    footClearance,
-    footLayout,
-    footRunnerGap,
-    footRunnerTab,
-    footRunnerWidth,
-}: {
-    gridSize: number;
-    cellX: number;
-    cellY: number;
-    gridInset: number;
-    footClearance: number;
-    footLayout: FootLayout;
-    footRunnerGap: number;
-    footRunnerTab: number;
-    footRunnerWidth: number;
-}) => {
-    const path: string[] = [];
-
-    const [start, end] = Draw.offsetOrigin(gridSize / 2, gridSize / 2);
-
-    path.push(start);
-
-    const offsetPrimary = gridSize / 2 - gridInset - footClearance - footRunnerWidth / 2;
-    const offsetSecondary = footRunnerGap / 2 + footRunnerTab / 2;
-
-    const footN = `m ${-offsetSecondary},${-offsetPrimary} ${Draw.cutRect(
-        footRunnerTab,
-        footRunnerWidth,
-        "MIDDLE CENTER"
-    )} m ${offsetSecondary},${offsetPrimary} m ${offsetSecondary},${-offsetPrimary} ${Draw.cutRect(footRunnerTab, footRunnerWidth, "MIDDLE CENTER")} m ${-offsetSecondary},${offsetPrimary}`;
-    const footS = `m ${-offsetSecondary},${offsetPrimary} ${Draw.cutRect(
-        footRunnerTab,
-        footRunnerWidth,
-        "MIDDLE CENTER"
-    )} m ${offsetSecondary},${-offsetPrimary} m ${offsetSecondary},${offsetPrimary} ${Draw.cutRect(footRunnerTab, footRunnerWidth, "MIDDLE CENTER")} m ${-offsetSecondary},${-offsetPrimary}`;
-
-    const footW = `m ${-offsetPrimary},${-offsetSecondary} ${Draw.cutRect(
-        footRunnerWidth,
-        footRunnerTab,
-        "MIDDLE CENTER"
-    )} m ${offsetPrimary},${offsetSecondary} m ${-offsetPrimary},${offsetSecondary} ${Draw.cutRect(footRunnerWidth, footRunnerTab, "MIDDLE CENTER")} m ${offsetPrimary},${-offsetSecondary}`;
-    const footE = `m ${offsetPrimary},${-offsetSecondary} ${Draw.cutRect(
-        footRunnerWidth,
-        footRunnerTab,
-        "MIDDLE CENTER"
-    )} m ${-offsetPrimary},${offsetSecondary} m ${offsetPrimary},${offsetSecondary} ${Draw.cutRect(footRunnerWidth, footRunnerTab, "MIDDLE CENTER")} m ${-offsetPrimary},${-offsetSecondary}`;
-
-    if (footLayout === FootLayouts.DENSE) {
-        for (let x = 0; x < cellX; x++) {
-            for (let y = 0; y < cellY; y++) {
-                path.push(`m ${gridSize * x},${gridSize * y}`, footN, footS, footW, footE, `m ${-(gridSize * x)},${-(gridSize * y)}`);
-            }
-        }
-    } else if (footLayout === FootLayouts.SPARSE) {
-        for (let x = 0; x < cellX; x++) {
-            path.push(`m ${gridSize * x},0`, footN, `m ${-(gridSize * x)},0`);
-            path.push(`m ${gridSize * x},${gridSize * (cellY - 1)}`, footS, `m ${-(gridSize * x)},${-(gridSize * (cellY - 1))}`);
-        }
-        for (let y = 0; y < cellY; y++) {
-            path.push(`m 0,${gridSize * y}`, footW, `m 0,${-(gridSize * y)}`);
-            path.push(`m ${gridSize * (cellX - 1)},${gridSize * y}`, footE, `m ${-(gridSize * (cellX - 1))},${-(gridSize * y)}`);
-        }
-    } else if (footLayout === FootLayouts.MINIMAL) {
-        path.push(`m 0,0 ${footW} ${footN} m 0,0`);
-        path.push(`m ${(cellX - 1) * gridSize},0 ${footE} ${cellX > 1 ? footN : ""} m ${-((cellX - 1) * gridSize)},0`);
-        path.push(`m 0,${(cellY - 1) * gridSize} ${cellY > 1 ? footW : ""} ${footS} m 0,${-((cellY - 1) * gridSize)}`);
-        path.push(`m ${(cellX - 1) * gridSize},${(cellY - 1) * gridSize} ${cellY > 1 ? footE : ""} ${cellX > 1 ? footS : ""} m ${-((cellX - 1) * gridSize)},${-((cellY - 1) * gridSize)}`);
-    }
-
-    path.push(end);
-
-    return path.join(" ");
 };

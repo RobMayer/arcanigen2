@@ -29,7 +29,7 @@ export const PerMaterialLayout = () => {
         }, {});
 
         const toPack = items.reduce<{ [key: string]: Pack.RectOf<{ path: string; name: string }>[] }>((acc, { type, quantity, ...props }) => {
-            const items = (ITEM_DEFINITIONS[type] as ItemDefinition<unknown>).draw(props, globals);
+            const items = (ITEM_DEFINITIONS[type] as ItemDefinition<unknown>).render(props, globals);
 
             items.forEach(({ shapes, copies, name: itemName }) => {
                 shapes.forEach((shape) => {

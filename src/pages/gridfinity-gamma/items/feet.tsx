@@ -2,7 +2,7 @@ import { convertLength } from "../../../utility/mathhelper";
 import { PhysicalLength } from "../../../utility/types/units";
 import { Draw } from "../utility/drawhelper";
 import { FootOverrideControls, FootOverrides, initialFootOverrides, initialSystemOverrides, SystemOverrideControls, SystemOverrides } from "../utility/overridehelper";
-import { GlobalSettings, LayoutPart, ItemControlProps, ItemDefinition, FootStyles, ItemCategories } from "../types";
+import { ItemDefinition, FootStyles, ItemCategories, ItemControls, ItemRenderer } from "../types";
 
 type FeetParams = {
     hasGridThickness: boolean;
@@ -10,7 +10,7 @@ type FeetParams = {
 } & FootOverrides &
     SystemOverrides;
 
-const draw = (item: FeetParams, globals: GlobalSettings): LayoutPart[] => {
+const render: ItemRenderer<FeetParams> = (item, globals) => {
     const gridSize = convertLength(item.hasGridSize ? item.gridSize : globals.gridSize, "mm").value;
     const footDepth = convertLength(item.hasFootDepth ? item.footDepth : globals.hasFootDepth ? globals.footDepth : globals.thickness, "mm").value;
     const gridThickness = convertLength(item.hasGridThickness ? item.gridThickness : globals.thickness, "mm").value;
@@ -88,7 +88,7 @@ const draw = (item: FeetParams, globals: GlobalSettings): LayoutPart[] => {
     return [];
 };
 
-const Controls = ({ value, setValue }: ItemControlProps<FeetParams>) => {
+const Controls: ItemControls<FeetParams> = ({ value, setValue }) => {
     return (
         <>
             <FootOverrideControls value={value} setValue={setValue} foldout={"gridfinity.items.feet.footOverrides"} />
@@ -102,7 +102,7 @@ export const FeetDefinition: ItemDefinition<FeetParams> = {
     snippet: "Glue these to the bottom of your objects so that they fit into a baseplate",
     image: "feet.png",
     category: ItemCategories.GRID,
-    draw,
+    render,
     Controls,
     getSummary: () => `Feet`,
     getInitial: () => ({

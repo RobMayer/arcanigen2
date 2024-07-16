@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { PhysicalLength } from "../../../utility/types/units";
-import { Enum, FOOT_LAYOUT_OPTIONS, FootLayout, FootLayouts, FootStyles, GlobalSettings, ItemCategories, ItemControlProps, ItemDefinition, LayoutPart, Shape } from "../types";
+import { Enum, FOOT_LAYOUT_OPTIONS, FootLayout, FootLayouts, FootStyles, ItemCategories, ItemControls, ItemDefinition, ItemRenderer, Shape } from "../types";
 import { ControlPanel, Input, Section, Sep } from "../widgets";
 import { NumericInput } from "../../../components/inputs/NumericInput";
 import { PhysicalLengthInput } from "../../../components/inputs/PhysicalLengthInput";
@@ -77,7 +77,7 @@ export type GridDrawerParams = {
 } & FootOverrides &
     SystemOverrides;
 
-const Controls = ({ value, setValue }: ItemControlProps<GridDrawerParams>) => {
+const Controls: ItemControls<GridDrawerParams> = ({ value, setValue }) => {
     const [isOpen, setIsOpen] = useUIState("gridfinity.items.griddrawers.thickness", false);
 
     return (
@@ -174,7 +174,7 @@ const Controls = ({ value, setValue }: ItemControlProps<GridDrawerParams>) => {
     );
 };
 
-const draw = (item: GridDrawerParams, globals: GlobalSettings): LayoutPart[] => {
+const render: ItemRenderer<GridDrawerParams> = (item, globals) => {
     const gridSize = convertLength(item.hasGridSize ? item.gridSize : globals.gridSize, "mm").value;
     const stackSize = convertLength(item.hasStackSize ? item.stackSize : globals.stackSize, "mm").value;
 
@@ -263,7 +263,7 @@ const draw = (item: GridDrawerParams, globals: GlobalSettings): LayoutPart[] => 
 
         const footSlots =
             footLayout !== FootLayouts.NONE && footStyle === FootStyles.RUNNER
-                ? drawRunnerFeetSlots({
+                ? Draw.Feet.runnerSlots({
                       gridSize,
                       cellX: item.cellX,
                       cellY: item.cellY,
@@ -627,7 +627,7 @@ export const GridDrawerDefinition: ItemDefinition<GridDrawerParams> = {
     title: "Grid Drawer",
     snippet: "A set of drawers whose carcass fits within a grid.",
     category: ItemCategories.GRID,
-    draw,
+    render,
     image: "drawer.png",
     Controls,
     getSummary: (p) => {
@@ -671,83 +671,4 @@ export const GridDrawerDefinition: ItemDefinition<GridDrawerParams> = {
             ...initialSystemOverrides(),
         };
     },
-};
-
-const drawRunnerFeetSlots = ({
-    gridSize,
-    cellX,
-    cellY,
-    gridInset,
-    footClearance,
-    footLayout,
-    footRunnerGap,
-    footRunnerTab,
-    footRunnerWidth,
-}: {
-    gridSize: number;
-    cellX: number;
-    cellY: number;
-    gridInset: number;
-    footClearance: number;
-    footLayout: FootLayout;
-    footRunnerGap: number;
-    footRunnerTab: number;
-    footRunnerWidth: number;
-}) => {
-    const path: string[] = [];
-
-    const [start, end] = Draw.offsetOrigin(gridSize / 2, gridSize / 2);
-
-    path.push(start);
-
-    const offsetPrimary = gridSize / 2 - gridInset - footClearance - footRunnerWidth / 2;
-    const offsetSecondary = footRunnerGap / 2 + footRunnerTab / 2;
-
-    const footN = `m ${-offsetSecondary},${-offsetPrimary} ${Draw.cutRect(
-        footRunnerTab,
-        footRunnerWidth,
-        "MIDDLE CENTER"
-    )} m ${offsetSecondary},${offsetPrimary} m ${offsetSecondary},${-offsetPrimary} ${Draw.cutRect(footRunnerTab, footRunnerWidth, "MIDDLE CENTER")} m ${-offsetSecondary},${offsetPrimary}`;
-    const footS = `m ${-offsetSecondary},${offsetPrimary} ${Draw.cutRect(
-        footRunnerTab,
-        footRunnerWidth,
-        "MIDDLE CENTER"
-    )} m ${offsetSecondary},${-offsetPrimary} m ${offsetSecondary},${offsetPrimary} ${Draw.cutRect(footRunnerTab, footRunnerWidth, "MIDDLE CENTER")} m ${-offsetSecondary},${-offsetPrimary}`;
-
-    const footW = `m ${-offsetPrimary},${-offsetSecondary} ${Draw.cutRect(
-        footRunnerWidth,
-        footRunnerTab,
-        "MIDDLE CENTER"
-    )} m ${offsetPrimary},${offsetSecondary} m ${-offsetPrimary},${offsetSecondary} ${Draw.cutRect(footRunnerWidth, footRunnerTab, "MIDDLE CENTER")} m ${offsetPrimary},${-offsetSecondary}`;
-    const footE = `m ${offsetPrimary},${-offsetSecondary} ${Draw.cutRect(
-        footRunnerWidth,
-        footRunnerTab,
-        "MIDDLE CENTER"
-    )} m ${-offsetPrimary},${offsetSecondary} m ${offsetPrimary},${offsetSecondary} ${Draw.cutRect(footRunnerWidth, footRunnerTab, "MIDDLE CENTER")} m ${-offsetPrimary},${-offsetSecondary}`;
-
-    if (footLayout === FootLayouts.DENSE) {
-        for (let x = 0; x < cellX; x++) {
-            for (let y = 0; y < cellY; y++) {
-                path.push(`m ${gridSize * x},${gridSize * y}`, footN, footS, footW, footE, `m ${-(gridSize * x)},${-(gridSize * y)}`);
-            }
-        }
-    } else if (footLayout === FootLayouts.SPARSE) {
-        for (let x = 0; x < cellX; x++) {
-            path.push(`m ${gridSize * x},0`, footN, `m ${-(gridSize * x)},0`);
-            path.push(`m ${gridSize * x},${gridSize * (cellY - 1)}`, footS, `m ${-(gridSize * x)},${-(gridSize * (cellY - 1))}`);
-        }
-        for (let y = 0; y < cellY; y++) {
-            path.push(`m 0,${gridSize * y}`, footW, `m 0,${-(gridSize * y)}`);
-            path.push(`m ${gridSize * (cellX - 1)},${gridSize * y}`, footE, `m ${-(gridSize * (cellX - 1))},${-(gridSize * y)}`);
-        }
-    } else if (footLayout === FootLayouts.MINIMAL) {
-        path.push(`m 0,0 ${footW} ${footN} m 0,0`);
-        path.push(`m ${(cellX - 1) * gridSize},0 ${footE} ${cellX > 1 ? footN : ""} m ${-((cellX - 1) * gridSize)},0`);
-        path.push(`m 0,${(cellY - 1) * gridSize} ${cellY > 1 ? footW : ""} ${footS} m 0,${-((cellY - 1) * gridSize)}`);
-        path.push(`m ${(cellX - 1) * gridSize},${(cellY - 1) * gridSize} ${cellY > 1 ? footE : ""} ${cellX > 1 ? footS : ""} m ${-((cellX - 1) * gridSize)},${-((cellY - 1) * gridSize)}`);
-    }
-
-    path.push(end);
-
-    return path.join(" ");
 };

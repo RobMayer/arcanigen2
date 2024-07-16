@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { Enum, GlobalSettings, ItemCategories, ItemControlProps, ItemDefinition, LayoutPart, Shape } from "../types";
+import { Enum, ItemCategories, ItemControls, ItemDefinition, ItemRenderer, Shape } from "../types";
 import { ControlPanel, Input, Section, Sep } from "../widgets";
 import { NumericInput } from "../../../components/inputs/NumericInput";
 import ToggleList from "../../../components/selectors/ToggleList";
@@ -37,7 +37,7 @@ export const TOP_STYLE_OPTIONS: { [key in TopStyle]: ReactNode } = {
     [TopStyles.INSET]: "Inset",
 };
 
-const Controls = ({ value, setValue }: ItemControlProps<FreeBoxParams>) => {
+const Controls: ItemControls<FreeBoxParams> = ({ value, setValue }) => {
     const [isThicknessOpen, setIsThicknessOpen] = useUIState("gridfinity.items.freebox.thickness", false);
 
     return (
@@ -147,7 +147,7 @@ const Controls = ({ value, setValue }: ItemControlProps<FreeBoxParams>) => {
     );
 };
 
-const draw = (item: FreeBoxParams, globals: GlobalSettings): LayoutPart[] => {
+const render: ItemRenderer<FreeBoxParams> = (item, globals) => {
     const resBottomThickness = item.hasBottomThickness ? item.bottomThickness : item.thickness;
     const resWallThickness = item.hasWallThickness ? item.wallThickness : item.thickness;
     const resTopThickness = item.hasTopThickness ? item.topThickness : item.thickness;
@@ -308,7 +308,7 @@ const draw = (item: FreeBoxParams, globals: GlobalSettings): LayoutPart[] => {
         shapes.push({ name: "Top", thickness: resTopThickness, width: calculatedParams.sizeX, height: calculatedParams.sizeY, path: Draw.Box.top(calculatedParams) });
     }
 
-    if (item.divY > 0) {
+    if (item.divX > 0) {
         for (let dX = 1; dX <= item.divX; dX++) {
             shapes.push({
                 name: "X-Axis Divider",
@@ -320,7 +320,7 @@ const draw = (item: FreeBoxParams, globals: GlobalSettings): LayoutPart[] => {
         }
     }
 
-    if (item.divX > 0) {
+    if (item.divY > 0) {
         for (let dY = 1; dY <= item.divY; dY++) {
             shapes.push({
                 name: "Y-Axis Divider",
@@ -385,7 +385,7 @@ export const FreeBoxDefinition: ItemDefinition<FreeBoxParams> = {
     title: "Freeform Box",
     snippet: "A Freeform box. Has provisions for dividers.",
     category: ItemCategories.FREE,
-    draw,
+    render,
     image: "box.png",
     Controls,
     getSummary: (p) => {

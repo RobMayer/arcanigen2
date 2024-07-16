@@ -1,4 +1,4 @@
-import { Enum } from "../types";
+import { Enum, FootLayout, FootLayouts } from "../types";
 
 export namespace Draw {
     /* SHAPES */
@@ -11,6 +11,114 @@ export namespace Draw {
     export const cutRect = (w: number, h: number, anchor: Anchor = "TOP LEFT"): string => {
         const [start, end] = offsetAnchor(w, h, anchor);
         return [start, `m ${w},${h}`, `v ${-h} h ${-w} v ${h} z`, `m ${-w},${-h}`, end].join(" ");
+    };
+
+    export const circle = (r: number, anchor: Anchor = "MIDDLE CENTER"): string => {
+        const [start, end] = offsetAnchor(r * 2, r * 2, anchor);
+        return [start, `m 0,${r} a ${r},${r} 0 0,1 ${r * 2},0 a ${r},${r} 0 0,1 ${-r * 2},0 m 0,${-r}`, end].join(" ");
+    };
+
+    export const cutCircle = (r: number, anchor: Anchor = "MIDDLE CENTER"): string => {
+        const [start, end] = offsetAnchor(r * 2, r * 2, anchor);
+        return [start, `m 0,${r} a ${r},${r} 0 1,0 ${r * 2},0 a ${r},${r} 0 1,0 ${-r * 2},0 m 0,${-r}`, end].join(" ");
+    };
+
+    export const hHex = (r: number, mode: "INSCRIBE" | "CIRCUMSCRIBE" = "INSCRIBE", anchor: Anchor = "MIDDLE CENTER") => {
+        const w = (mode === "INSCRIBE" ? r : r * Math.sqrt(3 / 2)) * 2;
+        const h = (mode === "INSCRIBE" ? r : r * Math.sqrt(3 / 2)) * Math.sqrt(3);
+        const s = (w - r) / 2;
+
+        const [start, end] = offsetAnchor(w, h, anchor);
+
+        return [
+            //
+            start,
+            `m 0,${h / 2}`,
+            `l ${s},${-h / 2}`,
+            `l ${r},0`,
+            `l ${s},${h / 2}`,
+            `l ${-s},${h / 2}`,
+            `l ${-r},0`,
+            `l ${-s},${-h / 2}`,
+            `z`,
+            `m 0,${-h / 2}`,
+            end,
+        ].join(" ");
+    };
+
+    export const cutHHex = (r: number, mode: "INSCRIBE" | "CIRCUMSCRIBE" = "CIRCUMSCRIBE", anchor: Anchor = "MIDDLE CENTER") => {
+        const w = (mode === "INSCRIBE" ? r : r * Math.sqrt(3 / 2)) * 2;
+        const h = (mode === "INSCRIBE" ? r : r * Math.sqrt(3 / 2)) * Math.sqrt(3);
+        const s = (w - r) / 2;
+
+        const [start, end] = offsetAnchor(w, h, anchor);
+
+        return [
+            //
+            start,
+            `m 0,${h / 2}`,
+
+            `l ${s},${h / 2}`,
+            `l ${r},0`,
+            `l ${s},${-h / 2}`,
+            `l ${-s},${-h / 2}`,
+            `l ${-r},0`,
+            `l ${-s},${h / 2}`,
+
+            `z`,
+            `m 0,${-h / 2}`,
+            end,
+        ].join(" ");
+    };
+
+    export const vHex = (r: number, mode: "INSCRIBE" | "CIRCUMSCRIBE" = "INSCRIBE", anchor: Anchor = "MIDDLE CENTER") => {
+        const w = (mode === "INSCRIBE" ? r : r * Math.sqrt(3 / 2)) * Math.sqrt(3);
+        const h = (mode === "INSCRIBE" ? r : r * Math.sqrt(3 / 2)) * 2;
+        const s = (h - r) / 2;
+
+        const [start, end] = offsetAnchor(w, h, anchor);
+
+        return [
+            //
+            start,
+            `m ${w / 2},0`,
+
+            `l ${w / 2},${s}`,
+            `l 0,${r}`,
+            `l ${-w / 2},${s}`,
+            `l ${-w / 2},${-s}`,
+            `l 0,${-r}`,
+            `l ${w / 2},${-s}`,
+
+            `z`,
+            `m ${-w / 2},0`,
+            end,
+        ].join(" ");
+    };
+
+    export const cutVHex = (r: number, mode: "INSCRIBE" | "CIRCUMSCRIBE" = "INSCRIBE", anchor: Anchor = "MIDDLE CENTER") => {
+        const w = (mode === "INSCRIBE" ? r : r * Math.sqrt(3 / 2)) * Math.sqrt(3);
+        const h = (mode === "INSCRIBE" ? r : r * Math.sqrt(3 / 2)) * 2;
+        const s = (h - r) / 2;
+
+        const [start, end] = offsetAnchor(w, h, anchor);
+
+        return [
+            //
+            start,
+            `m ${w / 2},0`,
+
+            `l ${-w / 2},${s}`,
+            `l 0,${r}`,
+            `l ${w / 2},${s}`,
+            `l ${w / 2},${-s}`,
+            `l 0,${-r}`,
+            `l ${-w / 2},${-s}`,
+
+            `z`,
+            `m ${-w / 2},0`,
+            end,
+        ].join(" ");
     };
 
     export const tabbedRect = (w: number, h: number, { north, east, south, west }: Partial<TabSet> = {}, anchor: Anchor = "TOP LEFT"): string => {
@@ -146,16 +254,6 @@ export namespace Draw {
         res.push(end);
 
         return res.join(" ");
-    };
-
-    export const circle = (r: number, anchor: Anchor = "MIDDLE CENTER"): string => {
-        const [start, end] = offsetAnchor(r * 2, r * 2, anchor);
-        return [start, `m 0,${r} a ${r},${r} 0 0,1 ${r * 2},0 a ${r},${r} 0 0,1 ${-r * 2},0 m 0,${-r}`, end].join(" ");
-    };
-
-    export const cutCircle = (r: number, anchor: Anchor = "MIDDLE CENTER"): string => {
-        const [start, end] = offsetAnchor(r * 2, r * 2, anchor);
-        return [start, `m 0,${r} a ${r},${r} 0 1,0 ${r * 2},0 a ${r},${r} 0 1,0 ${-r * 2},0 m 0,${-r}`, end].join(" ");
     };
 
     /* UTILITY */
@@ -387,6 +485,85 @@ export namespace Draw {
                 `z`,
                 `m ${overallWidth / 2},${overallHeight / 2}`,
             ].join(" ");
+        };
+
+        export const runnerSlots = ({
+            gridSize,
+            cellX,
+            cellY,
+            gridInset,
+            footClearance,
+            footLayout,
+            footRunnerGap,
+            footRunnerTab,
+            footRunnerWidth,
+        }: {
+            gridSize: number;
+            cellX: number;
+            cellY: number;
+            gridInset: number;
+            footClearance: number;
+            footLayout: FootLayout;
+            footRunnerGap: number;
+            footRunnerTab: number;
+            footRunnerWidth: number;
+        }) => {
+            const path: string[] = [];
+
+            const [start, end] = Draw.offsetOrigin(gridSize / 2, gridSize / 2);
+
+            path.push(start);
+
+            const offsetPrimary = gridSize / 2 - gridInset - footClearance - footRunnerWidth / 2;
+            const offsetSecondary = footRunnerGap / 2 + footRunnerTab / 2;
+
+            const footN = `m ${-offsetSecondary},${-offsetPrimary} ${Draw.cutRect(
+                footRunnerTab,
+                footRunnerWidth,
+                "MIDDLE CENTER"
+            )} m ${offsetSecondary},${offsetPrimary} m ${offsetSecondary},${-offsetPrimary} ${Draw.cutRect(footRunnerTab, footRunnerWidth, "MIDDLE CENTER")} m ${-offsetSecondary},${offsetPrimary}`;
+            const footS = `m ${-offsetSecondary},${offsetPrimary} ${Draw.cutRect(
+                footRunnerTab,
+                footRunnerWidth,
+                "MIDDLE CENTER"
+            )} m ${offsetSecondary},${-offsetPrimary} m ${offsetSecondary},${offsetPrimary} ${Draw.cutRect(footRunnerTab, footRunnerWidth, "MIDDLE CENTER")} m ${-offsetSecondary},${-offsetPrimary}`;
+
+            const footW = `m ${-offsetPrimary},${-offsetSecondary} ${Draw.cutRect(
+                footRunnerWidth,
+                footRunnerTab,
+                "MIDDLE CENTER"
+            )} m ${offsetPrimary},${offsetSecondary} m ${-offsetPrimary},${offsetSecondary} ${Draw.cutRect(footRunnerWidth, footRunnerTab, "MIDDLE CENTER")} m ${offsetPrimary},${-offsetSecondary}`;
+            const footE = `m ${offsetPrimary},${-offsetSecondary} ${Draw.cutRect(
+                footRunnerWidth,
+                footRunnerTab,
+                "MIDDLE CENTER"
+            )} m ${-offsetPrimary},${offsetSecondary} m ${offsetPrimary},${offsetSecondary} ${Draw.cutRect(footRunnerWidth, footRunnerTab, "MIDDLE CENTER")} m ${-offsetPrimary},${-offsetSecondary}`;
+
+            if (footLayout === FootLayouts.DENSE) {
+                for (let x = 0; x < cellX; x++) {
+                    for (let y = 0; y < cellY; y++) {
+                        path.push(`m ${gridSize * x},${gridSize * y}`, footN, footS, footW, footE, `m ${-(gridSize * x)},${-(gridSize * y)}`);
+                    }
+                }
+            } else if (footLayout === FootLayouts.SPARSE) {
+                for (let x = 0; x < cellX; x++) {
+                    path.push(`m ${gridSize * x},0`, footN, `m ${-(gridSize * x)},0`);
+                    path.push(`m ${gridSize * x},${gridSize * (cellY - 1)}`, footS, `m ${-(gridSize * x)},${-(gridSize * (cellY - 1))}`);
+                }
+                for (let y = 0; y < cellY; y++) {
+                    path.push(`m 0,${gridSize * y}`, footW, `m 0,${-(gridSize * y)}`);
+                    path.push(`m ${gridSize * (cellX - 1)},${gridSize * y}`, footE, `m ${-(gridSize * (cellX - 1))},${-(gridSize * y)}`);
+                }
+            } else if (footLayout === FootLayouts.MINIMAL) {
+                path.push(`m 0,0 ${footW} ${footN} m 0,0`);
+                path.push(`m ${(cellX - 1) * gridSize},0 ${footE} ${cellX > 1 ? footN : ""} m ${-((cellX - 1) * gridSize)},0`);
+                path.push(`m 0,${(cellY - 1) * gridSize} ${cellY > 1 ? footW : ""} ${footS} m 0,${-((cellY - 1) * gridSize)}`);
+                path.push(`m ${(cellX - 1) * gridSize},${(cellY - 1) * gridSize} ${cellY > 1 ? footE : ""} ${cellX > 1 ? footS : ""} m ${-((cellX - 1) * gridSize)},${-((cellY - 1) * gridSize)}`);
+            }
+
+            path.push(end);
+
+            return path.join(" ");
         };
     }
 

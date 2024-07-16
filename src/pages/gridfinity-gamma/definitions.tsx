@@ -4,6 +4,8 @@ import { FootJigDefinition } from "./items/footjig";
 import { FreeBoxDefinition } from "./items/freebox";
 import { GridboxDefinition } from "./items/gridbox";
 import { GridDrawerDefinition } from "./items/griddrawers";
+import { GridPatternTopDefinition } from "./items/gridpatterntop";
+// import { GridRackDefinition } from "./items/gridrack";
 import { GridTrayDefinition } from "./items/gridtray";
 
 export const ITEM_DEFINITIONS = {
@@ -14,4 +16,6 @@ export const ITEM_DEFINITIONS = {
     GRIDTRAY: GridTrayDefinition,
     FREEBOX: FreeBoxDefinition,
     GRIDDRWER: GridDrawerDefinition,
+    GRIDPATTERNTOP: GridPatternTopDefinition,
+    // GRIDRACK: GridRackDefinition,
 } as const;

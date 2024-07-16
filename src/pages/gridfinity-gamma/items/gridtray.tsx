@@ -1,4 +1,4 @@
-import { GlobalSettings, ItemCategories, ItemControlProps, ItemDefinition, LayoutPart, Shape } from "../types";
+import { ItemCategories, ItemControls, ItemDefinition, ItemRenderer, Shape } from "../types";
 import { ControlPanel, Input, Sep } from "../widgets";
 import { NumericInput } from "../../../components/inputs/NumericInput";
 import { ControlledFoldout } from "../../../components/containers/Foldout";
@@ -10,7 +10,7 @@ import { initialSystemOverrides, SystemOverrideControls, SystemOverrides } from 
 import { convertLength } from "../../../utility/mathhelper";
 import { Draw } from "../utility/drawhelper";
 
-const Controls = ({ value, setValue }: ItemControlProps<GridTrayParams>) => {
+const Controls: ItemControls<GridTrayParams> = ({ value, setValue }) => {
     const [isOpen, setIsOpen] = useUIState("gridfinity.items.gridbox.thickness", false);
 
     return (
@@ -53,7 +53,7 @@ const Controls = ({ value, setValue }: ItemControlProps<GridTrayParams>) => {
     );
 };
 
-const draw = (item: GridTrayParams, globals: GlobalSettings): LayoutPart[] => {
+const render: ItemRenderer<GridTrayParams> = (item, globals) => {
     const gridSize = convertLength(item.hasGridSize ? item.gridSize : globals.gridSize, "mm").value;
     const stackSize = convertLength(item.hasStackSize ? item.stackSize : globals.stackSize, "mm").value;
 
@@ -131,7 +131,7 @@ export type GridTrayParams = {
 export const GridTrayDefinition: ItemDefinition<GridTrayParams> = {
     title: "Grid Tray",
     snippet: "A Tray that will fit a grid baseplate inside",
-    draw,
+    render,
     image: "tray.png",
     category: ItemCategories.GRID,
     Controls,

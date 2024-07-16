@@ -15,7 +15,7 @@ export const PerItemLayout = ({ selected }: { selected: number }) => {
     const [props, definition] = useItemProps(selected);
 
     const parts = useMemo(() => {
-        return definition.draw(props, globals);
+        return definition.render(props, globals);
     }, [definition, globals, props]);
 
     return parts.map(({ name, shapes, copies }, j) => {

@@ -1,7 +1,7 @@
 import CheckBox from "../../../components/buttons/Checkbox";
 import { NumericInput } from "../../../components/inputs/NumericInput";
 import { FootOverrideControls, FootOverrides, initialFootOverrides, initialSystemOverrides, SystemOverrideControls, SystemOverrides } from "../utility/overridehelper";
-import { FootStyles, GlobalSettings, ItemCategories, ItemControlProps, ItemDefinition, LayoutPart } from "../types";
+import { FootStyles, ItemCategories, ItemControls, ItemDefinition, ItemRenderer } from "../types";
 import { ControlPanel, Full, Input, WarningBox } from "../widgets";
 import { convertLength } from "../../../utility/mathhelper";
 import { PhysicalLength } from "../../../utility/types/units";
@@ -20,7 +20,7 @@ export type BaseplateParams = {
 } & FootOverrides &
     SystemOverrides;
 
-const Controls = ({ value, globals, setValue }: ItemControlProps<BaseplateParams>) => {
+const Controls: ItemControls<BaseplateParams> = ({ value, globals, setValue }) => {
     const footDepth = convertLength(value.hasFootDepth ? value.footDepth : globals.hasFootDepth ? globals.footDepth : globals.thickness, "mm").value;
     const footStyle = value.hasFootStyle ? value.footStyle : globals.footStyle;
     const footRunnerWidth = convertLength(value.hasFootRunnerWidth ? value.footRunnerWidth : globals.hasFootRunnerWidth ? globals.footRunnerWidth : globals.thickness, "mm").value;
@@ -65,7 +65,7 @@ const Controls = ({ value, globals, setValue }: ItemControlProps<BaseplateParams
 };
 
 //TODO: UAGH!
-const draw = (item: BaseplateParams, globals: GlobalSettings): LayoutPart[] => {
+const render: ItemRenderer<BaseplateParams> = (item, globals) => {
     const gridSize = convertLength(item.hasGridSize ? item.gridSize : globals.gridSize, "mm").value;
     const gridClearance = convertLength(item.hasGridClearance ? item.gridClearance : globals.gridClearance, "mm").value;
     const footDepth = convertLength(item.hasFootDepth ? item.footDepth : globals.hasFootDepth ? globals.footDepth : globals.thickness, "mm").value;
@@ -132,7 +132,7 @@ export const BaseplateDefinition: ItemDefinition<BaseplateParams> = {
     title: "Baseplate",
     snippet: "A grid for locking your box or other items into.",
     image: "baseplate.png",
-    draw,
+    render,
     category: ItemCategories.GRID,
     Controls,
     getSummary: (p) => {
