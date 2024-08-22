@@ -54,7 +54,7 @@ const Controls = ({ nodeId, globals }: ControlRendererProps) => {
             <hr />
             <SocketIn<IResultNode> type={SocketTypes.COLOR} nodeId={nodeId} socketId={"canvasColor"}>
                 <BaseNode.Input label={"Canvas Color"}>
-                    <HexColorInput value={canvasColor} onValue={setCanvasColor} disabled={hasCanvasColor} />
+                    <HexColorInput value={canvasColor} onValue={setCanvasColor} disabled={hasCanvasColor} alpha />
                 </BaseNode.Input>
             </SocketIn>
             <SocketIn<IResultNode> type={SocketTypes.LENGTH} nodeId={nodeId} socketId={"canvasWidth"}>

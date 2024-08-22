@@ -47,7 +47,7 @@ const rasterize = (svgString: string, width: number, height: number) => {
             const canvas = document.createElement("canvas");
             canvas.width = width;
             canvas.height = height;
-            const context = canvas.getContext("2d");
+            const context = canvas.getContext("2d", { alpha: true });
             if (context) {
                 context.drawImage(image, 0, 0, width, height);
                 context.canvas.toBlob(resolve);
