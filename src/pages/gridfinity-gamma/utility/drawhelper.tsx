@@ -763,7 +763,7 @@ export namespace Draw {
                     spacing: args.tabZSpacing,
                     count: args.tabZCount,
                     depth: args.wallThickness,
-                    offset: -(args?.topSquat ?? 0) / 2,
+                    offset: (args?.topSquat ?? 0) / 2,
                 },
             });
         };

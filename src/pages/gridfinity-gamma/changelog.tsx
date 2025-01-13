@@ -5,6 +5,9 @@ const { Release, Feature, Bugfix, Improvement } = Changelog;
 export const GridGammaChangelog = () => {
     return (
         <Changelog>
+            <Release version={"v2.3.1"} on={"13-01-2025"}>
+                <Bugfix>Fixed a bug with "left" sides of boxes when Top Style was Grid</Bugfix>
+            </Release>
             <Release version={"v2.3.0"} on={"16-07-2024"}>
                 <Feature>Added "Pattern Top" (and a way to exclude the standard top for grid box)</Feature>
                 <Improvement>Internal optimizations</Improvement>
