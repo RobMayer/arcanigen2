@@ -135,6 +135,10 @@ const Sheet = styled(({ width, height, margin, children, className }: { width: n
 
     return (
         <div className={className}>
+            <div className={"menu"}>
+                <SaveButton target={ref} />
+                <CopyButton target={ref} />
+            </div>
             <Svg
                 ref={ref}
                 viewBox={`0 0 ${width + margin * 2} ${height + margin * 2}`}
@@ -145,24 +149,20 @@ const Sheet = styled(({ width, height, margin, children, className }: { width: n
             >
                 {children}
             </Svg>
-            <div className={"menu"}>
-                <SaveButton target={ref} />
-                <CopyButton target={ref} />
-            </div>
         </div>
     );
 })`
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-rows: auto 1fr;
     gap: 0.25em;
     margin: 0.5em;
 
     & > .menu {
         display: grid;
+        grid-auto-flow: column;
         font-size: 2em;
-        align-content: start;
         background: #fff1;
-        align-self: start;
+        justify-content: start;
     }
 `;
 
