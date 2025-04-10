@@ -5,6 +5,9 @@ const { Release, Feature, Bugfix, Improvement } = Changelog;
 export const GridGammaChangelog = () => {
     return (
         <Changelog>
+            <Release version={"v2.4.0"} on={"10-04-2025"}>
+                <Bugfix>Added explicit units when exporting or saving SVGs</Bugfix>
+            </Release>
             <Release version={"v2.3.1"} on={"13-01-2025"}>
                 <Bugfix>Fixed a bug with "left" sides of boxes when Top Style was Grid</Bugfix>
             </Release>

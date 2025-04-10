@@ -109,7 +109,7 @@ const Parts = styled.div`
     flex-wrap: wrap;
 `;
 
-const DPMM = 72.0 / 25.4;
+// const DPMM = 72.0 / 25.4;
 
 const Material = styled.div`
     display: grid;
@@ -136,8 +136,8 @@ const Sheet = styled(({ width, height, margin, children, className }: { width: n
             <Svg
                 ref={ref}
                 viewBox={`0 0 ${width + margin * 2} ${height + margin * 2}`}
-                width={(width + margin * 2) * DPMM}
-                height={(height + margin * 2) * DPMM}
+                width={width + margin * 2 + "mm"}
+                height={height + margin * 2 + "mm"}
                 xmlns="http://www.w3.org/2000/svg"
                 xmlnsXlink="http://www.w3.org/1999/xlink"
             >
